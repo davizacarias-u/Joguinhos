@@ -1,0 +1,1133 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FutManager - Ultimate Pro</title>
+    <style>
+        * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: #121212; color: #fff; margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; }
+        h1 { color: #4CAF50; text-shadow: 2px 2px 4px rgba(0,0,0,0.5); margin-bottom: 10px; }
+        
+        .container { max-width: 950px; width: 100%; background-color: #1e1e1e; padding: 20px; border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.3); margin-bottom: 20px; }
+        
+        .header-info { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #333; padding-bottom: 10px; margin-bottom: 15px; }
+        .resources { display: flex; gap: 20px; font-size: 1.1rem; font-weight: bold; align-items: center;}
+        .coins { color: #FFD700; }
+        .fans { color: #00E676; }
+        .sponsor-tag { font-size: 0.8rem; background: #333; padding: 3px 8px; border-radius: 5px; color: #00bcd4; border: 1px solid #00bcd4; }
+        
+        .actions { display: flex; gap: 10px; margin-bottom: 15px; justify-content: center; flex-wrap: wrap; align-items: center; }
+        button { background-color: #4CAF50; color: white; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer; font-size: 0.95rem; font-weight: bold; transition: 0.2s; position: relative; }
+        button:hover { background-color: #45a049; }
+        button:disabled { background-color: #555 !important; cursor: not-allowed; color: #888; box-shadow: none; }
+        
+        .pack-btn { position: relative; }
+        .pack-tooltip {
+            display: none; position: absolute; bottom: 120%; left: 50%; transform: translateX(-50%);
+            background: #000; color: #fff; padding: 8px 12px; border-radius: 6px; font-size: 0.75rem;
+            white-space: nowrap; border: 1px solid #444; box-shadow: 0 4px 10px rgba(0,0,0,0.8); z-index: 100;
+            pointer-events: none; text-align: left; line-height: 1.4;
+        }
+        .pack-btn:hover .pack-tooltip { display: block; }
+
+        .pack-comum { background-color: #8b4513; } .pack-comum:hover { background-color: #a0522d; }
+        .pack-raro { background-color: #a9a9a9; color: #000; } .pack-raro:hover { background-color: #c0c0c0; }
+        .pack-lenda { background-color: #ff007f; box-shadow: 0 0 10px #ff007f; } .pack-lenda:hover { background-color: #e60073; }
+        .btn-play { background-color: #2196F3; font-size: 1.1rem; } .btn-play:hover { background-color: #1976D2; }
+        .btn-cup { background-color: #FF9800; font-size: 1.1rem; } .btn-cup:hover { background-color: #F57C00; }
+        .btn-cup2 { background-color: #E91E63; font-size: 1.1rem; } .btn-cup2:hover { background-color: #C2185B; }
+        .btn-club { background-color: #9C27B0; } .btn-club:hover { background-color: #7B1FA2; }
+        .btn-train { background-color: #00BCD4; } .btn-train:hover { background-color: #008BA3; }
+
+        input[type="text"], input[type="number"], select { padding: 8px; border-radius: 4px; border: 1px solid #333; background-color: #2a2a2a; color: white; font-size: 1rem; width: 100%; }
+        
+        .scoreboard { background: linear-gradient(to right, #0d47a1, #1a237e, #b71c1c); padding: 10px 20px; border-radius: 8px; margin-bottom: 15px; display: flex; justify-content: center; align-items: center; gap: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.5); border: 2px solid #444; }
+        .score-team { font-size: 1.2rem; font-weight: bold; text-transform: uppercase; width: 150px; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .score-numbers { font-size: 2rem; font-weight: bold; background: #000; padding: 5px 15px; border-radius: 5px; color: #fff; letter-spacing: 2px; }
+        .score-time { font-size: 1.2rem; color: #ffeb3b; background: rgba(0,0,0,0.5); padding: 5px 10px; border-radius: 5px; font-family: monospace; font-weight: bold; }
+
+        canvas { background-color: #2e7d32; border: 3px solid #fff; border-radius: 5px; display: block; margin: 0 auto 5px auto; max-width: 100%; box-shadow: inset 0 0 20px rgba(0,0,0,0.5); }
+        .manager-hint { text-align: center; font-size: 0.85rem; color: #aaa; margin-bottom: 15px; }
+        .manager-on { color: #00e676; font-weight: bold; }
+
+        .section-title { border-bottom: 1px solid #444; padding-bottom: 5px; margin-top: 20px; color: #aaa; display: flex; justify-content: space-between;}
+        .team-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 12px; margin-top: 10px; min-height: 80px; background: #111; padding: 15px; border-radius: 5px; }
+        
+        .player-card { padding: 10px; border-radius: 8px; text-align: center; cursor: pointer; transition: transform 0.2s; border: 2px solid transparent; user-select: none; position: relative; overflow: hidden; display: flex; flex-direction: column; }
+        .player-card:hover { transform: translateY(-5px); }
+        .player-card.selected { border: 2px solid #00ff00 !important; transform: scale(1.05); box-shadow: 0 0 15px #00ff00 !important; z-index: 10; }
+        
+        .p-photo { width: 60px; height: 60px; margin: 5px auto; border-radius: 50%; object-fit: cover; background: #222; border: 2px solid rgba(255,255,255,0.3); }
+
+        .bronze { background: linear-gradient(135deg, #5c4033, #cd7f32); border-color: #8b4513; }
+        .silver { background: linear-gradient(135deg, #555, #c0c0c0); border-color: #a9a9a9; color: #000; }
+        .gold { background: linear-gradient(135deg, #b8860b, #ffd700); border-color: #ffd700; color: #000; box-shadow: 0 0 10px rgba(255, 215, 0, 0.3); }
+        .icon { background: linear-gradient(135deg, #1a0033, #7a00cc); border-color: #e600ff; color: #fff; box-shadow: 0 0 15px rgba(230, 0, 255, 0.6); }
+        .icon::before { content: "⭐ LENDA"; position: absolute; top: 2px; right: 4px; font-size: 0.55rem; font-weight: bold; color: #ffd700; }
+        .mystic { background: linear-gradient(135deg, #8b0000, #ff0000); border-color: #ff3333; color: #fff; box-shadow: 0 0 20px rgba(255, 0, 0, 0.8); }
+        .mystic::before { content: "🔥 MÍSTICO"; position: absolute; top: 2px; right: 4px; font-size: 0.55rem; font-weight: bold; color: #fff; }
+        
+        .p-ovr { font-size: 1.5rem; font-weight: bold; margin: 0; }
+        .p-pos { font-size: 0.75rem; background: rgba(0,0,0,0.4); color:#fff; padding: 2px 5px; border-radius: 4px; display: inline-block; font-weight: bold; }
+        .p-side { font-size: 0.65rem; background: #FF9800; color:#000; padding: 1px 4px; border-radius: 3px; font-weight: bold; margin-left: 2px; }
+        .p-name { font-size: 0.9rem; margin: 5px 0; font-weight: bold; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; border-bottom: 1px solid rgba(255,255,255,0.3); padding-bottom: 3px; }
+        
+        .p-stats { display: grid; grid-template-columns: 1fr 1fr; font-size: 0.65rem; gap: 2px; text-align: left; font-weight: bold; color: inherit; opacity: 0.9; }
+        .stat-item { display: flex; justify-content: space-between; }
+
+        .reveal-step { opacity: 0; animation: fadeIn 0.5s forwards; }
+        @keyframes fadeIn { to { opacity: 1; } }
+
+        #matchLog { text-align: center; color: #ffeb3b; font-weight: bold; height: 20px; font-size: 1.1rem; }
+        .warning { color: #ff4444; font-size: 0.9rem; font-weight: normal; }
+
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.85); z-index: 1000; display: none; justify-content: center; align-items: center; }
+        .modal-content { background: #222; padding: 30px; border-radius: 10px; max-width: 500px; width: 100%; box-shadow: 0 0 20px #000; text-align: center; max-height: 90vh; overflow-y: auto;}
+        .close-btn { background: #f44336; margin-top: 20px; width: 100%; }
+
+        #customNoticeContainer { position: fixed; top: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; }
+        .custom-toast { background: #333; color: #fff; border-left: 5px solid #4CAF50; padding: 12px 20px; border-radius: 4px; box-shadow: 0 4px 12px rgba(0,0,0,0.5); font-weight: bold; animation: slideIn 0.3s ease-out; }
+        @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+        
+        .customizer-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; text-align: left; margin-top: 20px; }
+        .shield-preview { width: 100px; height: 120px; margin: 0 auto; position: relative; background-color: #2196F3; display: flex; justify-content: center; align-items: center; font-size: 2.5rem; transition: all 0.3s; }
+        .shield-shape-1 { border-radius: 0 0 50px 50px; }
+        .shield-shape-2 { border-radius: 50%; width: 110px; height: 110px; }
+        .shield-shape-3 { border-radius: 10px; clip-path: polygon(50% 100%, 100% 75%, 100% 0, 0 0, 0 75%); }
+        .shield-shape-4 { clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%); }
+        .shield-shape-5 { clip-path: polygon(50% 0%, 100% 38%, 82% 100%, 18% 100%, 0% 38%); }
+
+        .shield-pattern-solid { background-image: none; }
+        .shield-pattern-stripes { background-image: repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(0,0,0,0.3) 10px, rgba(0,0,0,0.3) 20px); }
+        .shield-pattern-half { background-image: linear-gradient(90deg, rgba(0,0,0,0.3) 50%, transparent 50%); }
+        .shield-pattern-cross { background-image: linear-gradient(0deg, transparent 40%, rgba(0,0,0,0.4) 40%, rgba(0,0,0,0.4) 60%, transparent 60%), linear-gradient(90deg, transparent 40%, rgba(0,0,0,0.4) 40%, rgba(0,0,0,0.4) 60%, transparent 60%); }
+        .shield-pattern-dots { background-image: radial-gradient(rgba(0,0,0,0.4) 20%, transparent 20%); background-size: 15px 15px; }
+
+        .stats-box { background: #111; padding: 15px; border-radius: 5px; display: flex; justify-content: space-around; margin-top: 15px; border: 1px solid #444; }
+        .stat-t { font-size: 0.8rem; color: #aaa; } .stat-v { font-size: 1.5rem; font-weight: bold; }
+        .win { color: #4CAF50; } .draw { color: #FFEB3B; } .loss { color: #F44336; }
+
+        .trophies-container { display: flex; justify-content: center; gap: 10px; margin-top: 15px; flex-wrap: wrap; }
+        .trophy-item { font-size: 2rem; background: #333; padding: 10px; border-radius: 50%; border: 2px solid #FFD700; width: 60px; height: 60px; display: flex; justify-content: center; align-items: center; box-shadow: 0 0 10px rgba(255, 215, 0, 0.5); }
+
+        .interview-btn { background: #333; border: 1px solid #555; text-align: left; padding: 12px; margin: 8px 0; width: 100%; border-radius: 5px; font-size: 0.95rem; color: white; cursor: pointer; }
+        .interview-btn:hover { background: #444; border-color: #00E676; }
+    </style>
+</head>
+<body>
+
+    <div id="customNoticeContainer"></div>
+
+    <div id="packModal" class="modal-overlay" style="flex-direction: column;">
+        <div id="packIcon" style="font-size: 6rem; cursor: pointer;">🎁</div>
+        <div id="revealedCard" style="display: none; transform: scale(1.5);"></div>
+        <button id="modalContinue" style="display: none; margin-top: 50px;" onclick="closePackModal()">Ir para o Banco</button>
+    </div>
+
+    <div id="sponsorModal" class="modal-overlay">
+        <div class="modal-content">
+            <h2>🤝 Proposta de Patrocínio</h2>
+            <p id="sponsorText" style="font-size: 1.1rem; color: #fff; margin: 15px 0;"></p>
+            <div style="display: flex; gap: 10px; justify-content: center;">
+                <button onclick="acceptSponsor()" style="background-color: #00E676;">Aceitar</button>
+                <button onclick="rejectSponsor()" style="background-color: #f44336;">Recusar</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- MODAL DE CRIAR JOGADOR -->
+    <div id="createPlayerModal" class="modal-overlay">
+        <div class="modal-content">
+            <h2>✍️ Criar Novo Jogador</h2>
+            <div class="customizer-grid">
+                <div><label>Nome</label><br><input type="text" id="cpName" placeholder="Ex: Zezinho"></div>
+                <div><label>Posição</label><br>
+                    <select id="cpPos">
+                        <option value="GOL">Goleiro (GOL)</option>
+                        <option value="ZAG">Zagueiro (ZAG)</option>
+                        <option value="LAT">Lateral (LAT)</option>
+                        <option value="VOL">Volante (VOL)</option>
+                        <option value="MEI">Meio-campo (MEI)</option>
+                        <option value="ATA">Atacante (ATA)</option>
+                    </select>
+                </div>
+                <div><label>Overall Base (60-99)</label><br><input type="number" id="cpOvr" value="75" min="60" max="99"></div>
+                <div><label>URL da Foto (opcional)</label><br><input type="text" id="cpPhoto" placeholder="Link de imagem..."></div>
+            </div>
+            <div style="display: flex; gap: 10px; justify-content: center; margin-top: 20px;">
+                <button onclick="saveCustomPlayer()" style="background-color: #00E676;">Criar Jogador</button>
+                <button onclick="document.getElementById('createPlayerModal').style.display='none'" style="background-color: #f44336;">Cancelar</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="clubModal" class="modal-overlay">
+        <div class="modal-content">
+            <h2>Gestão do Clube</h2>
+            <div id="shieldPreview" class="shield-preview shield-shape-1 shield-pattern-solid">⭐</div>
+            <div class="stats-box">
+                <div><div class="stat-t">VITÓRIAS</div><div class="stat-v win" id="statW">0</div></div>
+                <div><div class="stat-t">EMPATES</div><div class="stat-v draw" id="statD">0</div></div>
+                <div><div class="stat-t">DERROTAS</div><div class="stat-v loss" id="statL">0</div></div>
+            </div>
+            
+            <h3 style="margin-top: 20px; color: #FFD700;">🏆 Sala de Troféus</h3>
+            <div class="trophies-container" id="trophyCabinet">
+                <div style="font-size: 0.9rem; color: #aaa;">Nenhum troféu conquistado ainda.</div>
+            </div>
+
+            <div class="customizer-grid">
+                <div><label>Nome do Time</label><br><input type="text" id="clubNameInput" value="Meu Time FC" onchange="updateClubDetails()" style="width: 100%;"></div>
+                <div><label>Cor Principal</label><br><input type="color" id="clubColorInput" value="#2196F3" onchange="updateClubDetails()" style="width: 100%; height: 35px;"></div>
+                <div><label>Cor Secundária</label><br><input type="color" id="clubSecondaryColorInput" value="#FFD700" onchange="updateClubDetails()" style="width: 100%; height: 35px;"></div>
+                <div><label>Formato do Escudo</label><br>
+                    <select id="shieldShape" onchange="updateClubDetails()" style="width: 100%;">
+                        <option value="shield-shape-1">Clássico</option>
+                        <option value="shield-shape-2">Redondo</option>
+                        <option value="shield-shape-3">Moderno</option>
+                        <option value="shield-shape-4">Diamante</option>
+                        <option value="shield-shape-5">Penta Crest</option>
+                    </select>
+                </div>
+                <div><label>Estampa</label><br>
+                    <select id="shieldPattern" onchange="updateClubDetails()" style="width: 100%;">
+                        <option value="shield-pattern-solid">Sólido</option>
+                        <option value="shield-pattern-stripes">Listras</option>
+                        <option value="shield-pattern-half">Meio a Meio</option>
+                        <option value="shield-pattern-cross">Cruz</option>
+                        <option value="shield-pattern-dots">Pontilhado</option>
+                    </select>
+                </div>
+                <div><label>Símbolo Central</label><br>
+                    <select id="shieldIcon" onchange="updateClubDetails()" style="width: 100%;">
+                        <option value="⭐">Estrela (⭐)</option>
+                        <option value="⚽">Bola (⚽)</option>
+                        <option value="🦅">Águia (🦅)</option>
+                        <option value="👑">Coroa (👑)</option>
+                        <option value="⚔️">Espadas (⚔️)</option>
+                        <option value="🦁">Leão (🦁)</option>
+                        <option value="🔥">Fogo (🔥)</option>
+                        <option value="⚡">Raio (⚡)</option>
+                        <option value="🛡️">Escudo (🛡️)</option>
+                    </select>
+                </div>
+            </div>
+            <button class="close-btn" onclick="document.getElementById('clubModal').style.display = 'none'">Salvar e Fechar</button>
+        </div>
+    </div>
+
+    <div id="interviewModal" class="modal-overlay">
+        <div class="modal-content">
+            <h2>🎤 Coletiva de Imprensa</h2>
+            <p id="interviewQuestion" style="font-size: 1.1rem; color: #ffeb3b; margin: 15px 0;"></p>
+            <div id="interviewOptions"></div>
+        </div>
+    </div>
+
+    <h1>⚽ FutManager - Ultimate Pro ⚽</h1>
+
+    <div class="container">
+        <div class="header-info">
+            <div>
+                <h2 id="displayTeamName" style="margin: 0; color: #fff;">Meu Time FC</h2>
+                <div style="font-size: 0.9rem; color: #aaa;">OVR Titulares: <span id="teamOvr">0</span></div>
+            </div>
+            <div class="resources">
+                <div class="fans">📣 <span id="fanCount">120</span> Fãs</div>
+                <div class="coins">🪙 <span id="coinCount">200</span> Moedas</div>
+                <div id="sponsorDisplay" class="sponsor-tag" style="display: none;">Patrocínio Ativo</div>
+            </div>
+        </div>
+
+        <div class="actions">
+            <button class="btn-club" onclick="openClubModal()">🛡️ Meu Clube</button>
+            <button class="btn-train" onclick="trainSelectedPlayer()">💪 Treinar (300🪙)</button>
+            
+            <div style="display: flex; flex-direction: column; align-items: center;">
+                <label style="font-size: 0.75rem; color: #aaa; font-weight: bold; margin-bottom: 2px;">Estratégia</label>
+                <select id="teamStrategy" style="padding: 8px; border-radius: 5px; font-weight: bold; background: #333; cursor: pointer;">
+                    <option value="very_defensive">Focar Muito na Defesa</option>
+                    <option value="defensive">Focar na Defesa</option>
+                    <option value="balanced" selected>Balanceado</option>
+                    <option value="offensive">Focar no Ataque</option>
+                    <option value="very_offensive">Focar Muito no Ataque</option>
+                </select>
+            </div>
+
+            <button class="pack-comum pack-btn" id="btnComum" onclick="buyPack('comum')">
+                🥉 Pacote (50)
+                <div class="pack-tooltip">
+                    <b>Chances de Raridade:</b><br>
+                    • Bronze: 75%<br>
+                    • Prata: 15%<br>
+                    • Ouro: 9%<br>
+                    • Lenda: 1%
+                </div>
+            </button>
+            <button class="pack-raro pack-btn" id="btnRaro" onclick="buyPack('raro')">
+                🥈 Pacote (150)
+                <div class="pack-tooltip">
+                    <b>Chances de Raridade:</b><br>
+                    • Bronze: 15%<br>
+                    • Prata: 65%<br>
+                    • Ouro: 15%<br>
+                    • Lenda: 5%
+                </div>
+            </button>
+            <button class="pack-lenda pack-btn" id="btnLenda" onclick="buyPack('lenda')">
+                🌟 Pacote (400)
+                <div class="pack-tooltip">
+                    <b>Chances de Raridade:</b><br>
+                    • Prata: 15%<br>
+                    • Ouro: 55%<br>
+                    • Lenda: 29%<br>
+                    • Místico: 1%
+                </div>
+            </button>
+            
+            <button class="btn-play" id="btnPlay" onclick="startMatch(false, 'amistoso')">▶️ AMISTOSO</button>
+            <button class="btn-cup" id="btnCup" onclick="startTournament('normal')" disabled>🏆 MATA-MATA (500 Fãs)</button>
+            <button class="btn-cup2" id="btnCupElite" onclick="startTournament('elite')" disabled>💎 TAÇA ELITE (1500 Fãs)</button>
+        </div>
+
+        <div id="scoreboardWrapper" style="display: none;">
+            <div class="scoreboard">
+                <div class="score-team" id="homeNameTag">Meu Time</div>
+                <div class="score-numbers"><span id="scoreHome">0</span> - <span id="scoreAway">0</span></div>
+                <div class="score-team" id="awayNameTag">Adversário</div>
+                <div class="score-time" id="matchTime">00:00</div>
+            </div>
+        </div>
+
+        <canvas id="pitch" width="800" height="400"></canvas>
+        <div class="manager-hint">Visão do Técnico (Aperte K): <span id="managerStatus">OFF</span></div>
+        <div id="matchLog">Organize seu time e vá para o jogo!</div>
+    </div>
+
+    <div class="container">
+        <h3 class="section-title">
+            <span>👕 Titulares (<span id="titularesCount">0</span>/11)</span>
+            <span class="warning" id="formWarning"></span>
+        </h3>
+        <div class="team-grid" id="startingGrid"></div>
+        <h3 class="section-title">🪑 Banco de Reservas</h3>
+        <div class="team-grid" id="benchGrid"></div>
+    </div>
+
+    <script>
+        function notify(message, borderHex = "#4CAF50") {
+            const container = document.getElementById('customNoticeContainer');
+            const toast = document.createElement('div');
+            toast.className = 'custom-toast';
+            toast.style.borderLeftColor = borderHex;
+            toast.innerText = message;
+            container.appendChild(toast);
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transition = 'opacity 0.5s';
+                setTimeout(() => toast.remove(), 500);
+            }, 3000);
+        }
+
+        function hexToRgb(hex) {
+            let h = hex.replace('#', '');
+            if(h.length === 3) h = h.split('').map(c => c+c).join('');
+            return { r: parseInt(h.substring(0,2), 16), g: parseInt(h.substring(2,4), 16), b: parseInt(h.substring(4,6), 16) };
+        }
+        function colorDistance(c1, c2) {
+            let rgb1 = hexToRgb(c1), rgb2 = hexToRgb(c2);
+            return Math.sqrt(Math.pow(rgb1.r - rgb2.r, 2) + Math.pow(rgb1.g - rgb2.g, 2) + Math.pow(rgb1.b - rgb2.b, 2));
+        }
+        function darkenColor(hex) {
+            let rgb = hexToRgb(hex);
+            return `rgb(${Math.max(0, rgb.r - 80)}, ${Math.max(0, rgb.g - 80)}, ${Math.max(0, rgb.b - 80)})`;
+        }
+
+        let clubData = { name: "Meu Time FC", color: "#2196F3", secondaryColor: "#FFD700", icon: "⭐", stats: { w: 0, d: 0, l: 0 }, fans: 120, trophies: [] };
+        let activeSponsor = { name: "", amount: 0, gamesLeft: 0 };
+        let pendingSponsor = null;
+
+        // TIMES INIMIGOS COM ESCUDOS
+        const enemyTeamsDB = [
+            { name: "Galácticos FC", color: "#FFFFFF", secondaryColor: "#FFD700", icon: "⭐" },
+            { name: "Dragões Vermelhos", color: "#E53935", secondaryColor: "#000000", icon: "🔥" },
+            { name: "Tigres do Norte", color: "#FFB300", secondaryColor: "#000000", icon: "🦁" },
+            { name: "Águias Azuis", color: "#1E88E5", secondaryColor: "#FFFFFF", icon: "🦅" },
+            { name: "Spartans", color: "#43A047", secondaryColor: "#FFEB3B", icon: "🛡️" },
+            { name: "União Sombria", color: "#673AB7", secondaryColor: "#000000", icon: "⚔️" },
+            { name: "Panteras Negras", color: "#424242", secondaryColor: "#FFFFFF", icon: "⚡" }
+        ];
+
+        let currentEnemyTeam = null, enemyMatchColor = "#F44336";
+        let isManagerView = false, tournamentMode = 'none', tournamentStage = 0;
+        const stageNames = ["Amistoso", "Quartas de Final", "Semifinal", "Grande Final!"];
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key.toLowerCase() === 'k') {
+                isManagerView = !isManagerView;
+                document.getElementById('managerStatus').innerText = isManagerView ? "ON" : "OFF";
+                document.getElementById('managerStatus').className = isManagerView ? "manager-on" : "";
+                if (!isPlaying && currentEnemyTeam) drawFrame();
+            }
+        });
+
+        // ESTRATÉGIA FEEDBACK
+        document.getElementById('teamStrategy').addEventListener('change', (e) => {
+            let stratName = e.target.options[e.target.selectedIndex].text;
+            notify(`📋 Tática alterada para: ${stratName}`, "#2196F3");
+            if(!isPlaying && startingXI.length > 0) { resetPositions(); drawFrame(); }
+        });
+
+        const starPlayers = [
+            { id: 1, name: "Baianinho", pos: "ATA", ovr: 96, vel: 94, dri: 95, chu: 96, pas: 90, def: 40, fin: 98, photo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT-zLbuUxWk12tZDpXaqinMm-8JSdL2dTIG0uCixQw3lw&s=10" },
+            { id: 2, name: "Tarsila do Amaral", pos: "MEI", ovr: 75, vel: 70, dri: 78, chu: 72, pas: 77, def: 55, fin: 70, photo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQDV0HJgBUQCkBjzZckfbI8r86LIpXZS2qEPt-wHa0y_w&s=10" },
+            { id: 3, name: "Lebron James", pos: "ATA", ovr: 89, vel: 85, dri: 90, chu: 90, pas: 88, def: 45, fin: 92, photo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRDNy9yz917zu5awpYkLO3QujKTHmAz63fonBQFFdw2Xw&s=10" },
+            { id: 4, name: "Véio do Coragem", pos: "GOL", ovr: 88, vel: 50, dri: 40, chu: 60, pas: 65, def: 90, fin: 20, photo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQxM-KCkrGUUJSF66FWBCXnd1a7GYt97uL2ruLxF3PvrQ&s=10" },
+            { id: 5, name: "Miranha", pos: "LAT", ovr: 84, vel: 90, dri: 82, chu: 70, pas: 80, def: 83, fin: 65, photo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT8pSygGI7RYPfCHl3jKlUU10V-SOcQ_fl3_LGvBvLIUA&s" },
+            { id: 6, name: "Tomas o Trem", pos: "LAT", ovr: 91, vel: 95, dri: 85, chu: 98, pas: 82, def: 85, fin: 80, photo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRiC-rOhGuzQ6ulOzadcZB7VDfBuXsTQqig58EG-_ULwg&s=10" },
+            { id: 7, name: "Café da Tarde", pos: "MEI", ovr: 93, vel: 75, dri: 98, chu: 85, pas: 99, def: 60, fin: 85, photo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR_lTrdyaXSmhinLmhpU8LxFV3pPyqC-MpDRyOtx5MNSg&s=10" },
+            { id: 8, name: "Huggy Wuggy", pos: "ATA", ovr: 94, vel: 92, dri: 93, chu: 95, pas: 80, def: 35, fin: 99, photo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQNqtYQsfF1z6hMsiFfA0VTW73DaSAcfjyT4-ijJRVJRg&s" },
+            { id: 9, name: "Michael Jackson", pos: "ATA", ovr: 97, vel: 96, dri: 98, chu: 95, pas: 85, def: 30, fin: 98, photo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQMAEz0c74nUJpYasQCD63GYxntkjhJAWXoDjg0pWaWmw&s" },
+            { id: 10, name: "Aoi Todo", pos: "ZAG", ovr: 82, vel: 65, dri: 50, chu: 40, pas: 60, def: 90, fin: 30, photo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTEeJwVBxcogU8PzkBUddAkFayRJDhh7UmhEvzkrHtdNg&s=10" },
+            { id: 11, name: "Titã Colossal", pos: "ATA", ovr: 95, vel: 94, dri: 99, chu: 85, pas: 88, def: 20, fin: 89, photo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR87huDjr7FfKIF6bSVoTgDFEUy4164ZaU-G5mAxDW5MQ&s=10" },
+            { id: 12, name: "Hornet", pos: "GOL", ovr: 90, vel: 55, dri: 45, chu: 65, pas: 70, def: 94, fin: 25, photo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTGjjcacLUrlci3mR7Qx-DgEmB5FuVXqRnCWvIE_Mzomw&s=10" },
+            { id: 13, name: "Homelander", pos: "MEI", ovr: 92, vel: 92, dri: 93, chu: 88, pas: 90, def: 45, fin: 85, photo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR_dcQXmznxNKSLpDNJSbnU43zU2e0FPh78O4auKq33JA&s" },
+            { id: 14, name: "Leôncio", pos: "ZAG", ovr: 81, vel: 70, dri: 65, chu: 60, pas: 55, def: 93, fin: 45, photo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSlY-fFqw_nnrW34ylJDxxSwZAl0XV_6uWnQz76OmStNg&s=10" },
+            { id: 15, name: "Bola 8", pos: "VOL", ovr: 83, vel: 76, dri: 72, chu: 65, pas: 80, def: 82, fin: 60, photo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTBahWuHaUR4ZpZMMw5V7fsXtpm5hae-h45cbg9-C1VwQ&s=10" },
+            { id: 16, name: "Educere", pos: "MEI", ovr: 86, vel: 82, dri: 88, chu: 80, pas: 87, def: 50, fin: 78, photo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTO-PqQXluS4kT_HkSkwSxpTmuPcEZJHFMej96LsrjRdw&s=10" },
+            { id: 17, name: "Pernalonga", pos: "LAT", ovr: 79, vel: 89, dri: 78, chu: 62, pas: 76, def: 75, fin: 55, photo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQhBNwOd4amQrui_HLiHLVfMIPPdCAEV__YZcuJDY6cAA&s=10" },
+            { id: 18, name: "Disparervilha", pos: "GOL", ovr: 85, vel: 52, dri: 42, chu: 60, pas: 65, def: 87, fin: 22, photo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTmcrdgXHScwvP1dYx9PE9rmfZsMpTvAelGkOdgE9yXEg&s=10" },
+            { id: 19, name: "Boto Cor-de-Rosa", pos: "ATA", ovr: 89, vel: 91, dri: 86, chu: 89, pas: 75, def: 35, fin: 91, photo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRLntuOuVxIvswJQE4y5GkrJdGBvg68u6oUHLuiVlXL3A&s=10" },
+            { id: 20, name: "Lucky Block", pos: "ZAG", ovr: 87, vel: 75, dri: 68, chu: 50, pas: 72, def: 90, fin: 40, photo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR3cGu0nEPMQahPr6DvGAYfuKYYolTrE2ixsoVxCzYO4Q&s=10" },
+            { id: 99, name: "Iberê Thenório", pos: "ATA", ovr: 102, vel: 99, dri: 99, chu: 99, pas: 99, def: 60, fin: 99, photo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSxEDsRbXecyBee_gPuVuJ326EW5goICJZ250Rxmt10oPdf44y5Srm-G828sbFlzh_2BWbhXLCIOSFnIO-759RpKdfwFa6NX3JZRlxCf4PHgA&s=10" }
+        ].map(p => ({ ...p, potential: Math.floor(Math.random() * 10) + 1 })); // Estrelas também tem potencial
+
+        let startingXI = [], bench = [], coins = 200, playerIdCounter = 0;
+        let selectedPlayerInfo = null, playerPending = null;
+
+        function generateRandomStats(baseOvr) {
+            let vary = () => Math.floor(baseOvr + (Math.random() * 10 - 5));
+            return { vel: vary(), dri: vary(), chu: vary(), pas: vary(), def: vary(), fin: vary() };
+        }
+
+        // CRIAR JOGADOR COM POTENCIAL
+        function createGenericPlayer(isGk) {
+            let ovr = Math.floor(Math.random() * 10) + 60;
+            let stats = generateRandomStats(ovr);
+            if (isGk) { stats.def = ovr + 10; stats.fin = 20; stats.vel = 50; }
+            let pos = isGk ? "GOL" : ["ZAG", "LAT", "VOL", "MEI", "ATA"][Math.floor(Math.random()*5)];
+            let nomes = ["Juninho", "Randola", "Carlos", "Six Sevenaldo", "Gordo", "Claúdio", "Sillva", "Tenório", "Fudano de tal"];
+            return { 
+                name: nomes[Math.floor(Math.random()*nomes.length)], pos: pos, ovr: ovr, ...stats, 
+                offenseBias: (Math.random() - 0.5) * 80, defenseBias: (Math.random() - 0.5) * 60,
+                photo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSGsPTioyUNXhKF_HWOWqNhES6rOQb3p2DLzmNPBxfZiw&s=10",
+                potential: Math.floor(Math.random() * 26) // Status escondido de até +25
+            };
+        }
+
+        // SISTEMA DE TREINO
+        function trainSelectedPlayer() {
+            if (!selectedPlayerInfo) { notify("⚠️ Selecione um jogador (clique na carta) no seu time ou banco primeiro!", "#ff9800"); return; }
+            let p = selectedPlayerInfo.player;
+            if (coins < 300) { notify("❌ Moedas insuficientes para treinar! (Custa 300)", "#ff4444"); return; }
+            if (!p.potential || p.potential <= 0) { notify(`❌ ${p.name} já atingiu seu potencial máximo!`, "#ff4444"); return; }
+            
+            coins -= 300;
+            p.potential -= 1;
+            p.ovr += 1;
+            p.vel += 1; p.dri += 1; p.chu += 1; p.pas += 1; p.def += 1; p.fin += 1; 
+            
+            notify(`✅ ${p.name} treinou intensamente e seu OVR subiu para ${p.ovr}!`, "#00E676");
+            selectedPlayerInfo = null;
+            updateUI();
+        }
+
+        // CRIAÇÃO DE JOGADOR MANUAL
+        function openCustomPlayerModal() {
+            document.getElementById('createPlayerModal').style.display = 'flex';
+        }
+
+        function saveCustomPlayer() {
+            let nome = document.getElementById('cpName').value || "Jogador Customizado";
+            let pos = document.getElementById('cpPos').value;
+            let ovr = parseInt(document.getElementById('cpOvr').value) || 75;
+            let foto = document.getElementById('cpPhoto').value || "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSGsPTioyUNXhKF_HWOWqNhES6rOQb3p2DLzmNPBxfZiw&s=10";
+            
+            let stats = generateRandomStats(ovr);
+            if (pos === "GOL") { stats.def = ovr + 10; stats.fin = 20; stats.vel = 50; }
+
+            let customP = {
+                name: nome, pos: pos, ovr: ovr, ...stats, 
+                offenseBias: (Math.random() - 0.5) * 80, defenseBias: (Math.random() - 0.5) * 60,
+                photo: foto, potential: Math.floor(Math.random() * 26), uniqueId: ++playerIdCounter
+            };
+
+            bench.push(customP);
+            notify(`🎉 ${nome} se juntou ao time e está no banco!`, "#00E676");
+            document.getElementById('createPlayerModal').style.display = 'none';
+            updateUI();
+        }
+
+        function generateStarterTeam() {
+            startingXI.push({ ...createGenericPlayer(true), uniqueId: ++playerIdCounter });
+            for(let i=0; i<10; i++) startingXI.push({ ...createGenericPlayer(false), uniqueId: ++playerIdCounter });
+            updateUI();
+        }
+
+        const packOdds = {
+            'comum': { cost: 50, ranges: [{rarity: 'bronze', chance: 0.75}, {rarity: 'prata', chance: 0.15}, {rarity: 'ouro', chance: 0.09}, {rarity: 'lenda', chance: 0.01}] },
+            'raro': { cost: 150, ranges: [{rarity: 'bronze', chance: 0.15}, {rarity: 'prata', chance: 0.65}, {rarity: 'ouro', chance: 0.15}, {rarity: 'lenda', chance: 0.05}] },
+            'lenda': { cost: 400, ranges: [{rarity: 'bronze', chance: 0.0}, {rarity: 'prata', chance: 0.15}, {rarity: 'ouro', chance: 0.55}, {rarity: 'lenda', chance: 0.29}, {rarity: 'mistico', chance: 0.01}] }
+        };
+
+        function getOvrRange(rarity) {
+            switch(rarity) {
+                case 'bronze': return {min: 60, max: 69};
+                case 'prata': return {min: 70, max: 79};
+                case 'ouro': return {min: 80, max: 89};
+                case 'lenda': return {min: 90, max: 99};
+                case 'mistico': return {min: 100, max: 105};
+            }
+        }
+
+        function buyPack(type) {
+            if (isPlaying) { notify("⚠️ Você não pode abrir pacotes durante a partida!", "#ff4444"); return; }
+            let pData = packOdds[type];
+            if (coins >= pData.cost) {
+                coins -= pData.cost; updateUI();
+                let rand = Math.random(), accumulated = 0, selectedRarity = 'bronze';
+                for (let r of pData.ranges) { accumulated += r.chance; if (rand <= accumulated) { selectedRarity = r.rarity; break; } }
+                
+                let range = getOvrRange(selectedRarity);
+                let possible = starPlayers.filter(p => p.ovr >= range.min && p.ovr <= range.max);
+                
+                if (possible.length > 0 && Math.random() > 0.4) {
+                    playerPending = { ...possible[Math.floor(Math.random() * possible.length)], offenseBias: (Math.random()-0.5)*80, defenseBias: (Math.random()-0.5)*60 };
+                } else {
+                    let targetOvr = Math.floor(Math.random() * (range.max - range.min + 1)) + range.min;
+                    playerPending = createGenericPlayer(Math.random() < 0.1); playerPending.ovr = targetOvr; Object.assign(playerPending, generateRandomStats(targetOvr));
+                }
+                playerPending.uniqueId = ++playerIdCounter;
+                showPackAnimation();
+            }
+        }
+
+        function showPackAnimation() {
+            const modal = document.getElementById('packModal'), icon = document.getElementById('packIcon'), cardView = document.getElementById('revealedCard'), btn = document.getElementById('modalContinue');
+            modal.style.display = 'flex'; icon.style.display = 'block'; cardView.style.display = 'none'; btn.style.display = 'none';
+            
+            icon.onclick = () => {
+                icon.style.display = 'none'; 
+                let isPremium = playerPending.ovr >= 80;
+                cardView.innerHTML = renderPlayerCard(playerPending, 'none', 0, isPremium);
+                cardView.style.display = 'block'; 
+                setTimeout(() => { btn.style.display = 'block'; }, isPremium ? 2000 : 600);
+            };
+        }
+        function closePackModal() {
+            document.getElementById('packModal').style.display = 'none';
+            bench.push(playerPending); logEvent(`🎁 Você guardou ${playerPending.name} no banco.`);
+            playerPending = null; updateUI();
+        }
+
+        function openClubModal() {
+            document.getElementById('statW').innerText = clubData.stats.w;
+            document.getElementById('statD').innerText = clubData.stats.d;
+            document.getElementById('statL').innerText = clubData.stats.l;
+            
+            let cabinet = document.getElementById('trophyCabinet');
+            if (clubData.trophies.length === 0) {
+                cabinet.innerHTML = '<div style="font-size: 0.9rem; color: #aaa;">Nenhum troféu conquistado ainda.</div>';
+            } else {
+                cabinet.innerHTML = clubData.trophies.map(t => `<div class="trophy-item" title="${t}">🏆</div>`).join('');
+            }
+            
+            document.getElementById('clubModal').style.display = 'flex';
+        }
+
+        function updateClubDetails() {
+            clubData.name = document.getElementById('clubNameInput').value;
+            clubData.color = document.getElementById('clubColorInput').value;
+            clubData.secondaryColor = document.getElementById('clubSecondaryColorInput').value;
+            clubData.icon = document.getElementById('shieldIcon').value;
+            let shape = document.getElementById('shieldShape').value, pattern = document.getElementById('shieldPattern').value;
+            let preview = document.getElementById('shieldPreview');
+            preview.className = `shield-preview ${shape} ${pattern}`;
+            preview.style.backgroundColor = clubData.color; preview.innerText = clubData.icon;
+            document.getElementById('displayTeamName').innerText = clubData.name;
+        }
+
+        const canvas = document.getElementById('pitch');
+        const ctx = canvas.getContext('2d');
+        let isPlaying = false, matchTimer = 0, matchScore = { home: 0, away: 0 };
+        let simEntities = { ball: { x: 400, y: 200, vx: 0, vy: 0, trail: [], owner: null }, homeTeam: [], awayTeam: [], vfx: [] };
+
+        function drawPitch() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.strokeStyle = '#fff'; ctx.lineWidth = 3;
+            ctx.strokeRect(10, 10, canvas.width - 20, canvas.height - 20);
+            ctx.beginPath(); ctx.moveTo(canvas.width/2, 10); ctx.lineTo(canvas.width/2, canvas.height-10); ctx.stroke();
+            ctx.beginPath(); ctx.arc(canvas.width/2, canvas.height/2, 50, 0, Math.PI*2); ctx.stroke();
+            ctx.strokeRect(10, canvas.height/2 - 60, 80, 120);
+            ctx.strokeRect(canvas.width - 90, canvas.height/2 - 60, 80, 120);
+        }
+
+        function spawnVFX(x, y, color, maxRadius) { simEntities.vfx.push({ x, y, r: 2, maxR: maxRadius, color: color, opacity: 1 }); }
+
+        function getBasePositionX(pos, isHome) {
+            let xTier = pos === "GOL" ? 0.05 : pos === "ZAG" ? 0.2 : pos === "LAT" ? 0.3 : pos === "VOL" ? 0.45 : pos === "MEI" ? 0.65 : 0.85;
+            let stratOffset = 0;
+            let strategy = document.getElementById('teamStrategy').value;
+            if (isHome) {
+                if (strategy === "very_defensive") stratOffset = -0.15;
+                else if (strategy === "defensive") stratOffset = -0.08;
+                else if (strategy === "offensive") stratOffset = 0.08;
+                else if (strategy === "very_offensive") stratOffset = 0.15;
+            }
+            xTier = Math.max(0.05, Math.min(0.92, xTier + stratOffset));
+            return isHome ? xTier * canvas.width : (1 - xTier) * canvas.width;
+        }
+
+        function setupTeamPositions(team, isHome) {
+            let grouped = {}; 
+            team.forEach(p => { if(!grouped[p.pos]) grouped[p.pos] = []; grouped[p.pos].push(p); });
+            let activePlayers = [];
+            for (let pos in grouped) {
+                let playersInPos = grouped[pos];
+                playersInPos.forEach((p, idx) => {
+                    let spread = canvas.height * 0.7;
+                    let baseY = playersInPos.length === 1 ? canvas.height / 2 : (canvas.height * 0.15) + (idx * (spread / (playersInPos.length - 1)));
+                    let modifiedBaseX = getBasePositionX(p.pos, isHome) + (isHome ? (p.offenseBias || 0) : -(p.offenseBias || 0));
+                    activePlayers.push({ 
+                        ...p, x: modifiedBaseX, y: baseY, baseX: modifiedBaseX, baseY: baseY, 
+                        speed: (p.vel / 100) * 3 + 0.8, cooldown: 0, isHome: isHome, 
+                        stunText: "", receiveCooldown: 0, stateInfo: "Posicionando" 
+                    });
+                });
+            }
+            return activePlayers;
+        }
+
+        function resetPositions() {
+            simEntities.ball = { x: canvas.width/2, y: canvas.height/2, vx: 0, vy: 0, trail: [], owner: null };
+            simEntities.vfx = [];
+            simEntities.homeTeam.forEach(p => { p.baseX = getBasePositionX(p.pos, true) + (p.offenseBias || 0); p.x = p.baseX; p.y = p.baseY; p.cooldown = 0; p.receiveCooldown = 0; p.stateInfo = "Posicionando"; });
+            simEntities.awayTeam.forEach(p => { p.baseX = getBasePositionX(p.pos, false) - (p.offenseBias || 0); p.x = p.baseX; p.y = p.baseY; p.cooldown = 0; p.receiveCooldown = 0; p.stateInfo = "Posicionando"; });
+        }
+
+        function initSim() {
+            simEntities.ball = { x: canvas.width/2, y: canvas.height/2, vx: 0, vy: 0, trail: [], owner: null };
+            simEntities.vfx = [];
+            simEntities.homeTeam = setupTeamPositions(startingXI, true);
+            
+            currentEnemyTeam = enemyTeamsDB[Math.floor(Math.random() * enemyTeamsDB.length)];
+            enemyMatchColor = currentEnemyTeam.color;
+            if (colorDistance(clubData.color, enemyMatchColor) < 80) enemyMatchColor = darkenColor(enemyMatchColor);
+            document.getElementById('awayNameTag').innerText = currentEnemyTeam.name;
+
+            let myAvgOvr = startingXI.reduce((sum, p) => sum + p.ovr, 0) / startingXI.length;
+            let enemyBonus = tournamentMode === 'elite' ? 10 : (tournamentMode === 'normal' ? 2 : 0);
+            
+            let enemyRoster = ["GOL", "ZAG", "ZAG", "LAT", "LAT", "VOL", "VOL", "MEI", "ATA", "ATA", "ATA"].map(role => {
+                let p = createGenericPlayer(role === "GOL"); p.pos = role; p.ovr = Math.max(60, myAvgOvr + enemyBonus + (Math.random()*10 - 5));
+                Object.assign(p, generateRandomStats(p.ovr)); return p;
+            });
+            simEntities.awayTeam = setupTeamPositions(enemyRoster, false);
+        }
+
+        function logEvent(msg) { document.getElementById('matchLog').innerText = msg; }
+        function formatTime(minutes) { return `${Math.floor(minutes).toString().padStart(2, '0')}:00`; }
+
+        function updateSim() {
+            if (!isPlaying) return;
+            let ball = simEntities.ball;
+            ball.trail.push({x: ball.x, y: ball.y}); if(ball.trail.length > 10) ball.trail.shift();
+
+            if (!ball.owner) {
+                ball.vx *= 0.95; ball.vy *= 0.95; ball.x += ball.vx; ball.y += ball.vy;
+                if (ball.y <= 10 || ball.y >= canvas.height - 10) ball.vy *= -1;
+                if (ball.x <= 10 && (ball.y < canvas.height/2 - 60 || ball.y > canvas.height/2 + 60)) ball.vx *= -1;
+                if (ball.x >= canvas.width - 10 && (ball.y < canvas.height/2 - 60 || ball.y > canvas.height/2 + 60)) ball.vx *= -1;
+                if (ball.x <= 10 && ball.y >= canvas.height/2 - 60 && ball.y <= canvas.height/2 + 60) { goal(false); return; }
+                if (ball.x >= canvas.width - 10 && ball.y >= canvas.height/2 - 60 && ball.y <= canvas.height/2 + 60) { goal(true); return; }
+            }
+
+            let allPlayers = simEntities.homeTeam.concat(simEntities.awayTeam);
+            for(let i=0; i<allPlayers.length; i++) {
+                for(let j=i+1; j<allPlayers.length; j++) {
+                    let p1 = allPlayers[i], p2 = allPlayers[j], dx = p1.x - p2.x, dy = p1.y - p2.y, dist = Math.sqrt(dx*dx + dy*dy);
+                    if(dist > 0 && dist < 14) {
+                        let force = (14 - dist) * 0.15;
+                        p1.x += (dx/dist) * force; p1.y += (dy/dist) * force; p2.x -= (dx/dist) * force; p2.y -= (dy/dist) * force;
+                    }
+                }
+            }
+
+            let homeDistances = simEntities.homeTeam.map(p => ({p, d: Math.hypot(p.x - ball.x, p.y - ball.y)})).sort((a,b) => a.d - b.d);
+            let awayDistances = simEntities.awayTeam.map(p => ({p, d: Math.hypot(p.x - ball.x, p.y - ball.y)})).sort((a,b) => a.d - b.d);
+
+            allPlayers.forEach(p => {
+                if (p.cooldown > 0) p.cooldown--; else p.stunText = "";
+                if (p.receiveCooldown > 0) p.receiveCooldown--;
+                let dxBall = ball.x - p.x, dyBall = ball.y - p.y, distBall = Math.sqrt(dxBall*dxBall + dyBall*dyBall);
+                let goalieImmunity = ball.owner && ball.owner.pos === "GOL";
+
+                if (goalieImmunity && ball.owner !== p && distBall < 60) {
+                    p.x -= (dxBall/distBall) * p.speed * 0.5; p.y -= (dyBall/distBall) * p.speed * 0.5;
+                }
+
+                let teamMates = p.isHome ? simEntities.homeTeam : simEntities.awayTeam;
+                let nearbyCount = 0, pushX = 0, pushY = 0;
+                teamMates.forEach(other => {
+                    if (other !== p) {
+                        let d = Math.hypot(p.x - other.x, p.y - other.y);
+                        if (d < 45) { nearbyCount++; pushX += (p.x - other.x) / d; pushY += (p.y - other.y) / d; }
+                    }
+                });
+                if (nearbyCount >= 2 && p.pos !== "GOL" && ball.owner !== p) {
+                    p.x += pushX * 1.5; p.y += pushY * 1.5; p.stateInfo = "Espalhando";
+                }
+
+                if (distBall < 14 && p.cooldown === 0 && (!ball.owner || ball.owner.isHome !== p.isHome) && !goalieImmunity) {
+                    let success = p.pos === "GOL" ? true : (!ball.owner ? true : Math.random() < (0.5 + ((p.def - ball.owner.dri) * 0.008)));
+                    if (success) {
+                        spawnVFX(p.x, p.y, 'rgba(255, 255, 255, 0.5)', 20);
+                        let wasSteal = ball.owner != null;
+                        if (wasSteal) ball.owner.cooldown = 40; 
+                        let isNearOwnGoal = p.isHome ? (p.x < 150) : (p.x > canvas.width - 150);
+                        if (wasSteal && !isNearOwnGoal && p.pos !== "GOL") {
+                            ball.owner = null; ball.vx = (p.isHome ? 1 : -1) * (10 + p.def/20); ball.vy = (Math.random() - 0.5) * 6; p.cooldown = 15; p.stunText = "CORTE!";
+                        } else {
+                            ball.owner = p; ball.vx = 0; ball.vy = 0; p.receiveCooldown = 15;
+                        }
+                    } else {
+                        p.cooldown = 45; p.stunText = "Driblado!";
+                    }
+                }
+
+                // CORREÇÃO: CHUTE, GOLEIRO, STUN CANCEL
+                if (ball.owner === p) {
+                    p.stateInfo = "Com Bola"; ball.x = p.x + (p.isHome ? 5 : -5); ball.y = p.y;
+                    let targetGoalX = p.isHome ? canvas.width : 0; let distToGoal = Math.abs(targetGoalX - p.x);
+                    
+                    let isShootingImmediate = distToGoal < (150 + (p.chu * 0.8)) && Math.random() < 0.1;
+
+                    if (p.receiveCooldown <= 0 || isShootingImmediate) {
+                        if (p.pos === "GOL") {
+                            if (Math.random() < 0.05) {
+                                let myTeam = p.isHome ? simEntities.homeTeam : simEntities.awayTeam;
+                                let enemies = p.isHome ? simEntities.awayTeam : simEntities.homeTeam;
+                                let bestTarget = null, maxIso = -1;
+                                myTeam.forEach(t => {
+                                    if(t === p) return;
+                                    let closestE = Math.min(...enemies.map(e => Math.hypot(t.x-e.x, t.y-e.y)));
+                                    if(closestE > maxIso) { maxIso = closestE; bestTarget = t; }
+                                });
+                                if (bestTarget) {
+                                    ball.owner = null; p.cooldown = 30; p.receiveCooldown = 0;
+                                    let pDx = bestTarget.x - p.x, pDy = bestTarget.y - p.y, pDist = Math.hypot(pDx, pDy);
+                                    let passSpeed = 8 + (p.pas/15);
+                                    ball.vx = (pDx/pDist) * passSpeed; ball.vy = (pDy/pDist) * passSpeed;
+                                }
+                            }
+                        } 
+                        else if (isShootingImmediate) { 
+                            spawnVFX(ball.x, ball.y, 'rgba(255, 255, 255, 0.9)', 35);
+                            ball.owner = null; p.cooldown = 30; p.receiveCooldown = 0; 
+                            ball.vx = (p.isHome ? 1 : -1) * (8 + (p.chu/10)); 
+                            
+                            let targetCornerY = Math.random() < 0.5 ? (canvas.height/2 - 50) : (canvas.height/2 + 50);
+                            let blendFactor = p.fin / 100;
+                            let aimY = (canvas.height/2 * (1 - blendFactor)) + (targetCornerY * blendFactor);
+                            let goalYDir = (aimY - p.y) / distToGoal;
+                            
+                            ball.vy = goalYDir * (6 + Math.random()*2) + (Math.random() - 0.5) * ((100 - p.fin) / 10); 
+                        } 
+                        else if (Math.random() < 0.03) { 
+                            let teammates = (p.isHome ? simEntities.homeTeam : simEntities.awayTeam).filter(t => t !== p && (p.isHome ? t.x > p.x - 20 : t.x < p.x + 20));
+                            if (teammates.length > 0) {
+                                let target = teammates[Math.floor(Math.random() * teammates.length)];
+                                ball.owner = null; p.cooldown = 20; p.receiveCooldown = 0;
+                                let pDx = target.x - p.x, pDy = target.y - p.y, pDist = Math.hypot(pDx, pDy);
+                                let passSpeed = 6 + (p.pas/15);
+                                ball.vx = (pDx/pDist) * passSpeed; ball.vy = (pDy/pDist) * passSpeed;
+                            }
+                        } 
+                        else { 
+                            let driMod = p.dri > 80 ? 1.2 : 0.8;
+                            p.x += (p.isHome ? p.speed : -p.speed) * driMod;
+                            p.y += p.y < canvas.height/2 ? p.speed*0.15 : -p.speed*0.15;
+                        }
+                    }
+                } 
+                else if (!goalieImmunity) {
+                    let teamDistances = p.isHome ? homeDistances : awayDistances;
+                    let isClosest = teamDistances[0].p === p;
+                    let isSecondClosest = teamDistances.length > 1 && teamDistances[1].p === p;
+                    let isMyTeamHasBall = ball.owner && ball.owner.isHome === p.isHome;
+
+                    let inPenaltyBox = p.isHome ? ball.x < 150 : ball.x > canvas.width - 150;
+                    if (p.pos === "GOL" && distBall < 120 && !isMyTeamHasBall && inPenaltyBox) {
+                        p.stateInfo = "DASH Goleiro!"; 
+                        p.x += (dxBall/distBall) * p.speed * 1.2; 
+                        p.y += (dyBall/distBall) * p.speed * 1.2;
+                    } 
+                    else if (p.pos !== "GOL") {
+                        if (isMyTeamHasBall) {
+                            if (p.stateInfo !== "Espalhando") p.stateInfo = isClosest ? "Apoio" : "Avançando";
+                            let pushUp = (ball.x - canvas.width/2) * 0.4 + (p.offenseBias || 0); 
+                            let targetX = p.baseX + pushUp;
+                            if (isClosest) { targetX += (p.isHome ? 30 : -30); } 
+                            let dxTarget = targetX - p.x, dyTarget = p.baseY - p.y, distTarget = Math.hypot(dxTarget, dyTarget);
+                            if (distTarget > 5) { p.x += (dxTarget/distTarget) * p.speed * 0.7; p.y += (dyTarget/distTarget) * p.speed * 0.7; }
+                        } else {
+                            if (isClosest || (isSecondClosest && distBall < 100)) {
+                                if (p.stateInfo !== "Espalhando") p.stateInfo = "Bote/Pressão";
+                                p.x += (dxBall/distBall) * p.speed * 1.1; p.y += (dyBall/distBall) * p.speed * 1.1;
+                            } else {
+                                if (p.stateInfo !== "Espalhando") p.stateInfo = "Marcando";
+                                let pushBack = (ball.x - canvas.width/2) * 0.3 - (p.defenseBias || 0);
+                                let targetX = p.baseX + pushBack; let interceptY = p.baseY + (ball.y - p.baseY) * 0.3; 
+                                let dxTarget = targetX - p.x, dyTarget = interceptY - p.y, distTarget = Math.hypot(dxTarget, dyTarget);
+                                if (distTarget > 5) { p.x += (dxTarget/distTarget) * (p.speed * 0.8); p.y += (dyTarget/distTarget) * (p.speed * 0.8); }
+                            }
+                        }
+                    }
+                }
+                p.x = Math.max(10, Math.min(canvas.width-10, p.x)); p.y = Math.max(10, Math.min(canvas.height-10, p.y));
+            });
+
+            for(let i = simEntities.vfx.length - 1; i >= 0; i--) {
+                let e = simEntities.vfx[i]; e.r += 2; e.opacity -= 0.05;
+                if (e.opacity <= 0) simEntities.vfx.splice(i, 1);
+            }
+
+            drawFrame();
+            matchTimer += 0.05; document.getElementById('matchTime').innerText = formatTime(matchTimer);
+            if (matchTimer >= 90) { endMatch(); return; }
+            requestAnimationFrame(updateSim);
+        }
+
+        // VISÃO DO TÉCNICO ARREDONDADO E ESCUDOS INIMIGOS
+        function drawFrame() {
+            drawPitch();
+
+            simEntities.vfx.forEach(e => {
+                ctx.beginPath(); ctx.arc(e.x, e.y, e.r, 0, Math.PI*2);
+                ctx.strokeStyle = e.color.replace(/[\d\.]+\)$/g, `${e.opacity})`); 
+                ctx.lineWidth = 2; ctx.stroke();
+            });
+
+            let speed = Math.hypot(simEntities.ball.vx, simEntities.ball.vy);
+            if (speed > 5 && simEntities.ball.trail.length > 0) {
+                ctx.beginPath(); ctx.moveTo(simEntities.ball.trail[0].x, simEntities.ball.trail[0].y);
+                for(let i=1; i<simEntities.ball.trail.length; i++) ctx.lineTo(simEntities.ball.trail[i].x, simEntities.ball.trail[i].y);
+                ctx.strokeStyle = speed > 9 ? '#ff007f' : '#ffeb3b'; ctx.lineWidth = 3; ctx.stroke();
+            }
+
+            const drawPlayer = (p, isHome) => {
+                let baseColor = isHome ? clubData.color : enemyMatchColor;
+                let rarityColor = p.ovr > 100 ? '#ff0000' : (p.ovr >= 90 ? '#e600ff' : (p.ovr >= 80 ? '#ffd700' : (p.ovr >= 70 ? '#c0c0c0' : '#cd7f32')));
+                
+                ctx.beginPath(); ctx.arc(p.x, p.y, 9, 0, Math.PI*2); 
+                ctx.fillStyle = rarityColor; ctx.fill();
+
+                ctx.beginPath(); ctx.arc(p.x, p.y, 7, 0, Math.PI*2); 
+                ctx.fillStyle = p.pos === "GOL" ? (isHome ? '#00BCD4' : '#FF9800') : baseColor;
+                ctx.fill(); 
+
+                if (p.pos !== "GOL") {
+                    ctx.beginPath(); ctx.arc(p.x, p.y, 3, 0, Math.PI*2);
+                    if (isHome) {
+                        ctx.fillStyle = clubData.secondaryColor || '#FFFFFF'; ctx.fill();
+                        ctx.fillStyle = '#000'; ctx.font = "bold 6px Arial"; ctx.textAlign = "center";
+                        ctx.fillText(clubData.icon, p.x, p.y + 2);
+                    } else if (currentEnemyTeam) {
+                        ctx.fillStyle = currentEnemyTeam.secondaryColor || '#FFFFFF'; ctx.fill();
+                        ctx.fillStyle = '#000'; ctx.font = "bold 6px Arial"; ctx.textAlign = "center";
+                        ctx.fillText(currentEnemyTeam.icon || "⚽", p.x, p.y + 2);
+                    }
+                }
+                
+                if (simEntities.ball.owner === p) { ctx.strokeStyle = '#fff'; ctx.lineWidth = 2; ctx.stroke(); }
+                if (p.stunText) {
+                    ctx.fillStyle = '#ffeb3b'; ctx.font = "bold 12px Arial"; ctx.textAlign = "center";
+                    ctx.fillText(p.stunText, p.x, p.y - 12);
+                }
+
+                if (isManagerView) {
+                    ctx.fillStyle = "rgba(255,255,255,0.9)"; ctx.font = "10px Arial"; ctx.textAlign = "center";
+                    ctx.fillText(p.name, p.x, p.y - 10);
+                    ctx.fillStyle = p.ovr > 100 ? "#ff4444" : "#FFD700";
+                    ctx.fillText(`OVR ${(typeof p.ovr === 'number' ? p.ovr.toFixed(2) : p.ovr)}`, p.x, p.y + 15); 
+                    if (isHome) { ctx.fillStyle = "#00e676"; ctx.fillText(p.stateInfo, p.x, p.y + 25); }
+                }
+            };
+
+            simEntities.homeTeam.forEach(p => drawPlayer(p, true));
+            simEntities.awayTeam.forEach(p => drawPlayer(p, false));
+            
+            ctx.fillStyle = speed > 9 ? '#ff007f' : '#FFF';
+            ctx.beginPath(); ctx.arc(simEntities.ball.x, simEntities.ball.y, 4, 0, Math.PI*2); ctx.fill();
+        }
+
+        function goal(isHomeTeam) {
+            if (isHomeTeam) matchScore.home++; else matchScore.away++;
+            document.getElementById('scoreHome').innerText = matchScore.home; document.getElementById('scoreAway').innerText = matchScore.away;
+            logEvent(isHomeTeam ? `GOLAÇO DO ${clubData.name.toUpperCase()}! ⚽` : `GOL DO ${currentEnemyTeam.name.toUpperCase()}! ❌`);
+            isPlaying = false; simEntities.ball.trail = []; drawFrame();
+            
+            setTimeout(() => { resetPositions(); isPlaying = true; requestAnimationFrame(updateSim); }, 2000);
+        }
+
+        function startTournament(mode) {
+            let req = mode === 'elite' ? 1500 : 500;
+            if (clubData.fans < req) return;
+            tournamentMode = mode; tournamentStage = 1; startMatch(true);
+        }
+
+        function startMatch(isTournament) {
+            if (startingXI.length !== 11 || startingXI.filter(p => p.pos === "GOL").length !== 1) { 
+                notify("❌ Requer 11 jogadores e 1 Goleiro exato!", "#ff4444"); return; 
+            }
+            document.getElementById('btnPlay').disabled = true; document.getElementById('btnCup').disabled = true; document.getElementById('btnCupElite').disabled = true;
+            document.getElementById('scoreboardWrapper').style.display = 'block';
+            document.getElementById('homeNameTag').innerText = clubData.name; 
+            
+            if (isTournament) {
+                let compName = tournamentMode === 'elite' ? "TAÇA ELITE" : "MATA-MATA";
+                logEvent(`🏆 ${compName} (${stageNames[tournamentStage]}): Apita o árbitro!`);
+            }
+            else { tournamentMode = 'none'; logEvent("Apita o árbitro! Começa o Amistoso!"); }
+
+            matchTimer = 0; matchScore = { home: 0, away: 0 };
+            document.getElementById('scoreHome').innerText = "0"; document.getElementById('scoreAway').innerText = "0";
+            initSim(); isPlaying = true; updateSim(); updateUI();
+        }
+
+        function endMatch() {
+            isPlaying = false;
+            let win = matchScore.home > matchScore.away, draw = matchScore.home === matchScore.away;
+            let ganhoCoins = 0, ganhoFans = 0;
+            
+            let sponsorBonus = 0;
+            if (activeSponsor.gamesLeft > 0) {
+                sponsorBonus = activeSponsor.amount;
+                activeSponsor.gamesLeft--;
+                if (activeSponsor.gamesLeft === 0) activeSponsor.name = "";
+            }
+
+            if (win) { 
+                let baseC = tournamentMode === 'elite' ? 800 : (tournamentMode === 'normal' ? 500 : 300);
+                let baseF = tournamentMode === 'elite' ? 100 : (tournamentMode === 'normal' ? 50 : 20);
+                ganhoCoins = baseC + sponsorBonus; 
+                ganhoFans = Math.floor(clubData.fans * 0.10) + baseF;
+                clubData.stats.w++; 
+            } else if (draw) { 
+                ganhoCoins = 100 + sponsorBonus; 
+                ganhoFans = Math.floor(clubData.fans * 0.02) + 5;
+                clubData.stats.d++; 
+            } else { 
+                ganhoCoins = 40 + sponsorBonus; 
+                let perdaMult = tournamentMode === 'elite' ? 0.15 : 0.05;
+                ganhoFans = -(Math.floor(clubData.fans * perdaMult) + 10);
+                clubData.stats.l++; 
+            }
+
+            coins += ganhoCoins;
+            clubData.fans = Math.max(0, clubData.fans + ganhoFans);
+
+            let sponsorTxt = sponsorBonus > 0 ? ` (Patrocínio: +${sponsorBonus})` : '';
+            let resultTxt = `Fim de Jogo! ${matchScore.home} x ${matchScore.away}. (+${ganhoCoins}🪙${sponsorTxt} | ${ganhoFans >= 0 ? '+' : ''}${ganhoFans}📣)`;
+
+            if (tournamentMode !== 'none') {
+                if (win) {
+                    if (tournamentStage < 3) {
+                        tournamentStage++; notify(`🎉 VITÓRIA! Você avançou para a ${stageNames[tournamentStage]}!`, "#00E676"); 
+                        setTimeout(() => startMatch(true), 1500); return;
+                    } else {
+                        let isElite = tournamentMode === 'elite';
+                        let prize = isElite ? 2500 : 1000;
+                        let fanBoost = isElite ? 0.30 : 0.20;
+                        let trophyName = isElite ? "Taça Elite" : "Copa Padrão";
+                        
+                        notify(`🏆 CAMPEÃO! Você venceu a ${trophyName} e ganhou ${prize} moedas e mais fãs!`, "#FFD700");
+                        coins += prize; clubData.fans += Math.floor(clubData.fans * fanBoost); 
+                        clubData.trophies.push(trophyName);
+                        tournamentMode = 'none';
+                    }
+                } else {
+                    notify(`❌ ELIMINADO! Seu time caiu na fase: ${stageNames[tournamentStage]}.`, "#ff4444"); tournamentMode = 'none';
+                }
+            }
+            logEvent(resultTxt); document.getElementById('btnPlay').disabled = false; updateUI();
+            
+            triggerInterview(win, draw);
+        }
+
+        function triggerInterview(win, draw) {
+            let questions = [];
+            if (win) {
+                questions = [
+                    { q: "Grande vitória hoje! Qual foi o fator determinante?", opts: [
+                        { text: "A determinação e garra de todos os atletas.", fansMod: 0.03, sponsorChance: 0.5 },
+                        { text: "Eu sou um gênio tático e montei a estratégia perfeita.", fansMod: -0.02, sponsorChance: 0.1 },
+                        { text: "O apoio incondicional dos nossos torcedores!", fansMod: 0.05, sponsorChance: 0.3 }
+                    ]}
+                ];
+            } else if (draw) {
+                questions = [
+                    { q: "Um empate disputado. Ficou satisfeito com a atuação?", opts: [
+                        { text: "Poderíamos ter vencido, mas 1 ponto é importante.", fansMod: 0.02, sponsorChance: 0.2 },
+                        { text: "A arbitragem nos prejudicou claramente.", fansMod: -0.01, sponsorChance: 0.0 },
+                        { text: "Faltou raça em alguns jogadores hoje.", fansMod: -0.03, sponsorChance: 0.0 }
+                    ]}
+                ];
+            } else {
+                questions = [
+                    { q: "Uma derrota dolorosa. O que faltou em campo?", opts: [
+                        { text: "Assumo total responsabilidade. Vamos trabalhar mais.", fansMod: 0.02, sponsorChance: 0.1 },
+                        { text: "O elenco precisa de reforços urgentes.", fansMod: -0.03, sponsorChance: 0.0 },
+                        { text: "Tivemos azar nas finalizações, a bola não entrou.", fansMod: 0.0, sponsorChance: 0.0 }
+                    ]}
+                ];
+            }
+
+            let currentQ = questions[0];
+            document.getElementById('interviewQuestion').innerText = currentQ.q;
+            let optsDiv = document.getElementById('interviewOptions');
+            optsDiv.innerHTML = "";
+
+            currentQ.opts.forEach(opt => {
+                let btn = document.createElement('button');
+                btn.className = "interview-btn";
+                btn.innerText = opt.text;
+                btn.onclick = () => {
+                    let impact = Math.round(clubData.fans * opt.fansMod);
+                    clubData.fans = Math.max(0, clubData.fans + impact);
+                    let impactTxt = impact > 0 ? `+${impact}` : `${impact}`;
+                    notify(`Sua resposta repercutiu nos jornais! (${impactTxt} Fãs)`, impact >= 0 ? "#00E676" : "#ff4444");
+                    document.getElementById('interviewModal').style.display = 'none';
+                    updateUI();
+                    
+                    if (activeSponsor.gamesLeft <= 0 && Math.random() < opt.sponsorChance) {
+                        setTimeout(offerSponsorship, 1500);
+                    }
+                };
+                optsDiv.appendChild(btn);
+            });
+
+            document.getElementById('interviewModal').style.display = 'flex';
+        }
+
+        function offerSponsorship() {
+            let companies = ["Bebidas Fly", "Banco Central FC", "Chuteiras Nitro", "Seguros Proteção Total"];
+            let amount = Math.floor(Math.random() * 50) + 30; 
+            let games = Math.floor(Math.random() * 3) + 3; 
+            
+            pendingSponsor = { name: companies[Math.floor(Math.random() * companies.length)], amount: amount, gamesLeft: games };
+            
+            document.getElementById('sponsorText').innerHTML = `A empresa <b>${pendingSponsor.name}</b> gostou da sua visibilidade!<br><br>Eles oferecem <b>🪙 ${pendingSponsor.amount} moedas por jogo</b> durante as próximas <b>${pendingSponsor.gamesLeft} partidas</b>.`;
+            document.getElementById('sponsorModal').style.display = 'flex';
+        }
+
+        function acceptSponsor() {
+            activeSponsor = { ...pendingSponsor };
+            notify(`✅ Contrato com ${activeSponsor.name} assinado!`, "#00E676");
+            document.getElementById('sponsorModal').style.display = 'none';
+            updateUI();
+        }
+
+        function rejectSponsor() {
+            pendingSponsor = null;
+            document.getElementById('sponsorModal').style.display = 'none';
+        }
+
+        function getCardClass(ovr) { return ovr > 100 ? 'mystic' : (ovr >= 90 ? 'icon' : (ovr >= 80 ? 'gold' : (ovr >= 70 ? 'silver' : 'bronze'))); }
+        
+        function handlePlayerClick(player, listType, index) {
+            if (listType === 'none') return; 
+            if (isPlaying) { notify("⚠️ O jogo está rolando! Você não pode alterar o time agora.", "#ff9800"); return; }
+            if (selectedPlayerInfo) {
+                if (selectedPlayerInfo.player.uniqueId === player.uniqueId) { selectedPlayerInfo = null; updateUI(); return; }
+                let listA = selectedPlayerInfo.listType === 'starting' ? startingXI : bench, listB = listType === 'starting' ? startingXI : bench;
+                listA[selectedPlayerInfo.index] = player; listB[index] = selectedPlayerInfo.player;
+                selectedPlayerInfo = null; updateUI();
+            } else { selectedPlayerInfo = { player, listType, index }; updateUI(); }
+        }
+
+        function getSideLabel(pos, indexInPos, totalInPos) {
+            if (totalInPos <= 1 || pos === "GOL") return "C";
+            if (indexInPos === 0) return "E";
+            if (indexInPos === totalInPos - 1) return "D";
+            return "C";
+        }
+
+        function renderPlayerCard(p, listType, index, animate = false) {
+            if(!p) return "";
+            let isSelected = selectedPlayerInfo && selectedPlayerInfo.player.uniqueId === p.uniqueId;
+            let cDelay = animate ? 'reveal-step' : '';
+
+            let sideBadge = "";
+            if (listType === 'starting') {
+                let samePosPlayers = startingXI.filter(x => x.pos === p.pos);
+                let myIndexInPos = samePosPlayers.findIndex(x => x.uniqueId === p.uniqueId);
+                let side = getSideLabel(p.pos, myIndexInPos, samePosPlayers.length);
+                sideBadge = `<span class="p-side">${side}</span>`;
+            }
+
+            return `<div class="player-card ${getCardClass(p.ovr)} ${isSelected ? 'selected' : ''}" onclick="handlePlayerClick(${JSON.stringify(p).replace(/"/g, '&quot;')}, '${listType}', ${index})">
+                        <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+                            <div class="p-ovr ${cDelay}" style="animation-delay: 0.2s">${p.ovr}</div>
+                            <div>
+                                <span class="p-pos ${cDelay}" style="animation-delay: 0.2s">${p.pos}</span>${sideBadge}
+                            </div>
+                        </div>
+                        <img src="${p.photo || 'https://via.placeholder.com/80/555555/FFFFFF?text=?'}" class="p-photo ${cDelay}" style="animation-delay: 0.4s" alt="foto">
+                        <div class="p-name ${cDelay}" style="animation-delay: 0.6s">${p.name}</div>
+                        <div class="p-stats">
+                            <div class="stat-item ${cDelay}" style="animation-delay: 1.0s"><span>VEL</span> <span>${p.vel}</span></div>
+                            <div class="stat-item ${cDelay}" style="animation-delay: 1.2s"><span>DRI</span> <span>${p.dri}</span></div>
+                            <div class="stat-item ${cDelay}" style="animation-delay: 1.4s"><span>CHU</span> <span>${p.chu}</span></div>
+                            <div class="stat-item ${cDelay}" style="animation-delay: 1.6s"><span>DEF</span> <span>${p.def}</span></div>
+                            <div class="stat-item ${cDelay}" style="animation-delay: 1.8s"><span>PAS</span> <span>${p.pas}</span></div>
+                            <div class="stat-item ${cDelay}" style="animation-delay: 2.0s"><span>FIN</span> <span>${p.fin}</span></div>
+                        </div>
+                    </div>`;
+        }
+
+        function updateUI() {
+            document.getElementById('coinCount').innerText = coins;
+            document.getElementById('fanCount').innerText = clubData.fans;
+            
+            let sponsorDisplay = document.getElementById('sponsorDisplay');
+            if(activeSponsor.gamesLeft > 0) {
+                sponsorDisplay.style.display = 'block';
+                sponsorDisplay.innerText = `${activeSponsor.name} (${activeSponsor.gamesLeft} jogos)`;
+            } else { sponsorDisplay.style.display = 'none'; }
+
+            document.getElementById('teamOvr').innerText = startingXI.length > 0 ? Math.round(startingXI.reduce((sum, p) => sum + p.ovr, 0) / startingXI.length) : 0;
+            document.getElementById('titularesCount').innerText = startingXI.length;
+            document.getElementById('formWarning').innerText = (startingXI.length !== 11) ? "⚠️ Requer 11 jogadores!" : (startingXI.filter(p => p.pos === "GOL").length !== 1 ? "⚠️ Requer 1 Goleiro!" : "");
+            document.getElementById('startingGrid').innerHTML = startingXI.map((p, i) => renderPlayerCard(p, 'starting', i)).join('');
+            document.getElementById('benchGrid').innerHTML = bench.map((p, i) => renderPlayerCard(p, 'bench', i)).join('');
+            
+            let btnCup = document.getElementById('btnCup');
+            if (clubData.fans >= 500) { btnCup.disabled = isPlaying; btnCup.innerText = "🏆 JOGAR MATA-MATA"; } 
+            else { btnCup.disabled = true; btnCup.innerText = `🏆 MATA-MATA (${clubData.fans}/500 Fãs)`; }
+
+            let btnCupElite = document.getElementById('btnCupElite');
+            if (clubData.fans >= 1500) { btnCupElite.disabled = isPlaying; btnCupElite.innerText = "💎 JOGAR TAÇA ELITE"; } 
+            else { btnCupElite.disabled = true; btnCupElite.innerText = `💎 TAÇA ELITE (${clubData.fans}/1500 Fãs)`; }
+
+            ['Comum', 'Raro', 'Lenda'].forEach(tipo => {
+                let btn = document.getElementById(`btn${tipo}`);
+                btn.disabled = isPlaying || coins < packOdds[tipo.toLowerCase()].cost;
+            });
+        }
+
+        generateStarterTeam(); drawPitch(); 
+    </script>
+</body>
+</html>
