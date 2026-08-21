@@ -54,10 +54,21 @@
         .section-title { border-bottom: 1px solid #444; padding-bottom: 5px; margin-top: 20px; color: #aaa; display: flex; justify-content: space-between;}
         .team-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 12px; margin-top: 10px; min-height: 80px; background: #111; padding: 15px; border-radius: 5px; }
         
-        .player-card { padding: 10px; border-radius: 8px; text-align: center; cursor: pointer; transition: transform 0.2s; border: 2px solid transparent; user-select: none; position: relative; overflow: hidden; display: flex; flex-direction: column; }
-        .player-card:hover { transform: translateY(-5px); }
+        .player-card { padding: 10px; border-radius: 8px; text-align: center; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; border: 2px solid transparent; user-select: none; position: relative; overflow: visible; display: flex; flex-direction: column; }
+        .player-card:hover { transform: translateY(-5px); z-index: 20; }
         .player-card.selected { border: 2px solid #00ff00 !important; transform: scale(1.05); box-shadow: 0 0 15px #00ff00 !important; z-index: 10; }
         
+        .player-card .p-tooltip {
+            display: none; position: absolute; bottom: 105%; left: 50%; transform: translateX(-50%);
+            background: rgba(0,0,0,0.95); color: #fff; padding: 10px; border-radius: 6px; font-size: 0.75rem;
+            white-space: nowrap; border: 1px solid #444; box-shadow: 0 4px 10px rgba(0,0,0,0.8); z-index: 100;
+            pointer-events: none; text-align: left; line-height: 1.5; min-width: 120px;
+        }
+        .player-card:hover .p-tooltip { display: block; }
+        
+        @keyframes trainFlash { 0% { box-shadow: 0 0 20px #00e676; transform: scale(1.1); } 100% { box-shadow: 0 0 0px transparent; transform: scale(1); } }
+        .trained-effect { animation: trainFlash 0.8s ease-out; }
+
         .p-photo { width: 60px; height: 60px; margin: 5px auto; border-radius: 50%; object-fit: cover; background: #222; border: 2px solid rgba(255,255,255,0.3); }
 
         .bronze { background: linear-gradient(135deg, #5c4033, #cd7f32); border-color: #8b4513; }
@@ -86,7 +97,7 @@
         .modal-content { background: #222; padding: 30px; border-radius: 10px; max-width: 500px; width: 100%; box-shadow: 0 0 20px #000; text-align: center; max-height: 90vh; overflow-y: auto;}
         .close-btn { background: #f44336; margin-top: 20px; width: 100%; }
 
-        #customNoticeContainer { position: fixed; top: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; }
+        #customNoticeContainer { position: fixed; top: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; pointer-events: none; }
         .custom-toast { background: #333; color: #fff; border-left: 5px solid #4CAF50; padding: 12px 20px; border-radius: 4px; box-shadow: 0 4px 12px rgba(0,0,0,0.5); font-weight: bold; animation: slideIn 0.3s ease-out; }
         @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
         
@@ -136,7 +147,6 @@
         </div>
     </div>
     
-    <!-- MODAL DE CRIAR JOGADOR -->
     <div id="createPlayerModal" class="modal-overlay">
         <div class="modal-content">
             <h2>✍️ Criar Novo Jogador</h2>
@@ -242,7 +252,7 @@
 
         <div class="actions">
             <button class="btn-club" onclick="openClubModal()">🛡️ Meu Clube</button>
-            <button class="btn-train" onclick="trainSelectedPlayer()">💪 Treinar (300🪙)</button>
+            <button class="btn-train" onclick="trainSelectedPlayer()">💪 Treinar (Custo Variável)</button>
             
             <div style="display: flex; flex-direction: column; align-items: center;">
                 <label style="font-size: 0.75rem; color: #aaa; font-weight: bold; margin-bottom: 2px;">Estratégia</label>
@@ -348,7 +358,14 @@
         let activeSponsor = { name: "", amount: 0, gamesLeft: 0 };
         let pendingSponsor = null;
 
-        // TIMES INIMIGOS COM ESCUDOS
+        const sponsorsDB = [
+            { name: "Padaria do Zé", minAmount: 10, maxAmount: 30, minGames: 2, maxGames: 4, rarity: "Bronze" },
+            { name: "Chuteiras Nitro", minAmount: 30, maxAmount: 50, minGames: 3, maxGames: 5, rarity: "Prata" },
+            { name: "Banco Central FC", minAmount: 50, maxAmount: 80, minGames: 4, maxGames: 6, rarity: "Ouro" },
+            { name: "Bebidas Fly", minAmount: 80, maxAmount: 120, minGames: 5, maxGames: 8, rarity: "Lenda" },
+            { name: "Seguros Proteção Total", minAmount: 120, maxAmount: 200, minGames: 6, maxGames: 10, rarity: "Místico" }
+        ];
+
         const enemyTeamsDB = [
             { name: "Galácticos FC", color: "#FFFFFF", secondaryColor: "#FFD700", icon: "⭐" },
             { name: "Dragões Vermelhos", color: "#E53935", secondaryColor: "#000000", icon: "🔥" },
@@ -361,7 +378,9 @@
 
         let currentEnemyTeam = null, enemyMatchColor = "#F44336";
         let isManagerView = false, tournamentMode = 'none', tournamentStage = 0;
+        let isPenaltyShootout = false, penaltyTurn = 0, penaltyScoreHome = 0, penaltyScoreAway = 0;
         const stageNames = ["Amistoso", "Quartas de Final", "Semifinal", "Grande Final!"];
+        let lastTrainedId = null;
 
         document.addEventListener('keydown', (e) => {
             if (e.key.toLowerCase() === 'k') {
@@ -372,7 +391,6 @@
             }
         });
 
-        // ESTRATÉGIA FEEDBACK
         document.getElementById('teamStrategy').addEventListener('change', (e) => {
             let stratName = e.target.options[e.target.selectedIndex].text;
             notify(`📋 Tática alterada para: ${stratName}`, "#2196F3");
@@ -380,28 +398,51 @@
         });
 
         const starPlayers = [
+            // Místicos (100+)
+            { id: 99, name: "Iberê Thenório", pos: "ATA", ovr: 102, vel: 99, dri: 99, chu: 99, pas: 99, def: 60, fin: 99, photo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSxEDsRbXecyBee_gPuVuJ326EW5goICJZ250Rxmt10oPdf44y5Srm-G828sbFlzh_2BWbhXLCIOSFnIO-759RpKdfwFa6NX3JZRlxCf4PHgA&s=10" },
+            { id: 100, name: "Ednaldo Pereira", pos: "MEI", ovr: 105, vel: 99, dri: 99, chu: 99, pas: 99, def: 99, fin: 99, photo: "https://via.placeholder.com/80/8b0000/FFFFFF?text=EP" },
+            { id: 101, name: "Shrek Agiota", pos: "ZAG", ovr: 103, vel: 85, dri: 70, chu: 95, pas: 80, def: 99, fin: 50, photo: "https://via.placeholder.com/80/8b0000/FFFFFF?text=SHK" },
+            { id: 102, name: "Goku", pos: "ATA", ovr: 101, vel: 99, dri: 95, chu: 99, pas: 85, def: 50, fin: 99, photo: "https://via.placeholder.com/80/8b0000/FFFFFF?text=GKU" },
+            { id: 103, name: "Ricardo Milos", pos: "LAT", ovr: 104, vel: 99, dri: 99, chu: 80, pas: 90, def: 90, fin: 70, photo: "https://via.placeholder.com/80/8b0000/FFFFFF?text=RM" },
+            
+            // Lendas (90-99)
             { id: 1, name: "Baianinho", pos: "ATA", ovr: 96, vel: 94, dri: 95, chu: 96, pas: 90, def: 40, fin: 98, photo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT-zLbuUxWk12tZDpXaqinMm-8JSdL2dTIG0uCixQw3lw&s=10" },
-            { id: 2, name: "Tarsila do Amaral", pos: "MEI", ovr: 75, vel: 70, dri: 78, chu: 72, pas: 77, def: 55, fin: 70, photo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQDV0HJgBUQCkBjzZckfbI8r86LIpXZS2qEPt-wHa0y_w&s=10" },
-            { id: 3, name: "Lebron James", pos: "ATA", ovr: 89, vel: 85, dri: 90, chu: 90, pas: 88, def: 45, fin: 92, photo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRDNy9yz917zu5awpYkLO3QujKTHmAz63fonBQFFdw2Xw&s=10" },
-            { id: 4, name: "Véio do Coragem", pos: "GOL", ovr: 88, vel: 50, dri: 40, chu: 60, pas: 65, def: 90, fin: 20, photo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQxM-KCkrGUUJSF66FWBCXnd1a7GYt97uL2ruLxF3PvrQ&s=10" },
-            { id: 5, name: "Miranha", pos: "LAT", ovr: 84, vel: 90, dri: 82, chu: 70, pas: 80, def: 83, fin: 65, photo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT8pSygGI7RYPfCHl3jKlUU10V-SOcQ_fl3_LGvBvLIUA&s" },
             { id: 6, name: "Tomas o Trem", pos: "LAT", ovr: 91, vel: 95, dri: 85, chu: 98, pas: 82, def: 85, fin: 80, photo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRiC-rOhGuzQ6ulOzadcZB7VDfBuXsTQqig58EG-_ULwg&s=10" },
             { id: 7, name: "Café da Tarde", pos: "MEI", ovr: 93, vel: 75, dri: 98, chu: 85, pas: 99, def: 60, fin: 85, photo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR_lTrdyaXSmhinLmhpU8LxFV3pPyqC-MpDRyOtx5MNSg&s=10" },
             { id: 8, name: "Huggy Wuggy", pos: "ATA", ovr: 94, vel: 92, dri: 93, chu: 95, pas: 80, def: 35, fin: 99, photo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQNqtYQsfF1z6hMsiFfA0VTW73DaSAcfjyT4-ijJRVJRg&s" },
             { id: 9, name: "Michael Jackson", pos: "ATA", ovr: 97, vel: 96, dri: 98, chu: 95, pas: 85, def: 30, fin: 98, photo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQMAEz0c74nUJpYasQCD63GYxntkjhJAWXoDjg0pWaWmw&s" },
-            { id: 10, name: "Aoi Todo", pos: "ZAG", ovr: 82, vel: 65, dri: 50, chu: 40, pas: 60, def: 90, fin: 30, photo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTEeJwVBxcogU8PzkBUddAkFayRJDhh7UmhEvzkrHtdNg&s=10" },
             { id: 11, name: "Titã Colossal", pos: "ATA", ovr: 95, vel: 94, dri: 99, chu: 85, pas: 88, def: 20, fin: 89, photo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR87huDjr7FfKIF6bSVoTgDFEUy4164ZaU-G5mAxDW5MQ&s=10" },
             { id: 12, name: "Hornet", pos: "GOL", ovr: 90, vel: 55, dri: 45, chu: 65, pas: 70, def: 94, fin: 25, photo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTGjjcacLUrlci3mR7Qx-DgEmB5FuVXqRnCWvIE_Mzomw&s=10" },
             { id: 13, name: "Homelander", pos: "MEI", ovr: 92, vel: 92, dri: 93, chu: 88, pas: 90, def: 45, fin: 85, photo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR_dcQXmznxNKSLpDNJSbnU43zU2e0FPh78O4auKq33JA&s" },
-            { id: 14, name: "Leôncio", pos: "ZAG", ovr: 81, vel: 70, dri: 65, chu: 60, pas: 55, def: 93, fin: 45, photo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSlY-fFqw_nnrW34ylJDxxSwZAl0XV_6uWnQz76OmStNg&s=10" },
+            
+            // Ouros (80-89)
+            { id: 3, name: "Lebron James", pos: "ATA", ovr: 89, vel: 85, dri: 90, chu: 90, pas: 88, def: 45, fin: 92, photo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRDNy9yz917zu5awpYkLO3QujKTHmAz63fonBQFFdw2Xw&s=10" },
+            { id: 4, name: "Véio do Coragem", pos: "GOL", ovr: 88, vel: 50, dri: 40, chu: 60, pas: 65, def: 90, fin: 20, photo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQxM-KCkrGUUJSF66FWBCXnd1a7GYt97uL2ruLxF3PvrQ&s=10" },
+            { id: 5, name: "Miranha", pos: "LAT", ovr: 84, vel: 90, dri: 82, chu: 70, pas: 80, def: 83, fin: 65, photo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT8pSygGI7RYPfCHl3jKlUU10V-SOcQ_fl3_LGvBvLIUA&s" },
+            { id: 10, name: "Aoi Todo", pos: "ZAG", ovr: 82, vel: 65, dri: 50, chu: 40, pas: 60, def: 90, fin: 30, photo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTEeJwVBxcogU8PzkBUddAkFayRJDhh7UmhEvzkrHtdNg&s=10" },
             { id: 15, name: "Bola 8", pos: "VOL", ovr: 83, vel: 76, dri: 72, chu: 65, pas: 80, def: 82, fin: 60, photo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTBahWuHaUR4ZpZMMw5V7fsXtpm5hae-h45cbg9-C1VwQ&s=10" },
             { id: 16, name: "Educere", pos: "MEI", ovr: 86, vel: 82, dri: 88, chu: 80, pas: 87, def: 50, fin: 78, photo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTO-PqQXluS4kT_HkSkwSxpTmuPcEZJHFMej96LsrjRdw&s=10" },
-            { id: 17, name: "Pernalonga", pos: "LAT", ovr: 79, vel: 89, dri: 78, chu: 62, pas: 76, def: 75, fin: 55, photo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQhBNwOd4amQrui_HLiHLVfMIPPdCAEV__YZcuJDY6cAA&s=10" },
             { id: 18, name: "Disparervilha", pos: "GOL", ovr: 85, vel: 52, dri: 42, chu: 60, pas: 65, def: 87, fin: 22, photo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTmcrdgXHScwvP1dYx9PE9rmfZsMpTvAelGkOdgE9yXEg&s=10" },
             { id: 19, name: "Boto Cor-de-Rosa", pos: "ATA", ovr: 89, vel: 91, dri: 86, chu: 89, pas: 75, def: 35, fin: 91, photo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRLntuOuVxIvswJQE4y5GkrJdGBvg68u6oUHLuiVlXL3A&s=10" },
             { id: 20, name: "Lucky Block", pos: "ZAG", ovr: 87, vel: 75, dri: 68, chu: 50, pas: 72, def: 90, fin: 40, photo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR3cGu0nEPMQahPr6DvGAYfuKYYolTrE2ixsoVxCzYO4Q&s=10" },
-            { id: 99, name: "Iberê Thenório", pos: "ATA", ovr: 102, vel: 99, dri: 99, chu: 99, pas: 99, def: 60, fin: 99, photo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSxEDsRbXecyBee_gPuVuJ326EW5goICJZ250Rxmt10oPdf44y5Srm-G828sbFlzh_2BWbhXLCIOSFnIO-759RpKdfwFa6NX3JZRlxCf4PHgA&s=10" }
-        ].map(p => ({ ...p, potential: Math.floor(Math.random() * 10) + 1 })); // Estrelas também tem potencial
+            
+            // Pratas (70-79)
+            { id: 2, name: "Tarsila do Amaral", pos: "MEI", ovr: 75, vel: 70, dri: 78, chu: 72, pas: 77, def: 55, fin: 70, photo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQDV0HJgBUQCkBjzZckfbI8r86LIpXZS2qEPt-wHa0y_w&s=10" },
+            { id: 14, name: "Leôncio", pos: "ZAG", ovr: 78, vel: 65, dri: 65, chu: 60, pas: 55, def: 85, fin: 45, photo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSlY-fFqw_nnrW34ylJDxxSwZAl0XV_6uWnQz76OmStNg&s=10" },
+            { id: 17, name: "Pernalonga", pos: "LAT", ovr: 79, vel: 89, dri: 78, chu: 62, pas: 76, def: 75, fin: 55, photo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQhBNwOd4amQrui_HLiHLVfMIPPdCAEV__YZcuJDY6cAA&s=10" },
+            { id: 104, name: "Carteiro Juca", pos: "ATA", ovr: 72, vel: 85, dri: 70, chu: 65, pas: 70, def: 35, fin: 68, photo: "https://via.placeholder.com/80/a9a9a9/000000?text=CJ" },
+            { id: 105, name: "Motoboy Veloz", pos: "LAT", ovr: 77, vel: 95, dri: 72, chu: 50, pas: 65, def: 68, fin: 45, photo: "https://via.placeholder.com/80/a9a9a9/000000?text=MV" },
+            
+            // Bronzes (60-69)
+            { id: 106, name: "Padeiro Zé", pos: "ATA", ovr: 62, vel: 55, dri: 60, chu: 65, pas: 50, def: 40, fin: 62, photo: "https://via.placeholder.com/80/cd7f32/FFFFFF?text=PZ" },
+            { id: 107, name: "Caramelo", pos: "MEI", ovr: 65, vel: 75, dri: 70, chu: 50, pas: 60, def: 55, fin: 45, photo: "https://via.placeholder.com/80/cd7f32/FFFFFF?text=DOG" },
+            { id: 108, name: "Pipa Voadora", pos: "ZAG", ovr: 61, vel: 80, dri: 55, chu: 40, pas: 50, def: 65, fin: 30, photo: "https://via.placeholder.com/80/cd7f32/FFFFFF?text=PV" },
+            { id: 109, name: "Tio do Churros", pos: "LAT", ovr: 68, vel: 65, dri: 65, chu: 55, pas: 70, def: 62, fin: 50, photo: "https://via.placeholder.com/80/cd7f32/FFFFFF?text=TC" },
+            { id: 110, name: "Gari Veloz", pos: "VOL", ovr: 67, vel: 82, dri: 60, chu: 50, pas: 65, def: 70, fin: 45, photo: "https://via.placeholder.com/80/cd7f32/FFFFFF?text=GV" }
+        ].map(p => {
+            let pot = Math.floor(Math.random() * 20) + 5;
+            return { ...p, potential: pot, maxPotential: pot };
+        });
 
         let startingXI = [], bench = [], coins = 200, playerIdCounter = 0;
         let selectedPlayerInfo = null, playerPending = null;
@@ -411,39 +452,47 @@
             return { vel: vary(), dri: vary(), chu: vary(), pas: vary(), def: vary(), fin: vary() };
         }
 
-        // CRIAR JOGADOR COM POTENCIAL
         function createGenericPlayer(isGk) {
             let ovr = Math.floor(Math.random() * 10) + 60;
             let stats = generateRandomStats(ovr);
             if (isGk) { stats.def = ovr + 10; stats.fin = 20; stats.vel = 50; }
             let pos = isGk ? "GOL" : ["ZAG", "LAT", "VOL", "MEI", "ATA"][Math.floor(Math.random()*5)];
             let nomes = ["Juninho", "Randola", "Carlos", "Six Sevenaldo", "Gordo", "Claúdio", "Sillva", "Tenório", "Fudano de tal"];
+            let pot = Math.floor(Math.random() * 26) + 5;
             return { 
                 name: nomes[Math.floor(Math.random()*nomes.length)], pos: pos, ovr: ovr, ...stats, 
                 offenseBias: (Math.random() - 0.5) * 80, defenseBias: (Math.random() - 0.5) * 60,
                 photo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSGsPTioyUNXhKF_HWOWqNhES6rOQb3p2DLzmNPBxfZiw&s=10",
-                potential: Math.floor(Math.random() * 26) // Status escondido de até +25
+                potential: pot, maxPotential: pot
             };
         }
 
-        // SISTEMA DE TREINO
         function trainSelectedPlayer() {
             if (!selectedPlayerInfo) { notify("⚠️ Selecione um jogador (clique na carta) no seu time ou banco primeiro!", "#ff9800"); return; }
             let p = selectedPlayerInfo.player;
-            if (coins < 300) { notify("❌ Moedas insuficientes para treinar! (Custa 300)", "#ff4444"); return; }
+            
+            let customCost = 100 + (Math.max(0, p.ovr - 60) * 10);
+            if (coins < customCost) { notify(`❌ Moedas insuficientes para treinar! (Custa ${customCost}🪙)`, "#ff4444"); return; }
             if (!p.potential || p.potential <= 0) { notify(`❌ ${p.name} já atingiu seu potencial máximo!`, "#ff4444"); return; }
             
-            coins -= 300;
-            p.potential -= 1;
-            p.ovr += 1;
-            p.vel += 1; p.dri += 1; p.chu += 1; p.pas += 1; p.def += 1; p.fin += 1; 
+            coins -= customCost;
             
-            notify(`✅ ${p.name} treinou intensamente e seu OVR subiu para ${p.ovr}!`, "#00E676");
+            let pGain = Math.max(1, Math.ceil((p.maxPotential || p.potential) * 0.25));
+            if (pGain > p.potential) pGain = p.potential; 
+            
+            p.potential -= pGain;
+            p.ovr += pGain;
+            p.vel += pGain; p.dri += pGain; p.chu += pGain; p.pas += pGain; p.def += pGain; p.fin += pGain; 
+            
+            lastTrainedId = p.uniqueId;
+            notify(`✅ ${p.name} treinou intensamente (-${customCost}🪙) e seu OVR subiu para ${p.ovr}!`, "#00E676");
+            
             selectedPlayerInfo = null;
             updateUI();
+            
+            setTimeout(() => { lastTrainedId = null; updateUI(); }, 900); 
         }
 
-        // CRIAÇÃO DE JOGADOR MANUAL
         function openCustomPlayerModal() {
             document.getElementById('createPlayerModal').style.display = 'flex';
         }
@@ -456,11 +505,12 @@
             
             let stats = generateRandomStats(ovr);
             if (pos === "GOL") { stats.def = ovr + 10; stats.fin = 20; stats.vel = 50; }
+            let pot = Math.floor(Math.random() * 26) + 5;
 
             let customP = {
                 name: nome, pos: pos, ovr: ovr, ...stats, 
                 offenseBias: (Math.random() - 0.5) * 80, defenseBias: (Math.random() - 0.5) * 60,
-                photo: foto, potential: Math.floor(Math.random() * 26), uniqueId: ++playerIdCounter
+                photo: foto, potential: pot, maxPotential: pot, uniqueId: ++playerIdCounter
             };
 
             bench.push(customP);
@@ -502,7 +552,7 @@
                 let range = getOvrRange(selectedRarity);
                 let possible = starPlayers.filter(p => p.ovr >= range.min && p.ovr <= range.max);
                 
-                if (possible.length > 0 && Math.random() > 0.4) {
+                if (possible.length > 0 && Math.random() < 0.85) {
                     playerPending = { ...possible[Math.floor(Math.random() * possible.length)], offenseBias: (Math.random()-0.5)*80, defenseBias: (Math.random()-0.5)*60 };
                 } else {
                     let targetOvr = Math.floor(Math.random() * (range.max - range.min + 1)) + range.min;
@@ -521,7 +571,14 @@
                 icon.style.display = 'none'; 
                 let isPremium = playerPending.ovr >= 80;
                 cardView.innerHTML = renderPlayerCard(playerPending, 'none', 0, isPremium);
-                cardView.style.display = 'block'; 
+                cardView.style.display = 'block';
+                for(let i=0; i<20; i++){
+                    let spk = document.createElement('div');
+                    spk.style.position = 'absolute'; spk.style.background = '#FFD700'; spk.style.width = '5px'; spk.style.height = '5px';
+                    spk.style.left = (Math.random() * 100) + '%'; spk.style.top = (Math.random() * 100) + '%'; spk.style.borderRadius = '50%';
+                    cardView.appendChild(spk);
+                    setTimeout(() => spk.remove(), 1500);
+                }
                 setTimeout(() => { btn.style.display = 'block'; }, isPremium ? 2000 : 600);
             };
         }
@@ -561,7 +618,7 @@
         const canvas = document.getElementById('pitch');
         const ctx = canvas.getContext('2d');
         let isPlaying = false, matchTimer = 0, matchScore = { home: 0, away: 0 };
-        let simEntities = { ball: { x: 400, y: 200, vx: 0, vy: 0, trail: [], owner: null }, homeTeam: [], awayTeam: [], vfx: [] };
+        let simEntities = { ball: { x: 400, y: 200, z: 0, vz: 0, isAirborne: false, vx: 0, vy: 0, trail: [], owner: null }, homeTeam: [], awayTeam: [], vfx: [] };
 
         function drawPitch() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -571,9 +628,24 @@
             ctx.beginPath(); ctx.arc(canvas.width/2, canvas.height/2, 50, 0, Math.PI*2); ctx.stroke();
             ctx.strokeRect(10, canvas.height/2 - 60, 80, 120);
             ctx.strokeRect(canvas.width - 90, canvas.height/2 - 60, 80, 120);
+            
+            // Marca de penalti
+            ctx.beginPath(); ctx.arc(110, canvas.height/2, 3, 0, Math.PI*2); ctx.fillStyle = '#fff'; ctx.fill();
+            ctx.beginPath(); ctx.arc(canvas.width - 110, canvas.height/2, 3, 0, Math.PI*2); ctx.fill();
         }
 
         function spawnVFX(x, y, color, maxRadius) { simEntities.vfx.push({ x, y, r: 2, maxR: maxRadius, color: color, opacity: 1 }); }
+
+        function createGoalExplosion(isHome) {
+            let cx = isHome ? canvas.width - 10 : 10;
+            let cy = canvas.height/2;
+            for(let i=0; i<30; i++) {
+                simEntities.vfx.push({ 
+                    x: cx, y: cy, vx: (Math.random()-0.5)*10, vy: (Math.random()-0.5)*10,
+                    r: Math.random()*5+2, color: 'rgba(255, 215, 0)', opacity: 1, type: 'particle'
+                });
+            }
+        }
 
         function getBasePositionX(pos, isHome) {
             let xTier = pos === "GOL" ? 0.05 : pos === "ZAG" ? 0.2 : pos === "LAT" ? 0.3 : pos === "VOL" ? 0.45 : pos === "MEI" ? 0.65 : 0.85;
@@ -600,8 +672,8 @@
                     let baseY = playersInPos.length === 1 ? canvas.height / 2 : (canvas.height * 0.15) + (idx * (spread / (playersInPos.length - 1)));
                     let modifiedBaseX = getBasePositionX(p.pos, isHome) + (isHome ? (p.offenseBias || 0) : -(p.offenseBias || 0));
                     activePlayers.push({ 
-                        ...p, x: modifiedBaseX, y: baseY, baseX: modifiedBaseX, baseY: baseY, 
-                        speed: (p.vel / 100) * 3 + 0.8, cooldown: 0, isHome: isHome, 
+                        ...p, x: modifiedBaseX, y: baseY, baseX: modifiedBaseX, baseY: baseY, targetX: modifiedBaseX, targetY: baseY,
+                        speed: (p.vel / 100) * 3 + 0.8, cooldown: 0, isHome: isHome, yellowCard: false,
                         stunText: "", receiveCooldown: 0, stateInfo: "Posicionando" 
                     });
                 });
@@ -610,14 +682,14 @@
         }
 
         function resetPositions() {
-            simEntities.ball = { x: canvas.width/2, y: canvas.height/2, vx: 0, vy: 0, trail: [], owner: null };
+            simEntities.ball = { x: canvas.width/2, y: canvas.height/2, z: 0, vz: 0, isAirborne: false, vx: 0, vy: 0, trail: [], owner: null };
             simEntities.vfx = [];
-            simEntities.homeTeam.forEach(p => { p.baseX = getBasePositionX(p.pos, true) + (p.offenseBias || 0); p.x = p.baseX; p.y = p.baseY; p.cooldown = 0; p.receiveCooldown = 0; p.stateInfo = "Posicionando"; });
-            simEntities.awayTeam.forEach(p => { p.baseX = getBasePositionX(p.pos, false) - (p.offenseBias || 0); p.x = p.baseX; p.y = p.baseY; p.cooldown = 0; p.receiveCooldown = 0; p.stateInfo = "Posicionando"; });
+            simEntities.homeTeam.forEach(p => { p.baseX = getBasePositionX(p.pos, true) + (p.offenseBias || 0); p.x = p.baseX; p.y = p.baseY; p.cooldown = 0; p.receiveCooldown = 0; p.stateInfo = "Posicionando"; p.targetX = p.baseX; p.targetY = p.baseY;});
+            simEntities.awayTeam.forEach(p => { p.baseX = getBasePositionX(p.pos, false) - (p.offenseBias || 0); p.x = p.baseX; p.y = p.baseY; p.cooldown = 0; p.receiveCooldown = 0; p.stateInfo = "Posicionando"; p.targetX = p.baseX; p.targetY = p.baseY;});
         }
 
         function initSim() {
-            simEntities.ball = { x: canvas.width/2, y: canvas.height/2, vx: 0, vy: 0, trail: [], owner: null };
+            simEntities.ball = { x: canvas.width/2, y: canvas.height/2, z: 0, vz: 0, isAirborne: false, vx: 0, vy: 0, trail: [], owner: null };
             simEntities.vfx = [];
             simEntities.homeTeam = setupTeamPositions(startingXI, true);
             
@@ -639,9 +711,47 @@
         function logEvent(msg) { document.getElementById('matchLog').innerText = msg; }
         function formatTime(minutes) { return `${Math.floor(minutes).toString().padStart(2, '0')}:00`; }
 
+        function triggerFoul(playerFouling, isPenalty = false) {
+            playerFouling.yellowCard = true;
+            playerFouling.stunText = "CARTÃO!";
+            playerFouling.cooldown = 100;
+            logEvent(`FALTA! Cartão amarelo para ${playerFouling.name}!`);
+            
+            // Pausar jogadores brevemente e preparar a cobrança
+            let allPlayers = simEntities.homeTeam.concat(simEntities.awayTeam);
+            allPlayers.forEach(p => { p.x = p.baseX; p.y = p.baseY; p.cooldown = 30; });
+            
+            simEntities.ball.vx = 0; simEntities.ball.vy = 0; simEntities.ball.owner = null;
+            
+            // Passa a bola pro time que sofreu a falta
+            let victimTeam = playerFouling.isHome ? simEntities.awayTeam : simEntities.homeTeam;
+            let kicker = victimTeam.find(p => p.pos !== "GOL");
+            if (kicker) {
+                kicker.x = simEntities.ball.x - (kicker.isHome ? 15 : -15);
+                kicker.y = simEntities.ball.y;
+                simEntities.ball.owner = kicker;
+            }
+        }
+
         function updateSim() {
-            if (!isPlaying) return;
+            if (!isPlaying && !isPenaltyShootout) return;
+            
+            if (isPenaltyShootout) {
+                updatePenaltySim();
+                return;
+            }
+
             let ball = simEntities.ball;
+            
+            if (ball.z > 0 || ball.vz > 0) {
+                ball.vz -= 0.5; 
+                ball.z += ball.vz;
+                if (ball.z <= 0) {
+                    ball.z = 0; ball.vz = 0; ball.isAirborne = false;
+                    spawnVFX(ball.x, ball.y, 'rgba(255,255,255,0.8)', 15);
+                }
+            }
+
             ball.trail.push({x: ball.x, y: ball.y}); if(ball.trail.length > 10) ball.trail.shift();
 
             if (!ball.owner) {
@@ -649,8 +759,11 @@
                 if (ball.y <= 10 || ball.y >= canvas.height - 10) ball.vy *= -1;
                 if (ball.x <= 10 && (ball.y < canvas.height/2 - 60 || ball.y > canvas.height/2 + 60)) ball.vx *= -1;
                 if (ball.x >= canvas.width - 10 && (ball.y < canvas.height/2 - 60 || ball.y > canvas.height/2 + 60)) ball.vx *= -1;
-                if (ball.x <= 10 && ball.y >= canvas.height/2 - 60 && ball.y <= canvas.height/2 + 60) { goal(false); return; }
-                if (ball.x >= canvas.width - 10 && ball.y >= canvas.height/2 - 60 && ball.y <= canvas.height/2 + 60) { goal(true); return; }
+                
+                if (!ball.isAirborne) {
+                    if (ball.x <= 10 && ball.y >= canvas.height/2 - 60 && ball.y <= canvas.height/2 + 60) { goal(false); return; }
+                    if (ball.x >= canvas.width - 10 && ball.y >= canvas.height/2 - 60 && ball.y <= canvas.height/2 + 60) { goal(true); return; }
+                }
             }
 
             let allPlayers = simEntities.homeTeam.concat(simEntities.awayTeam);
@@ -668,17 +781,19 @@
             let awayDistances = simEntities.awayTeam.map(p => ({p, d: Math.hypot(p.x - ball.x, p.y - ball.y)})).sort((a,b) => a.d - b.d);
 
             allPlayers.forEach(p => {
-                if (p.cooldown > 0) p.cooldown--; else p.stunText = "";
+                if (p.cooldown > 0) p.cooldown--; else if(p.stunText !== "CARTÃO!") p.stunText = "";
                 if (p.receiveCooldown > 0) p.receiveCooldown--;
                 let dxBall = ball.x - p.x, dyBall = ball.y - p.y, distBall = Math.sqrt(dxBall*dxBall + dyBall*dyBall);
                 let goalieImmunity = ball.owner && ball.owner.pos === "GOL";
 
-                if (goalieImmunity && ball.owner !== p && distBall < 60) {
+                if (goalieImmunity && ball.owner !== p && distBall < 60 && !ball.isAirborne) {
                     p.x -= (dxBall/distBall) * p.speed * 0.5; p.y -= (dyBall/distBall) * p.speed * 0.5;
                 }
 
                 let teamMates = p.isHome ? simEntities.homeTeam : simEntities.awayTeam;
+                let enemies = p.isHome ? simEntities.awayTeam : simEntities.homeTeam;
                 let nearbyCount = 0, pushX = 0, pushY = 0;
+                
                 teamMates.forEach(other => {
                     if (other !== p) {
                         let d = Math.hypot(p.x - other.x, p.y - other.y);
@@ -687,13 +802,24 @@
                 });
                 if (nearbyCount >= 2 && p.pos !== "GOL" && ball.owner !== p) {
                     p.x += pushX * 1.5; p.y += pushY * 1.5; p.stateInfo = "Espalhando";
+                    p.targetX = p.x + pushX*10; p.targetY = p.y + pushY*10;
                 }
 
-                if (distBall < 14 && p.cooldown === 0 && (!ball.owner || ball.owner.isHome !== p.isHome) && !goalieImmunity) {
+                // LÓGICA DE ROUBO DE BOLA E CARRINHO (FALTA)
+                if (distBall < 14 && p.cooldown === 0 && (!ball.owner || ball.owner.isHome !== p.isHome) && !goalieImmunity && !ball.isAirborne) {
                     let success = p.pos === "GOL" ? true : (!ball.owner ? true : Math.random() < (0.5 + ((p.def - ball.owner.dri) * 0.008)));
+                    
                     if (success) {
-                        spawnVFX(p.x, p.y, 'rgba(255, 255, 255, 0.5)', 20);
+                        // Verifica chance de Carrinho/Falta no corte (baseado em CHUTE, quanto mais chu, menos chance)
                         let wasSteal = ball.owner != null;
+                        let foulChance = Math.max(0.01, (100 - p.chu) * 0.001); 
+                        if (wasSteal && p.pos !== "GOL" && Math.random() < foulChance) {
+                            spawnVFX(p.x, p.y, 'rgba(255, 0, 0, 0.7)', 30);
+                            triggerFoul(p);
+                            return; // Encerra a ação do jogador neste frame
+                        }
+
+                        spawnVFX(p.x, p.y, 'rgba(255, 255, 255, 0.5)', 20);
                         if (wasSteal) ball.owner.cooldown = 40; 
                         let isNearOwnGoal = p.isHome ? (p.x < 150) : (p.x > canvas.width - 150);
                         if (wasSteal && !isNearOwnGoal && p.pos !== "GOL") {
@@ -706,7 +832,6 @@
                     }
                 }
 
-                // CORREÇÃO: CHUTE, GOLEIRO, STUN CANCEL
                 if (ball.owner === p) {
                     p.stateInfo = "Com Bola"; ball.x = p.x + (p.isHome ? 5 : -5); ball.y = p.y;
                     let targetGoalX = p.isHome ? canvas.width : 0; let distToGoal = Math.abs(targetGoalX - p.x);
@@ -715,20 +840,32 @@
 
                     if (p.receiveCooldown <= 0 || isShootingImmediate) {
                         if (p.pos === "GOL") {
-                            if (Math.random() < 0.05) {
-                                let myTeam = p.isHome ? simEntities.homeTeam : simEntities.awayTeam;
-                                let enemies = p.isHome ? simEntities.awayTeam : simEntities.homeTeam;
-                                let bestTarget = null, maxIso = -1;
-                                myTeam.forEach(t => {
+                            let enemiesNear = enemies.filter(e => Math.hypot(e.x - p.x, e.y - p.y) < 120).length;
+                            if (enemiesNear >= 2 && Math.random() < 0.6) {
+                                ball.owner = null; p.cooldown = 35; p.receiveCooldown = 0;
+                                ball.isAirborne = true;
+                                ball.vz = 9 + Math.random()*3;
+                                ball.vx = (p.isHome ? 1 : -1) * (15 + (p.chu/15));
+                                ball.vy = (Math.random() - 0.5) * 5;
+                                spawnVFX(p.x, p.y, '#ffffff', 40);
+                                p.stunText = "BICUDA!"; p.targetX = p.x + ball.vx*20; p.targetY = p.y + ball.vy*20;
+                            }
+                            else if (Math.random() < 0.05) {
+                                let bestTarget = null, maxScore = -1;
+                                teamMates.forEach(t => {
                                     if(t === p) return;
                                     let closestE = Math.min(...enemies.map(e => Math.hypot(t.x-e.x, t.y-e.y)));
-                                    if(closestE > maxIso) { maxIso = closestE; bestTarget = t; }
+                                    let distanceUpfield = p.isHome ? t.x : (canvas.width - t.x);
+                                    let score = (closestE * 2.0) + (distanceUpfield * 1.5);
+                                    if(score > maxScore) { maxScore = score; bestTarget = t; }
                                 });
+                                
                                 if (bestTarget) {
                                     ball.owner = null; p.cooldown = 30; p.receiveCooldown = 0;
                                     let pDx = bestTarget.x - p.x, pDy = bestTarget.y - p.y, pDist = Math.hypot(pDx, pDy);
                                     let passSpeed = 8 + (p.pas/15);
                                     ball.vx = (pDx/pDist) * passSpeed; ball.vy = (pDy/pDist) * passSpeed;
+                                    p.targetX = bestTarget.x; p.targetY = bestTarget.y;
                                 }
                             }
                         } 
@@ -743,21 +880,25 @@
                             let goalYDir = (aimY - p.y) / distToGoal;
                             
                             ball.vy = goalYDir * (6 + Math.random()*2) + (Math.random() - 0.5) * ((100 - p.fin) / 10); 
+                            p.targetX = targetGoalX; p.targetY = aimY;
                         } 
                         else if (Math.random() < 0.03) { 
-                            let teammates = (p.isHome ? simEntities.homeTeam : simEntities.awayTeam).filter(t => t !== p && (p.isHome ? t.x > p.x - 20 : t.x < p.x + 20));
-                            if (teammates.length > 0) {
-                                let target = teammates[Math.floor(Math.random() * teammates.length)];
+                            let teammatesForward = teamMates.filter(t => t !== p && (p.isHome ? t.x > p.x - 20 : t.x < p.x + 20));
+                            if (teammatesForward.length > 0) {
+                                let target = teammatesForward[Math.floor(Math.random() * teammatesForward.length)];
                                 ball.owner = null; p.cooldown = 20; p.receiveCooldown = 0;
                                 let pDx = target.x - p.x, pDy = target.y - p.y, pDist = Math.hypot(pDx, pDy);
                                 let passSpeed = 6 + (p.pas/15);
                                 ball.vx = (pDx/pDist) * passSpeed; ball.vy = (pDy/pDist) * passSpeed;
+                                p.targetX = target.x; p.targetY = target.y;
                             }
                         } 
                         else { 
                             let driMod = p.dri > 80 ? 1.2 : 0.8;
-                            p.x += (p.isHome ? p.speed : -p.speed) * driMod;
-                            p.y += p.y < canvas.height/2 ? p.speed*0.15 : -p.speed*0.15;
+                            let moveX = (p.isHome ? p.speed : -p.speed) * driMod;
+                            let moveY = p.y < canvas.height/2 ? p.speed*0.15 : -p.speed*0.15;
+                            p.x += moveX; p.y += moveY;
+                            p.targetX = p.x + moveX*10; p.targetY = p.y + moveY*10;
                         }
                     }
                 } 
@@ -768,29 +909,48 @@
                     let isMyTeamHasBall = ball.owner && ball.owner.isHome === p.isHome;
 
                     let inPenaltyBox = p.isHome ? ball.x < 150 : ball.x > canvas.width - 150;
-                    if (p.pos === "GOL" && distBall < 120 && !isMyTeamHasBall && inPenaltyBox) {
-                        p.stateInfo = "DASH Goleiro!"; 
-                        p.x += (dxBall/distBall) * p.speed * 1.2; 
-                        p.y += (dyBall/distBall) * p.speed * 1.2;
+                    
+                    if (p.pos === "GOL") {
+                        if (distBall < 120 && !isMyTeamHasBall && inPenaltyBox && !ball.isAirborne) {
+                            p.stateInfo = "DASH Goleiro!"; 
+                            p.x += (dxBall/distBall) * p.speed * 1.2; 
+                            p.y += (dyBall/distBall) * p.speed * 1.2;
+                            p.targetX = ball.x; p.targetY = ball.y;
+                            if (Math.random() < 0.3) spawnVFX(p.x, p.y, 'rgba(0, 200, 255, 0.4)', 15);
+                        } else {
+                            p.stateInfo = "Posicionando";
+                            let dxBase = p.baseX - p.x; let dyBase = p.baseY - p.y; let distBase = Math.hypot(dxBase, dyBase);
+                            if (distBase > 5) {
+                                p.x += (dxBase/distBase) * p.speed * 0.8; p.y += (dyBase/distBase) * p.speed * 0.8;
+                                p.targetX = p.baseX; p.targetY = p.baseY;
+                            }
+                        }
                     } 
-                    else if (p.pos !== "GOL") {
+                    else {
                         if (isMyTeamHasBall) {
                             if (p.stateInfo !== "Espalhando") p.stateInfo = isClosest ? "Apoio" : "Avançando";
                             let pushUp = (ball.x - canvas.width/2) * 0.4 + (p.offenseBias || 0); 
                             let targetX = p.baseX + pushUp;
                             if (isClosest) { targetX += (p.isHome ? 30 : -30); } 
                             let dxTarget = targetX - p.x, dyTarget = p.baseY - p.y, distTarget = Math.hypot(dxTarget, dyTarget);
-                            if (distTarget > 5) { p.x += (dxTarget/distTarget) * p.speed * 0.7; p.y += (dyTarget/distTarget) * p.speed * 0.7; }
+                            if (distTarget > 5) { 
+                                p.x += (dxTarget/distTarget) * p.speed * 0.7; p.y += (dyTarget/distTarget) * p.speed * 0.7; 
+                                p.targetX = targetX; p.targetY = p.baseY;
+                            }
                         } else {
-                            if (isClosest || (isSecondClosest && distBall < 100)) {
+                            if ((isClosest || (isSecondClosest && distBall < 100)) && !ball.isAirborne) {
                                 if (p.stateInfo !== "Espalhando") p.stateInfo = "Bote/Pressão";
                                 p.x += (dxBall/distBall) * p.speed * 1.1; p.y += (dyBall/distBall) * p.speed * 1.1;
+                                p.targetX = ball.x; p.targetY = ball.y;
                             } else {
                                 if (p.stateInfo !== "Espalhando") p.stateInfo = "Marcando";
                                 let pushBack = (ball.x - canvas.width/2) * 0.3 - (p.defenseBias || 0);
                                 let targetX = p.baseX + pushBack; let interceptY = p.baseY + (ball.y - p.baseY) * 0.3; 
                                 let dxTarget = targetX - p.x, dyTarget = interceptY - p.y, distTarget = Math.hypot(dxTarget, dyTarget);
-                                if (distTarget > 5) { p.x += (dxTarget/distTarget) * (p.speed * 0.8); p.y += (dyTarget/distTarget) * (p.speed * 0.8); }
+                                if (distTarget > 5) { 
+                                    p.x += (dxTarget/distTarget) * (p.speed * 0.8); p.y += (dyTarget/distTarget) * (p.speed * 0.8); 
+                                    p.targetX = targetX; p.targetY = interceptY;
+                                }
                             }
                         }
                     }
@@ -799,28 +959,189 @@
             });
 
             for(let i = simEntities.vfx.length - 1; i >= 0; i--) {
-                let e = simEntities.vfx[i]; e.r += 2; e.opacity -= 0.05;
+                let e = simEntities.vfx[i]; 
+                if(e.type === 'particle') {
+                    e.x += e.vx; e.y += e.vy; e.opacity -= 0.03;
+                } else {
+                    e.r += 2; e.opacity -= 0.05;
+                }
                 if (e.opacity <= 0) simEntities.vfx.splice(i, 1);
             }
 
             drawFrame();
-            matchTimer += 0.05; document.getElementById('matchTime').innerText = formatTime(matchTimer);
-            if (matchTimer >= 90) { endMatch(); return; }
+            
+            if (!isPenaltyShootout) {
+                matchTimer += 0.05; document.getElementById('matchTime').innerText = formatTime(matchTimer);
+                if (matchTimer >= 90) { endMatch(); return; }
+            }
+            
             requestAnimationFrame(updateSim);
         }
 
-        // VISÃO DO TÉCNICO ARREDONDADO E ESCUDOS INIMIGOS
+        // --- SISTEMA DE PÊNALTIS ---
+        let penaltyState = "SETUP"; // SETUP, SHOOT, DONE
+        let penaltyWait = 0;
+        let pKicker = null, pGK = null;
+
+        function startPenaltyShootout() {
+            isPlaying = false;
+            isPenaltyShootout = true;
+            penaltyTurn = 0; penaltyScoreHome = 0; penaltyScoreAway = 0;
+            document.getElementById('matchTime').innerText = "PÊNALTIS";
+            logEvent("O JOGO EMPATOU! VAMOS PARA OS PÊNALTIS!");
+            penaltyState = "SETUP";
+            requestAnimationFrame(updateSim);
+        }
+
+        function updatePenaltySim() {
+            let ball = simEntities.ball;
+            
+            if (penaltyState === "SETUP") {
+                let isHomeKicking = (penaltyTurn % 2 === 0);
+                
+                // Escolher jogadores
+                pKicker = isHomeKicking ? simEntities.homeTeam[Math.floor(Math.random()*10)] : simEntities.awayTeam[Math.floor(Math.random()*10)];
+                pGK = isHomeKicking ? simEntities.awayTeam.find(p=>p.pos==="GOL") : simEntities.homeTeam.find(p=>p.pos==="GOL");
+                
+                // Mover os outros para fora
+                simEntities.homeTeam.concat(simEntities.awayTeam).forEach(p => { if (p !== pKicker && p !== pGK) { p.x = canvas.width/2; p.y = 20; } });
+
+                ball.x = isHomeKicking ? canvas.width - 110 : 110; ball.y = canvas.height/2; ball.vx = 0; ball.vy = 0; ball.isAirborne = false;
+                pKicker.x = isHomeKicking ? ball.x - 30 : ball.x + 30; pKicker.y = ball.y;
+                pGK.x = isHomeKicking ? canvas.width - 15 : 15; pGK.y = canvas.height/2;
+                
+                logEvent(`Penalidade #${Math.floor(penaltyTurn/2)+1} - Batedor: ${pKicker.name} | Goleiro: ${pGK.name}`);
+                penaltyState = "WAIT"; penaltyWait = 100;
+            } 
+            else if (penaltyState === "WAIT") {
+                penaltyWait--;
+                if(penaltyWait <= 0) {
+                    penaltyState = "SHOOT";
+                    // Chute
+                    let targetCornerY = Math.random() < 0.5 ? (canvas.height/2 - 40) : (canvas.height/2 + 40);
+                    ball.vx = (pKicker.isHome ? 1 : -1) * (12 + pKicker.chu/15);
+                    ball.vy = (targetCornerY - ball.y) / 60 * 10;
+                    spawnVFX(pKicker.x, pKicker.y, '#ffffff', 20);
+                    
+                    // Goleiro Dash
+                    let guessY = Math.random() < 0.5 ? (canvas.height/2 - 40) : (canvas.height/2 + 40);
+                    let gkReflex = pGK.def / 100;
+                    if(Math.random() < gkReflex) guessY = targetCornerY; // Goleiro bom adivinha certo
+                    
+                    pGK.targetY = guessY; pGK.targetX = pGK.x; pGK.stateInfo = "DASH!";
+                    pGK.y += (guessY - pGK.y) * 0.4;
+                    spawnVFX(pGK.x, pGK.y, 'rgba(0, 200, 255, 0.4)', 15);
+                }
+            } 
+            else if (penaltyState === "SHOOT") {
+                ball.x += ball.vx; ball.y += ball.vy;
+                pGK.y += (pGK.targetY - pGK.y) * 0.1;
+                
+                // Checa defesa
+                let distGK = Math.hypot(ball.x - pGK.x, ball.y - pGK.y);
+                if (distGK < 20) {
+                    logEvent("DEFENDEU O GOLEIRO! 🧤");
+                    ball.vx *= -0.5; penaltyState = "DONE"; penaltyWait = 60;
+                }
+                // Checa trave
+                else if (ball.y < canvas.height/2 - 55 || ball.y > canvas.height/2 + 55) {
+                    logEvent("PARA FORA! ❌");
+                    ball.vx = 0; ball.vy = 0; penaltyState = "DONE"; penaltyWait = 60;
+                }
+                // Checa Gol
+                else if (ball.x <= 10 || ball.x >= canvas.width - 10) {
+                    logEvent("GOL! ⚽");
+                    if(pKicker.isHome) penaltyScoreHome++; else penaltyScoreAway++;
+                    document.getElementById('scoreHome').innerText = `${matchScore.home} (${penaltyScoreHome})`;
+                    document.getElementById('scoreAway').innerText = `${matchScore.away} (${penaltyScoreAway})`;
+                    createGoalExplosion(pKicker.isHome);
+                    ball.vx = 0; ball.vy = 0; penaltyState = "DONE"; penaltyWait = 60;
+                }
+            }
+            else if (penaltyState === "DONE") {
+                penaltyWait--;
+                for(let i = simEntities.vfx.length - 1; i >= 0; i--) {
+                    let e = simEntities.vfx[i]; 
+                    if(e.type === 'particle') { e.x += e.vx; e.y += e.vy; e.opacity -= 0.03; } 
+                    else { e.r += 2; e.opacity -= 0.05; }
+                    if (e.opacity <= 0) simEntities.vfx.splice(i, 1);
+                }
+                
+                if(penaltyWait <= 0) {
+                    penaltyTurn++;
+                    // Verifica fim (melhor de 5, ou morte subita se passou de 10)
+                    let hLeft = 5 - Math.ceil(penaltyTurn/2);
+                    let aLeft = 5 - Math.floor(penaltyTurn/2);
+                    
+                    if (penaltyTurn >= 10) {
+                        if (penaltyTurn % 2 === 0 && penaltyScoreHome !== penaltyScoreAway) {
+                            finishPenaltyShootout(); return;
+                        }
+                    } else {
+                        if (penaltyScoreHome > penaltyScoreAway + aLeft || penaltyScoreAway > penaltyScoreHome + hLeft) {
+                            finishPenaltyShootout(); return;
+                        }
+                    }
+                    penaltyState = "SETUP";
+                }
+            }
+
+            drawFrame();
+            requestAnimationFrame(updateSim);
+        }
+
+        function finishPenaltyShootout() {
+            isPenaltyShootout = false;
+            let win = penaltyScoreHome > penaltyScoreAway;
+            logEvent(`FIM DOS PÊNALTIS! ${clubData.name} ${penaltyScoreHome} x ${penaltyScoreAway} Adversário`);
+            // Ajusta o placar da simulação base para refletir o vencedor e chamar endMatch
+            if (win) matchScore.home++; else matchScore.away++;
+            setTimeout(() => { isPlaying = false; endMatch(); }, 2000);
+        }
+        // --- FIM DOS PÊNALTIS ---
+
         function drawFrame() {
             drawPitch();
 
+            if (isManagerView) {
+                let allPl = simEntities.homeTeam.concat(simEntities.awayTeam);
+                allPl.forEach(p => {
+                    if (p.targetX && p.targetY && p.stateInfo !== "Com Bola") {
+                        ctx.beginPath(); ctx.moveTo(p.x, p.y);
+                        let dx = p.targetX - p.x; let dy = p.targetY - p.y;
+                        let maxL = 30; let len = Math.hypot(dx, dy);
+                        if (len > maxL) { dx = (dx/len)*maxL; dy = (dy/len)*maxL; }
+                        
+                        ctx.lineTo(p.x + dx, p.y + dy);
+                        ctx.strokeStyle = p.isHome ? "rgba(0, 255, 0, 0.4)" : "rgba(255, 0, 0, 0.4)";
+                        ctx.lineWidth = 1.5; ctx.stroke();
+                        ctx.beginPath(); ctx.arc(p.x + dx, p.y + dy, 2, 0, Math.PI*2);
+                        ctx.fillStyle = ctx.strokeStyle; ctx.fill();
+                    }
+                });
+            }
+
             simEntities.vfx.forEach(e => {
-                ctx.beginPath(); ctx.arc(e.x, e.y, e.r, 0, Math.PI*2);
-                ctx.strokeStyle = e.color.replace(/[\d\.]+\)$/g, `${e.opacity})`); 
-                ctx.lineWidth = 2; ctx.stroke();
+                if (e.type === 'particle') {
+                    ctx.beginPath(); ctx.arc(e.x, e.y, e.r, 0, Math.PI*2);
+                    let colorBase = e.color.includes('rgba') ? e.color.replace(')', '') + `, ${e.opacity})` : e.color;
+                    if(e.color.startsWith('#')) ctx.fillStyle = e.color + Math.floor(e.opacity * 255).toString(16).padStart(2, '0');
+                    else ctx.fillStyle = e.color.replace(')', `, ${e.opacity})`);
+                    ctx.fill();
+                } else {
+                    ctx.beginPath(); ctx.arc(e.x, e.y, e.r, 0, Math.PI*2);
+                    ctx.strokeStyle = e.color.replace(/[\d\.]+\)$/g, `${e.opacity})`); 
+                    ctx.lineWidth = 2; ctx.stroke();
+                }
             });
 
+            if (simEntities.ball.z > 0) {
+                ctx.beginPath(); ctx.ellipse(simEntities.ball.x, simEntities.ball.y, 4, 2, 0, 0, Math.PI*2);
+                ctx.fillStyle = 'rgba(0,0,0,0.4)'; ctx.fill();
+            }
+
             let speed = Math.hypot(simEntities.ball.vx, simEntities.ball.vy);
-            if (speed > 5 && simEntities.ball.trail.length > 0) {
+            if (speed > 5 && simEntities.ball.trail.length > 0 && !simEntities.ball.isAirborne) {
                 ctx.beginPath(); ctx.moveTo(simEntities.ball.trail[0].x, simEntities.ball.trail[0].y);
                 for(let i=1; i<simEntities.ball.trail.length; i++) ctx.lineTo(simEntities.ball.trail[i].x, simEntities.ball.trail[i].y);
                 ctx.strokeStyle = speed > 9 ? '#ff007f' : '#ffeb3b'; ctx.lineWidth = 3; ctx.stroke();
@@ -837,6 +1158,12 @@
                 ctx.fillStyle = p.pos === "GOL" ? (isHome ? '#00BCD4' : '#FF9800') : baseColor;
                 ctx.fill(); 
 
+                // Adiciona indicador visual de cartão amarelo
+                if (p.yellowCard) {
+                    ctx.beginPath(); ctx.rect(p.x + 5, p.y - 10, 4, 6);
+                    ctx.fillStyle = '#ffeb3b'; ctx.fill(); ctx.stroke();
+                }
+
                 if (p.pos !== "GOL") {
                     ctx.beginPath(); ctx.arc(p.x, p.y, 3, 0, Math.PI*2);
                     if (isHome) {
@@ -852,7 +1179,8 @@
                 
                 if (simEntities.ball.owner === p) { ctx.strokeStyle = '#fff'; ctx.lineWidth = 2; ctx.stroke(); }
                 if (p.stunText) {
-                    ctx.fillStyle = '#ffeb3b'; ctx.font = "bold 12px Arial"; ctx.textAlign = "center";
+                    ctx.fillStyle = p.stunText === "CARTÃO!" ? '#ff4444' : '#ffeb3b'; 
+                    ctx.font = "bold 12px Arial"; ctx.textAlign = "center";
                     ctx.fillText(p.stunText, p.x, p.y - 12);
                 }
 
@@ -869,14 +1197,18 @@
             simEntities.awayTeam.forEach(p => drawPlayer(p, false));
             
             ctx.fillStyle = speed > 9 ? '#ff007f' : '#FFF';
-            ctx.beginPath(); ctx.arc(simEntities.ball.x, simEntities.ball.y, 4, 0, Math.PI*2); ctx.fill();
+            ctx.beginPath(); 
+            ctx.arc(simEntities.ball.x, simEntities.ball.y - simEntities.ball.z, 4 + (simEntities.ball.z * 0.15), 0, Math.PI*2); 
+            ctx.fill();
         }
 
         function goal(isHomeTeam) {
             if (isHomeTeam) matchScore.home++; else matchScore.away++;
             document.getElementById('scoreHome').innerText = matchScore.home; document.getElementById('scoreAway').innerText = matchScore.away;
             logEvent(isHomeTeam ? `GOLAÇO DO ${clubData.name.toUpperCase()}! ⚽` : `GOL DO ${currentEnemyTeam.name.toUpperCase()}! ❌`);
-            isPlaying = false; simEntities.ball.trail = []; drawFrame();
+            isPlaying = false; simEntities.ball.trail = []; 
+            createGoalExplosion(isHomeTeam);
+            drawFrame();
             
             setTimeout(() => { resetPositions(); isPlaying = true; requestAnimationFrame(updateSim); }, 2000);
         }
@@ -909,8 +1241,14 @@
         function endMatch() {
             isPlaying = false;
             let win = matchScore.home > matchScore.away, draw = matchScore.home === matchScore.away;
-            let ganhoCoins = 0, ganhoFans = 0;
             
+            // Ativa pênaltis apenas se empatar e for em mata-mata/campeonato
+            if (draw && tournamentMode !== 'none') {
+                startPenaltyShootout();
+                return;
+            }
+
+            let ganhoCoins = 0, ganhoFans = 0;
             let sponsorBonus = 0;
             if (activeSponsor.gamesLeft > 0) {
                 sponsorBonus = activeSponsor.amount;
@@ -1022,13 +1360,28 @@
         }
 
         function offerSponsorship() {
-            let companies = ["Bebidas Fly", "Banco Central FC", "Chuteiras Nitro", "Seguros Proteção Total"];
-            let amount = Math.floor(Math.random() * 50) + 30; 
-            let games = Math.floor(Math.random() * 3) + 3; 
+            let chances = [];
+            let f = clubData.fans;
             
-            pendingSponsor = { name: companies[Math.floor(Math.random() * companies.length)], amount: amount, gamesLeft: games };
+            if (f < 500) chances = [{r:'Bronze', c: 80}, {r:'Prata', c: 15}, {r:'Ouro', c: 5}];
+            else if (f < 1000) chances = [{r:'Bronze', c: 60}, {r:'Prata', c: 20}, {r:'Ouro', c: 15}, {r:'Lenda', c: 5}];
+            else if (f < 1500) chances = [{r:'Bronze', c: 25}, {r:'Prata', c: 25}, {r:'Ouro', c: 40}, {r:'Lenda', c: 10}];
+            else if (f < 10000) chances = [{r:'Prata', c: 10}, {r:'Ouro', c: 70}, {r:'Lenda', c: 15}, {r:'Místico', c: 5}];
+            else chances = [{r:'Ouro', c: 40}, {r:'Lenda', c: 50}, {r:'Místico', c: 10}];
             
-            document.getElementById('sponsorText').innerHTML = `A empresa <b>${pendingSponsor.name}</b> gostou da sua visibilidade!<br><br>Eles oferecem <b>🪙 ${pendingSponsor.amount} moedas por jogo</b> durante as próximas <b>${pendingSponsor.gamesLeft} partidas</b>.`;
+            let rand = Math.random() * 100, acc = 0, selectedRarity = 'Bronze';
+            for (let ch of chances) { acc += ch.c; if (rand <= acc) { selectedRarity = ch.r; break; } }
+
+            let availableSponsors = sponsorsDB.filter(s => s.rarity === selectedRarity);
+            if (availableSponsors.length === 0) availableSponsors = sponsorsDB;
+            
+            let sp = availableSponsors[Math.floor(Math.random() * availableSponsors.length)];
+            let amount = Math.floor(Math.random() * (sp.maxAmount - sp.minAmount + 1)) + sp.minAmount;
+            let games = Math.floor(Math.random() * (sp.maxGames - sp.minGames + 1)) + sp.minGames; 
+            
+            pendingSponsor = { name: sp.name, amount: amount, gamesLeft: games, rarity: sp.rarity };
+            
+            document.getElementById('sponsorText').innerHTML = `A empresa <b>${pendingSponsor.name} (${pendingSponsor.rarity})</b> gostou da sua visibilidade!<br><br>Eles oferecem <b>🪙 ${pendingSponsor.amount} moedas por jogo</b> durante as próximas <b>${pendingSponsor.gamesLeft} partidas</b>.`;
             document.getElementById('sponsorModal').style.display = 'flex';
         }
 
@@ -1048,7 +1401,7 @@
         
         function handlePlayerClick(player, listType, index) {
             if (listType === 'none') return; 
-            if (isPlaying) { notify("⚠️ O jogo está rolando! Você não pode alterar o time agora.", "#ff9800"); return; }
+            if (isPlaying || isPenaltyShootout) { notify("⚠️ O jogo está rolando! Você não pode alterar o time agora.", "#ff9800"); return; }
             if (selectedPlayerInfo) {
                 if (selectedPlayerInfo.player.uniqueId === player.uniqueId) { selectedPlayerInfo = null; updateUI(); return; }
                 let listA = selectedPlayerInfo.listType === 'starting' ? startingXI : bench, listB = listType === 'starting' ? startingXI : bench;
@@ -1067,7 +1420,9 @@
         function renderPlayerCard(p, listType, index, animate = false) {
             if(!p) return "";
             let isSelected = selectedPlayerInfo && selectedPlayerInfo.player.uniqueId === p.uniqueId;
+            let isTrainedNow = p.uniqueId === lastTrainedId;
             let cDelay = animate ? 'reveal-step' : '';
+            let trainEffectClass = isTrainedNow ? 'trained-effect' : '';
 
             let sideBadge = "";
             if (listType === 'starting') {
@@ -1077,7 +1432,18 @@
                 sideBadge = `<span class="p-side">${side}</span>`;
             }
 
-            return `<div class="player-card ${getCardClass(p.ovr)} ${isSelected ? 'selected' : ''}" onclick="handlePlayerClick(${JSON.stringify(p).replace(/"/g, '&quot;')}, '${listType}', ${index})">
+            let tCost = 100 + (Math.max(0, p.ovr - 60) * 10);
+            let potMax = p.maxPotential || 1;
+            let potCurrent = p.potential || 0;
+            let pCompleted = Math.round(((potMax - potCurrent) / potMax) * 100);
+            if(potCurrent <= 0) pCompleted = 100;
+
+            return `<div class="player-card ${getCardClass(p.ovr)} ${isSelected ? 'selected' : ''} ${trainEffectClass}" onclick="handlePlayerClick(${JSON.stringify(p).replace(/"/g, '&quot;')}, '${listType}', ${index})">
+                        <div class="p-tooltip">
+                            <b>Análise do Scout</b><br>
+                            Custo de Treino: 🪙 ${tCost}<br>
+                            Potencial Extraído: ${pCompleted}%
+                        </div>
                         <div style="display:flex; justify-content:space-between; align-items:flex-start;">
                             <div class="p-ovr ${cDelay}" style="animation-delay: 0.2s">${p.ovr}</div>
                             <div>
@@ -1100,34 +1466,40 @@
         function updateUI() {
             document.getElementById('coinCount').innerText = coins;
             document.getElementById('fanCount').innerText = clubData.fans;
+            document.getElementById('displayTeamName').innerText = clubData.name;
             
-            let sponsorDisplay = document.getElementById('sponsorDisplay');
-            if(activeSponsor.gamesLeft > 0) {
-                sponsorDisplay.style.display = 'block';
-                sponsorDisplay.innerText = `${activeSponsor.name} (${activeSponsor.gamesLeft} jogos)`;
-            } else { sponsorDisplay.style.display = 'none'; }
+            let sponsorBadge = document.getElementById('sponsorDisplay');
+            if (activeSponsor.gamesLeft > 0) {
+                sponsorBadge.style.display = 'block';
+                sponsorBadge.innerText = `${activeSponsor.name} (${activeSponsor.gamesLeft} jogos)`;
+            } else {
+                sponsorBadge.style.display = 'none';
+            }
 
-            document.getElementById('teamOvr').innerText = startingXI.length > 0 ? Math.round(startingXI.reduce((sum, p) => sum + p.ovr, 0) / startingXI.length) : 0;
-            document.getElementById('titularesCount').innerText = startingXI.length;
-            document.getElementById('formWarning').innerText = (startingXI.length !== 11) ? "⚠️ Requer 11 jogadores!" : (startingXI.filter(p => p.pos === "GOL").length !== 1 ? "⚠️ Requer 1 Goleiro!" : "");
             document.getElementById('startingGrid').innerHTML = startingXI.map((p, i) => renderPlayerCard(p, 'starting', i)).join('');
             document.getElementById('benchGrid').innerHTML = bench.map((p, i) => renderPlayerCard(p, 'bench', i)).join('');
             
-            let btnCup = document.getElementById('btnCup');
-            if (clubData.fans >= 500) { btnCup.disabled = isPlaying; btnCup.innerText = "🏆 JOGAR MATA-MATA"; } 
-            else { btnCup.disabled = true; btnCup.innerText = `🏆 MATA-MATA (${clubData.fans}/500 Fãs)`; }
+            document.getElementById('titularesCount').innerText = startingXI.length;
+            let avgOvr = startingXI.length > 0 ? Math.round(startingXI.reduce((sum, p) => sum + p.ovr, 0) / startingXI.length) : 0;
+            document.getElementById('teamOvr').innerText = avgOvr;
 
-            let btnCupElite = document.getElementById('btnCupElite');
-            if (clubData.fans >= 1500) { btnCupElite.disabled = isPlaying; btnCupElite.innerText = "💎 JOGAR TAÇA ELITE"; } 
-            else { btnCupElite.disabled = true; btnCupElite.innerText = `💎 TAÇA ELITE (${clubData.fans}/1500 Fãs)`; }
+            let warningText = "";
+            if (startingXI.length !== 11) {
+                warningText = "⚠ Precisa ter exatos 11 titulares!";
+            } else {
+                let goleiros = startingXI.filter(p => p.pos === "GOL").length;
+                if (goleiros !== 1) {
+                    warningText = "⚠ Precisa ter exato 1 Goleiro titular!";
+                }
+            }
+            document.getElementById('formWarning').innerText = warningText;
 
-            ['Comum', 'Raro', 'Lenda'].forEach(tipo => {
-                let btn = document.getElementById(`btn${tipo}`);
-                btn.disabled = isPlaying || coins < packOdds[tipo.toLowerCase()].cost;
-            });
+            document.getElementById('btnCup').disabled = clubData.fans < 500;
+            document.getElementById('btnCupElite').disabled = clubData.fans < 1500;
         }
 
-        generateStarterTeam(); drawPitch(); 
+        generateStarterTeam();
+
     </script>
 </body>
 </html>
