@@ -54,7 +54,7 @@
         .section-title { border-bottom: 1px solid #444; padding-bottom: 5px; margin-top: 20px; color: #aaa; display: flex; justify-content: space-between;}
         .team-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 12px; margin-top: 10px; min-height: 80px; background: #111; padding: 15px; border-radius: 5px; }
         
-        .player-card { padding: 10px; border-radius: 8px; text-align: center; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; border: 2px solid transparent; user-select: none; position: relative; overflow: visible; display: flex; flex-direction: column; }
+        .player-card { padding: 10px; border-radius: 8px; text-align: center; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s, background 0.5s; border: 2px solid transparent; user-select: none; position: relative; overflow: visible; display: flex; flex-direction: column; }
         .player-card:hover { transform: translateY(-5px); z-index: 20; }
         .player-card.selected { border: 2px solid #00ff00 !important; transform: scale(1.05); box-shadow: 0 0 15px #00ff00 !important; z-index: 10; }
         
@@ -66,7 +66,11 @@
         }
         .player-card:hover .p-tooltip { display: block; }
         
-        @keyframes trainFlash { 0% { box-shadow: 0 0 20px #00e676; transform: scale(1.1); } 100% { box-shadow: 0 0 0px transparent; transform: scale(1); } }
+        @keyframes trainFlash { 
+            0% { box-shadow: 0 0 30px #00ff00, inset 0 0 20px #00ff00; transform: scale(1.15) translateY(-5px); filter: brightness(1.5); } 
+            50% { box-shadow: 0 0 15px #00e676; transform: scale(1.05) translateY(-2px); filter: brightness(1.2); } 
+            100% { box-shadow: 0 0 0px transparent; transform: scale(1); filter: brightness(1); } 
+        }
         .trained-effect { animation: trainFlash 0.8s ease-out; }
 
         .p-photo { width: 60px; height: 60px; margin: 5px auto; border-radius: 50%; object-fit: cover; background: #222; border: 2px solid rgba(255,255,255,0.3); }
@@ -79,7 +83,7 @@
         .mystic { background: linear-gradient(135deg, #8b0000, #ff0000); border-color: #ff3333; color: #fff; box-shadow: 0 0 20px rgba(255, 0, 0, 0.8); }
         .mystic::before { content: "🔥 MÍSTICO"; position: absolute; top: 2px; right: 4px; font-size: 0.55rem; font-weight: bold; color: #fff; }
         
-        .p-ovr { font-size: 1.5rem; font-weight: bold; margin: 0; }
+        .p-ovr { font-size: 1.5rem; font-weight: bold; margin: 0; transition: color 0.3s; }
         .p-pos { font-size: 0.75rem; background: rgba(0,0,0,0.4); color:#fff; padding: 2px 5px; border-radius: 4px; display: inline-block; font-weight: bold; }
         .p-side { font-size: 0.65rem; background: #FF9800; color:#000; padding: 1px 4px; border-radius: 3px; font-weight: bold; margin-left: 2px; }
         .p-name { font-size: 0.9rem; margin: 5px 0; font-weight: bold; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; border-bottom: 1px solid rgba(255,255,255,0.3); padding-bottom: 3px; }
@@ -134,6 +138,26 @@
         <div id="packIcon" style="font-size: 6rem; cursor: pointer;">🎁</div>
         <div id="revealedCard" style="display: none; transform: scale(1.5);"></div>
         <button id="modalContinue" style="display: none; margin-top: 50px;" onclick="closePackModal()">Ir para o Banco</button>
+    </div>
+
+    <!-- Modal de Penaltis -->
+    <div id="penaltyModal" class="modal-overlay">
+        <div class="modal-content" style="max-width: 600px;">
+            <h2 style="color: #FFD700;">🥅 Disputa de Pênaltis!</h2>
+            <div class="scoreboard" style="justify-content: space-around; margin: 20px 0;">
+                <div class="score-team" id="penHomeTag">Meu Time</div>
+                <div class="score-numbers"><span id="penScoreHome">0</span> - <span id="penScoreAway">0</span></div>
+                <div class="score-team" id="penAwayTag">Adversário</div>
+            </div>
+            <h3 id="penActionText" style="margin-bottom: 20px;">Sua vez de CHUTAR! Escolha o canto:</h3>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; max-width: 400px; margin: 0 auto;">
+                <button style="padding: 20px; font-size: 1.2rem; background: #2196F3;" onclick="handlePenalty(1)">Superior Esquerdo</button>
+                <button style="padding: 20px; font-size: 1.2rem; background: #2196F3;" onclick="handlePenalty(2)">Superior Direito</button>
+                <button style="padding: 20px; font-size: 1.2rem; background: #2196F3;" onclick="handlePenalty(3)">Inferior Esquerdo</button>
+                <button style="padding: 20px; font-size: 1.2rem; background: #2196F3;" onclick="handlePenalty(4)">Inferior Direito</button>
+            </div>
+            <div id="penLog" style="margin-top: 20px; font-size: 1.1rem; color: #aaa; min-height: 25px; font-weight: bold;"></div>
+        </div>
     </div>
 
     <div id="sponsorModal" class="modal-overlay">
@@ -378,7 +402,6 @@
 
         let currentEnemyTeam = null, enemyMatchColor = "#F44336";
         let isManagerView = false, tournamentMode = 'none', tournamentStage = 0;
-        let isPenaltyShootout = false, penaltyTurn = 0, penaltyScoreHome = 0, penaltyScoreAway = 0;
         const stageNames = ["Amistoso", "Quartas de Final", "Semifinal", "Grande Final!"];
         let lastTrainedId = null;
 
@@ -400,10 +423,7 @@
         const starPlayers = [
             // Místicos (100+)
             { id: 99, name: "Iberê Thenório", pos: "ATA", ovr: 102, vel: 99, dri: 99, chu: 99, pas: 99, def: 60, fin: 99, photo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSxEDsRbXecyBee_gPuVuJ326EW5goICJZ250Rxmt10oPdf44y5Srm-G828sbFlzh_2BWbhXLCIOSFnIO-759RpKdfwFa6NX3JZRlxCf4PHgA&s=10" },
-            { id: 100, name: "Ednaldo Pereira", pos: "MEI", ovr: 105, vel: 99, dri: 99, chu: 99, pas: 99, def: 99, fin: 99, photo: "https://via.placeholder.com/80/8b0000/FFFFFF?text=EP" },
-            { id: 101, name: "Shrek Agiota", pos: "ZAG", ovr: 103, vel: 85, dri: 70, chu: 95, pas: 80, def: 99, fin: 50, photo: "https://via.placeholder.com/80/8b0000/FFFFFF?text=SHK" },
-            { id: 102, name: "Goku", pos: "ATA", ovr: 101, vel: 99, dri: 95, chu: 99, pas: 85, def: 50, fin: 99, photo: "https://via.placeholder.com/80/8b0000/FFFFFF?text=GKU" },
-            { id: 103, name: "Ricardo Milos", pos: "LAT", ovr: 104, vel: 99, dri: 99, chu: 80, pas: 90, def: 90, fin: 70, photo: "https://via.placeholder.com/80/8b0000/FFFFFF?text=RM" },
+            { id: 100, name: "Femboy", pos: "MEI", ovr: 105, vel: 99, dri: 99, chu: 99, pas: 99, def: 99, fin: 99, photo: "https://via.placeholder.com/80/8b0000/FFFFFF?text=EP" },
             
             // Lendas (90-99)
             { id: 1, name: "Baianinho", pos: "ATA", ovr: 96, vel: 94, dri: 95, chu: 96, pas: 90, def: 40, fin: 98, photo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT-zLbuUxWk12tZDpXaqinMm-8JSdL2dTIG0uCixQw3lw&s=10" },
@@ -469,7 +489,10 @@
 
         function trainSelectedPlayer() {
             if (!selectedPlayerInfo) { notify("⚠️ Selecione um jogador (clique na carta) no seu time ou banco primeiro!", "#ff9800"); return; }
-            let p = selectedPlayerInfo.player;
+            
+            // Busca a referência real do jogador
+            let list = selectedPlayerInfo.listType === 'starting' ? startingXI : bench;
+            let p = list[selectedPlayerInfo.index];
             
             let customCost = 100 + (Math.max(0, p.ovr - 60) * 10);
             if (coins < customCost) { notify(`❌ Moedas insuficientes para treinar! (Custa ${customCost}🪙)`, "#ff4444"); return; }
@@ -488,9 +511,9 @@
             notify(`✅ ${p.name} treinou intensamente (-${customCost}🪙) e seu OVR subiu para ${p.ovr}!`, "#00E676");
             
             selectedPlayerInfo = null;
-            updateUI();
+            updateUI(); 
             
-            setTimeout(() => { lastTrainedId = null; updateUI(); }, 900); 
+            setTimeout(() => { lastTrainedId = null; }, 1000); 
         }
 
         function openCustomPlayerModal() {
@@ -629,7 +652,6 @@
             ctx.strokeRect(10, canvas.height/2 - 60, 80, 120);
             ctx.strokeRect(canvas.width - 90, canvas.height/2 - 60, 80, 120);
             
-            // Marca de penalti
             ctx.beginPath(); ctx.arc(110, canvas.height/2, 3, 0, Math.PI*2); ctx.fillStyle = '#fff'; ctx.fill();
             ctx.beginPath(); ctx.arc(canvas.width - 110, canvas.height/2, 3, 0, Math.PI*2); ctx.fill();
         }
@@ -673,8 +695,8 @@
                     let modifiedBaseX = getBasePositionX(p.pos, isHome) + (isHome ? (p.offenseBias || 0) : -(p.offenseBias || 0));
                     activePlayers.push({ 
                         ...p, x: modifiedBaseX, y: baseY, baseX: modifiedBaseX, baseY: baseY, targetX: modifiedBaseX, targetY: baseY,
-                        speed: (p.vel / 100) * 3 + 0.8, cooldown: 0, isHome: isHome, yellowCard: false,
-                        stunText: "", receiveCooldown: 0, stateInfo: "Posicionando" 
+                        speed: (p.vel / 100) * 3 + 0.8, cooldown: 0, isHome: isHome,
+                        stunText: "", receiveCooldown: 0, stateInfo: "Posicionando", trail: []
                     });
                 });
             }
@@ -684,8 +706,8 @@
         function resetPositions() {
             simEntities.ball = { x: canvas.width/2, y: canvas.height/2, z: 0, vz: 0, isAirborne: false, vx: 0, vy: 0, trail: [], owner: null };
             simEntities.vfx = [];
-            simEntities.homeTeam.forEach(p => { p.baseX = getBasePositionX(p.pos, true) + (p.offenseBias || 0); p.x = p.baseX; p.y = p.baseY; p.cooldown = 0; p.receiveCooldown = 0; p.stateInfo = "Posicionando"; p.targetX = p.baseX; p.targetY = p.baseY;});
-            simEntities.awayTeam.forEach(p => { p.baseX = getBasePositionX(p.pos, false) - (p.offenseBias || 0); p.x = p.baseX; p.y = p.baseY; p.cooldown = 0; p.receiveCooldown = 0; p.stateInfo = "Posicionando"; p.targetX = p.baseX; p.targetY = p.baseY;});
+            simEntities.homeTeam.forEach(p => { p.baseX = getBasePositionX(p.pos, true) + (p.offenseBias || 0); p.x = p.baseX; p.y = p.baseY; p.cooldown = 0; p.receiveCooldown = 0; p.stateInfo = "Posicionando"; p.targetX = p.baseX; p.targetY = p.baseY; p.trail = [];});
+            simEntities.awayTeam.forEach(p => { p.baseX = getBasePositionX(p.pos, false) - (p.offenseBias || 0); p.x = p.baseX; p.y = p.baseY; p.cooldown = 0; p.receiveCooldown = 0; p.stateInfo = "Posicionando"; p.targetX = p.baseX; p.targetY = p.baseY; p.trail = [];});
         }
 
         function initSim() {
@@ -711,36 +733,9 @@
         function logEvent(msg) { document.getElementById('matchLog').innerText = msg; }
         function formatTime(minutes) { return `${Math.floor(minutes).toString().padStart(2, '0')}:00`; }
 
-        function triggerFoul(playerFouling, isPenalty = false) {
-            playerFouling.yellowCard = true;
-            playerFouling.stunText = "CARTÃO!";
-            playerFouling.cooldown = 100;
-            logEvent(`FALTA! Cartão amarelo para ${playerFouling.name}!`);
-            
-            // Pausar jogadores brevemente e preparar a cobrança
-            let allPlayers = simEntities.homeTeam.concat(simEntities.awayTeam);
-            allPlayers.forEach(p => { p.x = p.baseX; p.y = p.baseY; p.cooldown = 30; });
-            
-            simEntities.ball.vx = 0; simEntities.ball.vy = 0; simEntities.ball.owner = null;
-            
-            // Passa a bola pro time que sofreu a falta
-            let victimTeam = playerFouling.isHome ? simEntities.awayTeam : simEntities.homeTeam;
-            let kicker = victimTeam.find(p => p.pos !== "GOL");
-            if (kicker) {
-                kicker.x = simEntities.ball.x - (kicker.isHome ? 15 : -15);
-                kicker.y = simEntities.ball.y;
-                simEntities.ball.owner = kicker;
-            }
-        }
-
         function updateSim() {
-            if (!isPlaying && !isPenaltyShootout) return;
+            if (!isPlaying) return;
             
-            if (isPenaltyShootout) {
-                updatePenaltySim();
-                return;
-            }
-
             let ball = simEntities.ball;
             
             if (ball.z > 0 || ball.vz > 0) {
@@ -781,7 +776,7 @@
             let awayDistances = simEntities.awayTeam.map(p => ({p, d: Math.hypot(p.x - ball.x, p.y - ball.y)})).sort((a,b) => a.d - b.d);
 
             allPlayers.forEach(p => {
-                if (p.cooldown > 0) p.cooldown--; else if(p.stunText !== "CARTÃO!") p.stunText = "";
+                if (p.cooldown > 0) p.cooldown--; else p.stunText = "";
                 if (p.receiveCooldown > 0) p.receiveCooldown--;
                 let dxBall = ball.x - p.x, dyBall = ball.y - p.y, distBall = Math.sqrt(dxBall*dxBall + dyBall*dyBall);
                 let goalieImmunity = ball.owner && ball.owner.pos === "GOL";
@@ -805,20 +800,11 @@
                     p.targetX = p.x + pushX*10; p.targetY = p.y + pushY*10;
                 }
 
-                // LÓGICA DE ROUBO DE BOLA E CARRINHO (FALTA)
                 if (distBall < 14 && p.cooldown === 0 && (!ball.owner || ball.owner.isHome !== p.isHome) && !goalieImmunity && !ball.isAirborne) {
                     let success = p.pos === "GOL" ? true : (!ball.owner ? true : Math.random() < (0.5 + ((p.def - ball.owner.dri) * 0.008)));
                     
                     if (success) {
-                        // Verifica chance de Carrinho/Falta no corte (baseado em CHUTE, quanto mais chu, menos chance)
                         let wasSteal = ball.owner != null;
-                        let foulChance = Math.max(0.01, (100 - p.chu) * 0.001); 
-                        if (wasSteal && p.pos !== "GOL" && Math.random() < foulChance) {
-                            spawnVFX(p.x, p.y, 'rgba(255, 0, 0, 0.7)', 30);
-                            triggerFoul(p);
-                            return; // Encerra a ação do jogador neste frame
-                        }
-
                         spawnVFX(p.x, p.y, 'rgba(255, 255, 255, 0.5)', 20);
                         if (wasSteal) ball.owner.cooldown = 40; 
                         let isNearOwnGoal = p.isHome ? (p.x < 150) : (p.x > canvas.width - 150);
@@ -916,13 +902,19 @@
                             p.x += (dxBall/distBall) * p.speed * 1.2; 
                             p.y += (dyBall/distBall) * p.speed * 1.2;
                             p.targetX = ball.x; p.targetY = ball.y;
-                            if (Math.random() < 0.3) spawnVFX(p.x, p.y, 'rgba(0, 200, 255, 0.4)', 15);
+                            
+                            p.trail.push({x: p.x, y: p.y});
+                            if (p.trail.length > 10) p.trail.shift();
                         } else {
                             p.stateInfo = "Posicionando";
-                            let dxBase = p.baseX - p.x; let dyBase = p.baseY - p.y; let distBase = Math.hypot(dxBase, dyBase);
+                            if (p.trail.length > 0) p.trail.shift();
+                            
+                            let goalLineX = p.isHome ? 40 : canvas.width - 40;
+                            let goalLineY = canvas.height / 2;
+                            let dxBase = goalLineX - p.x; let dyBase = goalLineY - p.y; let distBase = Math.hypot(dxBase, dyBase);
                             if (distBase > 5) {
-                                p.x += (dxBase/distBase) * p.speed * 0.8; p.y += (dyBase/distBase) * p.speed * 0.8;
-                                p.targetX = p.baseX; p.targetY = p.baseY;
+                                p.x += (dxBase/distBase) * p.speed * 1.5; p.y += (dyBase/distBase) * p.speed * 1.5;
+                                p.targetX = goalLineX; p.targetY = goalLineY;
                             }
                         }
                     } 
@@ -970,141 +962,30 @@
 
             drawFrame();
             
-            if (!isPenaltyShootout) {
-                matchTimer += 0.05; document.getElementById('matchTime').innerText = formatTime(matchTimer);
-                if (matchTimer >= 90) { endMatch(); return; }
-            }
+            matchTimer += 0.05; document.getElementById('matchTime').innerText = formatTime(matchTimer);
+            if (matchTimer >= 90) { endMatch(); return; }
             
             requestAnimationFrame(updateSim);
         }
-
-        // --- SISTEMA DE PÊNALTIS ---
-        let penaltyState = "SETUP"; // SETUP, SHOOT, DONE
-        let penaltyWait = 0;
-        let pKicker = null, pGK = null;
-
-        function startPenaltyShootout() {
-            isPlaying = false;
-            isPenaltyShootout = true;
-            penaltyTurn = 0; penaltyScoreHome = 0; penaltyScoreAway = 0;
-            document.getElementById('matchTime').innerText = "PÊNALTIS";
-            logEvent("O JOGO EMPATOU! VAMOS PARA OS PÊNALTIS!");
-            penaltyState = "SETUP";
-            requestAnimationFrame(updateSim);
-        }
-
-        function updatePenaltySim() {
-            let ball = simEntities.ball;
-            
-            if (penaltyState === "SETUP") {
-                let isHomeKicking = (penaltyTurn % 2 === 0);
-                
-                // Escolher jogadores
-                pKicker = isHomeKicking ? simEntities.homeTeam[Math.floor(Math.random()*10)] : simEntities.awayTeam[Math.floor(Math.random()*10)];
-                pGK = isHomeKicking ? simEntities.awayTeam.find(p=>p.pos==="GOL") : simEntities.homeTeam.find(p=>p.pos==="GOL");
-                
-                // Mover os outros para fora
-                simEntities.homeTeam.concat(simEntities.awayTeam).forEach(p => { if (p !== pKicker && p !== pGK) { p.x = canvas.width/2; p.y = 20; } });
-
-                ball.x = isHomeKicking ? canvas.width - 110 : 110; ball.y = canvas.height/2; ball.vx = 0; ball.vy = 0; ball.isAirborne = false;
-                pKicker.x = isHomeKicking ? ball.x - 30 : ball.x + 30; pKicker.y = ball.y;
-                pGK.x = isHomeKicking ? canvas.width - 15 : 15; pGK.y = canvas.height/2;
-                
-                logEvent(`Penalidade #${Math.floor(penaltyTurn/2)+1} - Batedor: ${pKicker.name} | Goleiro: ${pGK.name}`);
-                penaltyState = "WAIT"; penaltyWait = 100;
-            } 
-            else if (penaltyState === "WAIT") {
-                penaltyWait--;
-                if(penaltyWait <= 0) {
-                    penaltyState = "SHOOT";
-                    // Chute
-                    let targetCornerY = Math.random() < 0.5 ? (canvas.height/2 - 40) : (canvas.height/2 + 40);
-                    ball.vx = (pKicker.isHome ? 1 : -1) * (12 + pKicker.chu/15);
-                    ball.vy = (targetCornerY - ball.y) / 60 * 10;
-                    spawnVFX(pKicker.x, pKicker.y, '#ffffff', 20);
-                    
-                    // Goleiro Dash
-                    let guessY = Math.random() < 0.5 ? (canvas.height/2 - 40) : (canvas.height/2 + 40);
-                    let gkReflex = pGK.def / 100;
-                    if(Math.random() < gkReflex) guessY = targetCornerY; // Goleiro bom adivinha certo
-                    
-                    pGK.targetY = guessY; pGK.targetX = pGK.x; pGK.stateInfo = "DASH!";
-                    pGK.y += (guessY - pGK.y) * 0.4;
-                    spawnVFX(pGK.x, pGK.y, 'rgba(0, 200, 255, 0.4)', 15);
-                }
-            } 
-            else if (penaltyState === "SHOOT") {
-                ball.x += ball.vx; ball.y += ball.vy;
-                pGK.y += (pGK.targetY - pGK.y) * 0.1;
-                
-                // Checa defesa
-                let distGK = Math.hypot(ball.x - pGK.x, ball.y - pGK.y);
-                if (distGK < 20) {
-                    logEvent("DEFENDEU O GOLEIRO! 🧤");
-                    ball.vx *= -0.5; penaltyState = "DONE"; penaltyWait = 60;
-                }
-                // Checa trave
-                else if (ball.y < canvas.height/2 - 55 || ball.y > canvas.height/2 + 55) {
-                    logEvent("PARA FORA! ❌");
-                    ball.vx = 0; ball.vy = 0; penaltyState = "DONE"; penaltyWait = 60;
-                }
-                // Checa Gol
-                else if (ball.x <= 10 || ball.x >= canvas.width - 10) {
-                    logEvent("GOL! ⚽");
-                    if(pKicker.isHome) penaltyScoreHome++; else penaltyScoreAway++;
-                    document.getElementById('scoreHome').innerText = `${matchScore.home} (${penaltyScoreHome})`;
-                    document.getElementById('scoreAway').innerText = `${matchScore.away} (${penaltyScoreAway})`;
-                    createGoalExplosion(pKicker.isHome);
-                    ball.vx = 0; ball.vy = 0; penaltyState = "DONE"; penaltyWait = 60;
-                }
-            }
-            else if (penaltyState === "DONE") {
-                penaltyWait--;
-                for(let i = simEntities.vfx.length - 1; i >= 0; i--) {
-                    let e = simEntities.vfx[i]; 
-                    if(e.type === 'particle') { e.x += e.vx; e.y += e.vy; e.opacity -= 0.03; } 
-                    else { e.r += 2; e.opacity -= 0.05; }
-                    if (e.opacity <= 0) simEntities.vfx.splice(i, 1);
-                }
-                
-                if(penaltyWait <= 0) {
-                    penaltyTurn++;
-                    // Verifica fim (melhor de 5, ou morte subita se passou de 10)
-                    let hLeft = 5 - Math.ceil(penaltyTurn/2);
-                    let aLeft = 5 - Math.floor(penaltyTurn/2);
-                    
-                    if (penaltyTurn >= 10) {
-                        if (penaltyTurn % 2 === 0 && penaltyScoreHome !== penaltyScoreAway) {
-                            finishPenaltyShootout(); return;
-                        }
-                    } else {
-                        if (penaltyScoreHome > penaltyScoreAway + aLeft || penaltyScoreAway > penaltyScoreHome + hLeft) {
-                            finishPenaltyShootout(); return;
-                        }
-                    }
-                    penaltyState = "SETUP";
-                }
-            }
-
-            drawFrame();
-            requestAnimationFrame(updateSim);
-        }
-
-        function finishPenaltyShootout() {
-            isPenaltyShootout = false;
-            let win = penaltyScoreHome > penaltyScoreAway;
-            logEvent(`FIM DOS PÊNALTIS! ${clubData.name} ${penaltyScoreHome} x ${penaltyScoreAway} Adversário`);
-            // Ajusta o placar da simulação base para refletir o vencedor e chamar endMatch
-            if (win) matchScore.home++; else matchScore.away++;
-            setTimeout(() => { isPlaying = false; endMatch(); }, 2000);
-        }
-        // --- FIM DOS PÊNALTIS ---
 
         function drawFrame() {
             drawPitch();
 
+            let allPl = simEntities.homeTeam.concat(simEntities.awayTeam);
+            
+            // Draw trails for GKs
+            allPl.forEach(p => {
+                if (p.pos === "GOL" && p.trail && p.trail.length > 1) {
+                    ctx.beginPath();
+                    ctx.moveTo(p.trail[0].x, p.trail[0].y);
+                    for(let i = 1; i < p.trail.length; i++) ctx.lineTo(p.trail[i].x, p.trail[i].y);
+                    ctx.strokeStyle = 'rgba(0, 200, 255, 0.5)';
+                    ctx.lineWidth = 4;
+                    ctx.stroke();
+                }
+            });
+
             if (isManagerView) {
-                let allPl = simEntities.homeTeam.concat(simEntities.awayTeam);
                 allPl.forEach(p => {
                     if (p.targetX && p.targetY && p.stateInfo !== "Com Bola") {
                         ctx.beginPath(); ctx.moveTo(p.x, p.y);
@@ -1158,12 +1039,6 @@
                 ctx.fillStyle = p.pos === "GOL" ? (isHome ? '#00BCD4' : '#FF9800') : baseColor;
                 ctx.fill(); 
 
-                // Adiciona indicador visual de cartão amarelo
-                if (p.yellowCard) {
-                    ctx.beginPath(); ctx.rect(p.x + 5, p.y - 10, 4, 6);
-                    ctx.fillStyle = '#ffeb3b'; ctx.fill(); ctx.stroke();
-                }
-
                 if (p.pos !== "GOL") {
                     ctx.beginPath(); ctx.arc(p.x, p.y, 3, 0, Math.PI*2);
                     if (isHome) {
@@ -1179,7 +1054,7 @@
                 
                 if (simEntities.ball.owner === p) { ctx.strokeStyle = '#fff'; ctx.lineWidth = 2; ctx.stroke(); }
                 if (p.stunText) {
-                    ctx.fillStyle = p.stunText === "CARTÃO!" ? '#ff4444' : '#ffeb3b'; 
+                    ctx.fillStyle = '#ffeb3b'; 
                     ctx.font = "bold 12px Arial"; ctx.textAlign = "center";
                     ctx.fillText(p.stunText, p.x, p.y - 12);
                 }
@@ -1238,16 +1113,99 @@
             initSim(); isPlaying = true; updateSim(); updateUI();
         }
 
+        // ====== LÓGICA DE PÊNALTIS ======
+        let penState = { home: 0, away: 0, round: 0, isPlayerTurn: true };
+        let penLock = false;
+
+        function startPenalties() {
+            penState = { home: 0, away: 0, round: 0, isPlayerTurn: true };
+            penLock = false;
+            document.getElementById('penHomeTag').innerText = clubData.name;
+            document.getElementById('penAwayTag').innerText = currentEnemyTeam.name;
+            updatePenaltyUI();
+            document.getElementById('penLog').innerText = "Prepare-se para as cobranças...";
+            document.getElementById('penLog').style.color = "#aaa";
+            document.getElementById('penaltyModal').style.display = 'flex';
+        }
+
+        function updatePenaltyUI() {
+            document.getElementById('penScoreHome').innerText = penState.home;
+            document.getElementById('penScoreAway').innerText = penState.away;
+            let actionText = penState.isPlayerTurn ? "⚽ Sua vez de CHUTAR! Escolha onde bater:" : "🧤 Sua vez de DEFENDER! Escolha onde pular:";
+            document.getElementById('penActionText').innerText = actionText;
+        }
+
+        function handlePenalty(choice) {
+            if (penLock) return;
+            penLock = true;
+            
+            let botChoice = Math.floor(Math.random() * 4) + 1;
+            let goal = false;
+            
+            if (penState.isPlayerTurn) {
+                if (choice !== botChoice) { goal = true; penState.home++; }
+                document.getElementById('penLog').innerText = goal ? "⚽ GOL! Você marcou!" : "❌ DEFENDEU O GOLEIRO! Você perdeu.";
+                document.getElementById('penLog').style.color = goal ? "#00E676" : "#f44336";
+            } else {
+                if (choice !== botChoice) { goal = true; penState.away++; }
+                document.getElementById('penLog').innerText = goal ? "❌ GOL DELES! O adversário marcou." : "🧤 DEFESAÇA! Você espalmou!";
+                document.getElementById('penLog').style.color = goal ? "#f44336" : "#00E676";
+            }
+            
+            updatePenaltyUI();
+
+            setTimeout(() => {
+                if (penState.isPlayerTurn) {
+                    penState.isPlayerTurn = false;
+                    penLock = false;
+                } else {
+                    penState.isPlayerTurn = true;
+                    penState.round++;
+                    checkPenaltyEnd();
+                }
+                
+                if (document.getElementById('penaltyModal').style.display === 'flex') {
+                    updatePenaltyUI();
+                }
+            }, 1800);
+        }
+
+        function checkPenaltyEnd() {
+            let isEnd = false;
+            let homeWon = false;
+            
+            if (penState.round >= 3) {
+                if (penState.home > penState.away) {
+                    isEnd = true; homeWon = true;
+                } else if (penState.away > penState.home) {
+                    isEnd = true; homeWon = false;
+                }
+            }
+            
+            if (isEnd) {
+                document.getElementById('penaltyModal').style.display = 'none';
+                logEvent(`Fim dos Pênaltis! ${penState.home} x ${penState.away}`);
+                processMatchResult(homeWon, false);
+            } else {
+                penLock = false;
+            }
+        }
+        // ================================
+
         function endMatch() {
             isPlaying = false;
             let win = matchScore.home > matchScore.away, draw = matchScore.home === matchScore.away;
             
-            // Ativa pênaltis apenas se empatar e for em mata-mata/campeonato
-            if (draw && tournamentMode !== 'none') {
-                startPenaltyShootout();
+            if (tournamentMode !== 'none' && draw) {
+                logEvent("Fim do tempo normal! Vamos para a Disputa de Pênaltis!");
+                setTimeout(startPenalties, 1500);
                 return;
             }
+            
+            processMatchResult(win, draw);
+        }
 
+        function processMatchResult(win, draw) {
             let ganhoCoins = 0, ganhoFans = 0;
             let sponsorBonus = 0;
             if (activeSponsor.gamesLeft > 0) {
@@ -1399,13 +1357,21 @@
 
         function getCardClass(ovr) { return ovr > 100 ? 'mystic' : (ovr >= 90 ? 'icon' : (ovr >= 80 ? 'gold' : (ovr >= 70 ? 'silver' : 'bronze'))); }
         
-        function handlePlayerClick(player, listType, index) {
+        function handlePlayerClick(uniqueId, listType, index) {
             if (listType === 'none') return; 
-            if (isPlaying || isPenaltyShootout) { notify("⚠️ O jogo está rolando! Você não pode alterar o time agora.", "#ff9800"); return; }
+            if (isPlaying) { notify("⚠️ O jogo está rolando! Você não pode alterar o time agora.", "#ff9800"); return; }
+            
+            let list = listType === 'starting' ? startingXI : bench;
+            let player = list[index];
+
             if (selectedPlayerInfo) {
-                if (selectedPlayerInfo.player.uniqueId === player.uniqueId) { selectedPlayerInfo = null; updateUI(); return; }
+                if (selectedPlayerInfo.player.uniqueId === uniqueId) { selectedPlayerInfo = null; updateUI(); return; }
                 let listA = selectedPlayerInfo.listType === 'starting' ? startingXI : bench, listB = listType === 'starting' ? startingXI : bench;
-                listA[selectedPlayerInfo.index] = player; listB[index] = selectedPlayerInfo.player;
+                
+                let temp = listA[selectedPlayerInfo.index];
+                listA[selectedPlayerInfo.index] = listB[index];
+                listB[index] = temp;
+                
                 selectedPlayerInfo = null; updateUI();
             } else { selectedPlayerInfo = { player, listType, index }; updateUI(); }
         }
@@ -1438,7 +1404,7 @@
             let pCompleted = Math.round(((potMax - potCurrent) / potMax) * 100);
             if(potCurrent <= 0) pCompleted = 100;
 
-            return `<div class="player-card ${getCardClass(p.ovr)} ${isSelected ? 'selected' : ''} ${trainEffectClass}" onclick="handlePlayerClick(${JSON.stringify(p).replace(/"/g, '&quot;')}, '${listType}', ${index})">
+            return `<div class="player-card ${getCardClass(p.ovr)} ${isSelected ? 'selected' : ''} ${trainEffectClass}" onclick="handlePlayerClick(${p.uniqueId}, '${listType}', ${index})">
                         <div class="p-tooltip">
                             <b>Análise do Scout</b><br>
                             Custo de Treino: 🪙 ${tCost}<br>
