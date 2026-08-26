@@ -128,9 +128,32 @@
 
         .interview-btn { background: #333; border: 1px solid #555; text-align: left; padding: 12px; margin: 8px 0; width: 100%; border-radius: 5px; font-size: 0.95rem; color: white; cursor: pointer; }
         .interview-btn:hover { background: #444; border-color: #00E676; }
+
+        /* NOVO: Efeito de Habilidade Especial */
+        #abilityCutin {
+            position: fixed; top: 35%; left: 0; width: 100vw; height: 180px;
+            background: rgba(0,0,0,0.95);
+            z-index: 9999; display: flex; align-items: center; justify-content: center; gap: 30px;
+            color: #fff; font-size: 2.8rem; font-weight: 900; font-style: italic; text-transform: uppercase;
+            clip-path: polygon(0 15%, 100% 0, 100% 85%, 0 100%);
+            border-top: 4px solid #fff; border-bottom: 4px solid #fff;
+            transform: scaleX(0); transform-origin: center;
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            pointer-events: none;
+            box-shadow: 0 0 40px rgba(255, 255, 255, 0.5);
+        }
+        #abilityCutin.active { transform: scaleX(1); }
+        .cutin-img { width: 120px; height: 120px; border-radius: 50%; object-fit: cover; border: 4px solid #fff; box-shadow: 0 0 20px #fff; }
+        .cutin-text { text-shadow: 3px 3px 15px rgba(255,255,255,0.8); }
     </style>
 </head>
 <body>
+
+    <!-- Efeito de Habilidade -->
+    <div id="abilityCutin">
+        <img id="cutinImg" src="" class="cutin-img">
+        <div id="cutinText" class="cutin-text">HABILIDADE ATIVADA!</div>
+    </div>
 
     <div id="customNoticeContainer"></div>
 
@@ -378,6 +401,46 @@
             return `rgb(${Math.max(0, rgb.r - 80)}, ${Math.max(0, rgb.g - 80)}, ${Math.max(0, rgb.b - 80)})`;
         }
 
+        // Variáveis de Habilidades Místicas
+        let timeStopFrames = 0;
+        let timeStopper = null;
+
+        function activateAbilityCutin(imgUrl, text, color = "#ff0000") {
+            let cutin = document.getElementById('abilityCutin');
+            let cutinImg = document.getElementById('cutinImg');
+            let cutinText = document.getElementById('cutinText');
+            
+            cutin.style.borderColor = color;
+            cutin.style.boxShadow = `0 0 30px ${color}`;
+            cutinImg.src = imgUrl;
+            cutinImg.style.borderColor = color;
+            cutinImg.style.boxShadow = `0 0 20px ${color}`;
+            cutinText.innerText = text;
+            cutinText.style.textShadow = `3px 3px 15px ${color}`;
+            
+            cutin.classList.add('active');
+            setTimeout(() => { cutin.classList.remove('active'); }, 1800);
+        }
+        
+        function spawnRobot(summoner) {
+            let robot = createGenericPlayer(false);
+            robot.name = "Robô Simulado";
+            robot.ovr = 80;
+            robot.vel = 80; robot.dri = 80; robot.chu = 80; robot.pas = 80; robot.def = 80; robot.fin = 80;
+            robot.photo = "https://cdn-icons-png.flaticon.com/512/4712/4712139.png";
+            robot.pos = "MEI";
+            robot.offenseBias = 0;
+            robot.defenseBias = 0;
+            let newP = {
+                ...robot, x: summoner.x, y: summoner.y, baseX: summoner.baseX, baseY: summoner.baseY,
+                targetX: summoner.x, targetY: summoner.y, speed: (80 / 100) * 3 + 0.8, cooldown: 0, isHome: summoner.isHome,
+                stunText: "BIP BOP", receiveCooldown: 0, stateInfo: "Ajudando", trail: [], uniqueId: ++playerIdCounter
+            };
+            if (summoner.isHome) simEntities.homeTeam.push(newP);
+            else simEntities.awayTeam.push(newP);
+            spawnVFX(summoner.x, summoner.y, '#00e676', 50);
+        }
+
         let clubData = { name: "Meu Time FC", color: "#2196F3", secondaryColor: "#FFD700", icon: "⭐", stats: { w: 0, d: 0, l: 0 }, fans: 120, trophies: [] };
         let activeSponsor = { name: "", amount: 0, gamesLeft: 0 };
         let pendingSponsor = null;
@@ -423,7 +486,7 @@
         const starPlayers = [
             // Místicos (100+)
             { id: 99, name: "Iberê Thenório", pos: "ATA", ovr: 102, vel: 99, dri: 99, chu: 99, pas: 99, def: 60, fin: 99, photo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSxEDsRbXecyBee_gPuVuJ326EW5goICJZ250Rxmt10oPdf44y5Srm-G828sbFlzh_2BWbhXLCIOSFnIO-759RpKdfwFa6NX3JZRlxCf4PHgA&s=10" },
-            { id: 100, name: "Femboy", pos: "MEI", ovr: 105, vel: 99, dri: 99, chu: 99, pas: 99, def: 99, fin: 99, photo: "https://via.placeholder.com/80/8b0000/FFFFFF?text=EP" },
+            { id: 100, name: "The World", pos: "MEI", ovr: 105, vel: 99, dri: 99, chu: 99, pas: 99, def: 99, fin: 99, photo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSyLt4XHXhznapb8SnpJr1DPdpA9PogfX19P5gA2AMqUQ&s=10" },
             
             // Lendas (90-99)
             { id: 1, name: "Baianinho", pos: "ATA", ovr: 96, vel: 94, dri: 95, chu: 96, pas: 90, def: 40, fin: 98, photo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT-zLbuUxWk12tZDpXaqinMm-8JSdL2dTIG0uCixQw3lw&s=10" },
@@ -450,15 +513,15 @@
             { id: 2, name: "Tarsila do Amaral", pos: "MEI", ovr: 75, vel: 70, dri: 78, chu: 72, pas: 77, def: 55, fin: 70, photo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQDV0HJgBUQCkBjzZckfbI8r86LIpXZS2qEPt-wHa0y_w&s=10" },
             { id: 14, name: "Leôncio", pos: "ZAG", ovr: 78, vel: 65, dri: 65, chu: 60, pas: 55, def: 85, fin: 45, photo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSlY-fFqw_nnrW34ylJDxxSwZAl0XV_6uWnQz76OmStNg&s=10" },
             { id: 17, name: "Pernalonga", pos: "LAT", ovr: 79, vel: 89, dri: 78, chu: 62, pas: 76, def: 75, fin: 55, photo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQhBNwOd4amQrui_HLiHLVfMIPPdCAEV__YZcuJDY6cAA&s=10" },
-            { id: 104, name: "Carteiro Juca", pos: "ATA", ovr: 72, vel: 85, dri: 70, chu: 65, pas: 70, def: 35, fin: 68, photo: "https://via.placeholder.com/80/a9a9a9/000000?text=CJ" },
-            { id: 105, name: "Motoboy Veloz", pos: "LAT", ovr: 77, vel: 95, dri: 72, chu: 50, pas: 65, def: 68, fin: 45, photo: "https://via.placeholder.com/80/a9a9a9/000000?text=MV" },
+            { id: 104, name: "Donald Trump", pos: "ATA", ovr: 72, vel: 85, dri: 70, chu: 65, pas: 70, def: 35, fin: 68, photo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR6R2-EfgPixsgr5OJrmWZDMVKMiBCWwJPf8_Q_0D3XQg&s=10" },
+            { id: 105, name: "Ameba", pos: "LAT", ovr: 77, vel: 95, dri: 72, chu: 50, pas: 65, def: 68, fin: 45, photo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRESSjDBplgdSt964jHmFSLL0L6ewnH6tz6TycdG6SXmg&s=10" },
             
             // Bronzes (60-69)
-            { id: 106, name: "Padeiro Zé", pos: "ATA", ovr: 62, vel: 55, dri: 60, chu: 65, pas: 50, def: 40, fin: 62, photo: "https://via.placeholder.com/80/cd7f32/FFFFFF?text=PZ" },
-            { id: 107, name: "Caramelo", pos: "MEI", ovr: 65, vel: 75, dri: 70, chu: 50, pas: 60, def: 55, fin: 45, photo: "https://via.placeholder.com/80/cd7f32/FFFFFF?text=DOG" },
-            { id: 108, name: "Pipa Voadora", pos: "ZAG", ovr: 61, vel: 80, dri: 55, chu: 40, pas: 50, def: 65, fin: 30, photo: "https://via.placeholder.com/80/cd7f32/FFFFFF?text=PV" },
-            { id: 109, name: "Tio do Churros", pos: "LAT", ovr: 68, vel: 65, dri: 65, chu: 55, pas: 70, def: 62, fin: 50, photo: "https://via.placeholder.com/80/cd7f32/FFFFFF?text=TC" },
-            { id: 110, name: "Gari Veloz", pos: "VOL", ovr: 67, vel: 82, dri: 60, chu: 50, pas: 65, def: 70, fin: 45, photo: "https://via.placeholder.com/80/cd7f32/FFFFFF?text=GV" }
+            { id: 106, name: "Petista", pos: "ATA", ovr: 62, vel: 55, dri: 60, chu: 65, pas: 50, def: 40, fin: 62, photo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRwsZkuYq8D6W_0KzA0kEXBlv54EixoJlC2BzNsdrK60Q&s=10" },
+            { id: 107, name: "Tim", pos: "MEI", ovr: 65, vel: 75, dri: 70, chu: 50, pas: 60, def: 55, fin: 45, photo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRe-nVb6XmyONk94wAz9ghm_uQj6f_H2aRDKAwx03ASyQ&s=10" },
+            { id: 108, name: "Poste de Energia", pos: "ZAG", ovr: 61, vel: 80, dri: 55, chu: 40, pas: 50, def: 65, fin: 30, photo: "https://encrypted-tbn0.GcSXrnMq2oiFIFEd0QQFnzIQr4l4MD4d3D92yjonIn_uaw&s=10" },
+            { id: 109, name: "Caneta Bic", pos: "LAT", ovr: 68, vel: 65, dri: 65, chu: 55, pas: 70, def: 62, fin: 50, photo: "https://encrypted-tbn1.gstatic.com/shopping?q=tbn:ANd9GcRtByiludnkNR7BfBdK3QpwScywSpDjYCmWVUsg3_fPz18GLoiB-MYcGeBK6okXOPyCxGWjcEVLD4yeJLXHowWDfNWec0aeD3T7d3GRtlbqyDFBi_c0hu3kt49wHLvFUBRsp0eBdw&usqp=CAc" },
+            { id: 110, name: "Hamburguer básico", pos: "VOL", ovr: 67, vel: 82, dri: 60, chu: 50, pas: 65, def: 70, fin: 45, photo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQwDjKhHNsui8Gkwow-hgYTU41i279ytTXlbBW_6SdVnA&s=10" }
         ].map(p => {
             let pot = Math.floor(Math.random() * 20) + 5;
             return { ...p, potential: pot, maxPotential: pot };
@@ -490,7 +553,6 @@
         function trainSelectedPlayer() {
             if (!selectedPlayerInfo) { notify("⚠️ Selecione um jogador (clique na carta) no seu time ou banco primeiro!", "#ff9800"); return; }
             
-            // Busca a referência real do jogador
             let list = selectedPlayerInfo.listType === 'starting' ? startingXI : bench;
             let p = list[selectedPlayerInfo.index];
             
@@ -704,6 +766,8 @@
         }
 
         function resetPositions() {
+            timeStopFrames = 0;
+            timeStopper = null;
             simEntities.ball = { x: canvas.width/2, y: canvas.height/2, z: 0, vz: 0, isAirborne: false, vx: 0, vy: 0, trail: [], owner: null };
             simEntities.vfx = [];
             simEntities.homeTeam.forEach(p => { p.baseX = getBasePositionX(p.pos, true) + (p.offenseBias || 0); p.x = p.baseX; p.y = p.baseY; p.cooldown = 0; p.receiveCooldown = 0; p.stateInfo = "Posicionando"; p.targetX = p.baseX; p.targetY = p.baseY; p.trail = [];});
@@ -711,8 +775,14 @@
         }
 
         function initSim() {
+            timeStopFrames = 0;
+            timeStopper = null;
             simEntities.ball = { x: canvas.width/2, y: canvas.height/2, z: 0, vz: 0, isAirborne: false, vx: 0, vy: 0, trail: [], owner: null };
             simEntities.vfx = [];
+            
+            // Reseta a marcação de habilidade utilizada para cada partida nova
+            startingXI.forEach(p => p.abilityUsed = false);
+            
             simEntities.homeTeam = setupTeamPositions(startingXI, true);
             
             currentEnemyTeam = enemyTeamsDB[Math.floor(Math.random() * enemyTeamsDB.length)];
@@ -736,38 +806,51 @@
         function updateSim() {
             if (!isPlaying) return;
             
+            let activeTimeStopper = timeStopFrames > 0 ? timeStopper : null;
+            if (timeStopFrames > 0) timeStopFrames--;
+
             let ball = simEntities.ball;
             
-            if (ball.z > 0 || ball.vz > 0) {
-                ball.vz -= 0.5; 
-                ball.z += ball.vz;
-                if (ball.z <= 0) {
-                    ball.z = 0; ball.vz = 0; ball.isAirborne = false;
-                    spawnVFX(ball.x, ball.y, 'rgba(255,255,255,0.8)', 15);
+            // Lógica de tempo parado para a bola
+            if (!activeTimeStopper) {
+                if (ball.z > 0 || ball.vz > 0) {
+                    ball.vz -= 0.5; 
+                    ball.z += ball.vz;
+                    if (ball.z <= 0) {
+                        ball.z = 0; ball.vz = 0; ball.isAirborne = false;
+                        spawnVFX(ball.x, ball.y, 'rgba(255,255,255,0.8)', 15);
+                    }
                 }
-            }
 
-            ball.trail.push({x: ball.x, y: ball.y}); if(ball.trail.length > 10) ball.trail.shift();
+                ball.trail.push({x: ball.x, y: ball.y}); if(ball.trail.length > 10) ball.trail.shift();
 
-            if (!ball.owner) {
-                ball.vx *= 0.95; ball.vy *= 0.95; ball.x += ball.vx; ball.y += ball.vy;
-                if (ball.y <= 10 || ball.y >= canvas.height - 10) ball.vy *= -1;
-                if (ball.x <= 10 && (ball.y < canvas.height/2 - 60 || ball.y > canvas.height/2 + 60)) ball.vx *= -1;
-                if (ball.x >= canvas.width - 10 && (ball.y < canvas.height/2 - 60 || ball.y > canvas.height/2 + 60)) ball.vx *= -1;
-                
-                if (!ball.isAirborne) {
-                    if (ball.x <= 10 && ball.y >= canvas.height/2 - 60 && ball.y <= canvas.height/2 + 60) { goal(false); return; }
-                    if (ball.x >= canvas.width - 10 && ball.y >= canvas.height/2 - 60 && ball.y <= canvas.height/2 + 60) { goal(true); return; }
+                if (!ball.owner) {
+                    ball.vx *= 0.95; ball.vy *= 0.95; ball.x += ball.vx; ball.y += ball.vy;
+                    if (ball.y <= 10 || ball.y >= canvas.height - 10) ball.vy *= -1;
+                    if (ball.x <= 10 && (ball.y < canvas.height/2 - 60 || ball.y > canvas.height/2 + 60)) ball.vx *= -1;
+                    if (ball.x >= canvas.width - 10 && (ball.y < canvas.height/2 - 60 || ball.y > canvas.height/2 + 60)) ball.vx *= -1;
+                    
+                    if (!ball.isAirborne) {
+                        if (ball.x <= 10 && ball.y >= canvas.height/2 - 60 && ball.y <= canvas.height/2 + 60) { goal(false); return; }
+                        if (ball.x >= canvas.width - 10 && ball.y >= canvas.height/2 - 60 && ball.y <= canvas.height/2 + 60) { goal(true); return; }
+                    }
+                }
+            } else {
+                if (ball.owner === activeTimeStopper) {
+                    ball.trail.push({x: ball.x, y: ball.y}); if(ball.trail.length > 10) ball.trail.shift();
                 }
             }
 
             let allPlayers = simEntities.homeTeam.concat(simEntities.awayTeam);
-            for(let i=0; i<allPlayers.length; i++) {
-                for(let j=i+1; j<allPlayers.length; j++) {
-                    let p1 = allPlayers[i], p2 = allPlayers[j], dx = p1.x - p2.x, dy = p1.y - p2.y, dist = Math.sqrt(dx*dx + dy*dy);
-                    if(dist > 0 && dist < 14) {
-                        let force = (14 - dist) * 0.15;
-                        p1.x += (dx/dist) * force; p1.y += (dy/dist) * force; p2.x -= (dx/dist) * force; p2.y -= (dy/dist) * force;
+            
+            if (!activeTimeStopper) {
+                for(let i=0; i<allPlayers.length; i++) {
+                    for(let j=i+1; j<allPlayers.length; j++) {
+                        let p1 = allPlayers[i], p2 = allPlayers[j], dx = p1.x - p2.x, dy = p1.y - p2.y, dist = Math.sqrt(dx*dx + dy*dy);
+                        if(dist > 0 && dist < 14) {
+                            let force = (14 - dist) * 0.15;
+                            p1.x += (dx/dist) * force; p1.y += (dy/dist) * force; p2.x -= (dx/dist) * force; p2.y -= (dy/dist) * force;
+                        }
                     }
                 }
             }
@@ -776,6 +859,27 @@
             let awayDistances = simEntities.awayTeam.map(p => ({p, d: Math.hypot(p.x - ball.x, p.y - ball.y)})).sort((a,b) => a.d - b.d);
 
             allPlayers.forEach(p => {
+                if (activeTimeStopper && p !== activeTimeStopper) return; // Congelado no tempo
+
+                // Lógica de Ativação de Habilidades Especiais Místicas
+                if (p.ovr >= 100 && !activeTimeStopper) {
+                    if (p.abilityCooldown === undefined) p.abilityCooldown = Math.floor(Math.random() * 200) + 100;
+                    if (p.abilityCooldown > 0) {
+                        p.abilityCooldown--;
+                    } else {
+                        if (p.name === "Iberê Thenório" && !p.abilityUsed) {
+                            p.abilityUsed = true;
+                            activateAbilityCutin(p.photo, "MANUAL DO MUNDO: ROBÔ JOGADOR!", "#00e676");
+                            spawnRobot(p);
+                        } else if (p.name === "The World") {
+                            p.abilityCooldown = 1500; // Demora bastante para usar de novo
+                            timeStopFrames = 120; // 2 segundos (a ~60fps)
+                            timeStopper = p;
+                            activateAbilityCutin(p.photo, "ZA WARUDO! TEMPO PARADO!", "#ff007f");
+                        }
+                    }
+                }
+
                 if (p.cooldown > 0) p.cooldown--; else p.stunText = "";
                 if (p.receiveCooldown > 0) p.receiveCooldown--;
                 let dxBall = ball.x - p.x, dyBall = ball.y - p.y, distBall = Math.sqrt(dxBall*dxBall + dyBall*dyBall);
@@ -790,7 +894,7 @@
                 let nearbyCount = 0, pushX = 0, pushY = 0;
                 
                 teamMates.forEach(other => {
-                    if (other !== p) {
+                    if (other !== p && !activeTimeStopper) {
                         let d = Math.hypot(p.x - other.x, p.y - other.y);
                         if (d < 45) { nearbyCount++; pushX += (p.x - other.x) / d; pushY += (p.y - other.y) / d; }
                     }
@@ -802,13 +906,14 @@
 
                 if (distBall < 14 && p.cooldown === 0 && (!ball.owner || ball.owner.isHome !== p.isHome) && !goalieImmunity && !ball.isAirborne) {
                     let success = p.pos === "GOL" ? true : (!ball.owner ? true : Math.random() < (0.5 + ((p.def - ball.owner.dri) * 0.008)));
+                    if (activeTimeStopper === p) success = true; // Sempre rouba no tempo parado
                     
                     if (success) {
                         let wasSteal = ball.owner != null;
                         spawnVFX(p.x, p.y, 'rgba(255, 255, 255, 0.5)', 20);
                         if (wasSteal) ball.owner.cooldown = 40; 
                         let isNearOwnGoal = p.isHome ? (p.x < 150) : (p.x > canvas.width - 150);
-                        if (wasSteal && !isNearOwnGoal && p.pos !== "GOL") {
+                        if (wasSteal && !isNearOwnGoal && p.pos !== "GOL" && !activeTimeStopper) {
                             ball.owner = null; ball.vx = (p.isHome ? 1 : -1) * (10 + p.def/20); ball.vy = (Math.random() - 0.5) * 6; p.cooldown = 15; p.stunText = "CORTE!";
                         } else {
                             ball.owner = p; ball.vx = 0; ball.vy = 0; p.receiveCooldown = 15;
@@ -962,7 +1067,11 @@
 
             drawFrame();
             
-            matchTimer += 0.05; document.getElementById('matchTime').innerText = formatTime(matchTimer);
+            // Só avança o tempo se o The World não parou o tempo
+            if (!activeTimeStopper) {
+                matchTimer += 0.05; 
+            }
+            document.getElementById('matchTime').innerText = formatTime(matchTimer);
             if (matchTimer >= 90) { endMatch(); return; }
             
             requestAnimationFrame(updateSim);
@@ -970,6 +1079,11 @@
 
         function drawFrame() {
             drawPitch();
+
+            if (timeStopFrames > 0) {
+                ctx.fillStyle = "rgba(0, 0, 0, 0.4)";
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+            }
 
             let allPl = simEntities.homeTeam.concat(simEntities.awayTeam);
             
@@ -1030,7 +1144,7 @@
 
             const drawPlayer = (p, isHome) => {
                 let baseColor = isHome ? clubData.color : enemyMatchColor;
-                let rarityColor = p.ovr > 100 ? '#ff0000' : (p.ovr >= 90 ? '#e600ff' : (p.ovr >= 80 ? '#ffd700' : (p.ovr >= 70 ? '#c0c0c0' : '#cd7f32')));
+                let rarityColor = p.ovr >= 100 ? '#ff0000' : (p.ovr >= 90 ? '#e600ff' : (p.ovr >= 80 ? '#ffd700' : (p.ovr >= 70 ? '#c0c0c0' : '#cd7f32')));
                 
                 ctx.beginPath(); ctx.arc(p.x, p.y, 9, 0, Math.PI*2); 
                 ctx.fillStyle = rarityColor; ctx.fill();
@@ -1062,7 +1176,7 @@
                 if (isManagerView) {
                     ctx.fillStyle = "rgba(255,255,255,0.9)"; ctx.font = "10px Arial"; ctx.textAlign = "center";
                     ctx.fillText(p.name, p.x, p.y - 10);
-                    ctx.fillStyle = p.ovr > 100 ? "#ff4444" : "#FFD700";
+                    ctx.fillStyle = p.ovr >= 100 ? "#ff4444" : "#FFD700";
                     ctx.fillText(`OVR ${(typeof p.ovr === 'number' ? p.ovr.toFixed(2) : p.ovr)}`, p.x, p.y + 15); 
                     if (isHome) { ctx.fillStyle = "#00e676"; ctx.fillText(p.stateInfo, p.x, p.y + 25); }
                 }
@@ -1355,7 +1469,7 @@
             document.getElementById('sponsorModal').style.display = 'none';
         }
 
-        function getCardClass(ovr) { return ovr > 100 ? 'mystic' : (ovr >= 90 ? 'icon' : (ovr >= 80 ? 'gold' : (ovr >= 70 ? 'silver' : 'bronze'))); }
+        function getCardClass(ovr) { return ovr >= 100 ? 'mystic' : (ovr >= 90 ? 'icon' : (ovr >= 80 ? 'gold' : (ovr >= 70 ? 'silver' : 'bronze'))); }
         
         function handlePlayerClick(uniqueId, listType, index) {
             if (listType === 'none') return; 
