@@ -39,6 +39,8 @@
         .btn-cup2 { background-color: #E91E63; font-size: 1.1rem; } .btn-cup2:hover { background-color: #C2185B; }
         .btn-club { background-color: #9C27B0; } .btn-club:hover { background-color: #7B1FA2; }
         .btn-train { background-color: #00BCD4; } .btn-train:hover { background-color: #008BA3; }
+        .btn-sell { background-color: #f44336; } .btn-sell:hover { background-color: #d32f2f; }
+        .btn-tree { background-color: #607D8B; } .btn-tree:hover { background-color: #455A64; }
 
         input[type="text"], input[type="number"], select { padding: 8px; border-radius: 4px; border: 1px solid #333; background-color: #2a2a2a; color: white; font-size: 1rem; width: 100%; }
         
@@ -141,18 +143,49 @@
             transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             pointer-events: none;
             box-shadow: 0 0 40px rgba(255, 255, 255, 0.5);
+            overflow: hidden;
         }
         #abilityCutin.active { transform: scaleX(1); }
+        #abilityCutin .cutin-bg {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            object-fit: cover; opacity: 0.45; z-index: 0; pointer-events: none;
+        }
+        #abilityCutin .cutin-content {
+            position: relative; z-index: 1; display: flex; align-items: center; justify-content: center; gap: 30px;
+        }
         .cutin-img { width: 120px; height: 120px; border-radius: 50%; object-fit: cover; border: 4px solid #fff; box-shadow: 0 0 20px #fff; }
         .cutin-text { text-shadow: 3px 3px 15px rgba(255,255,255,0.8); }
+
+        /* Bracket / Tree styles */
+        .bracket-container { display: flex; flex-direction: column; gap: 20px; padding: 10px; overflow-x: auto; }
+        .bracket-round { display: flex; flex-direction: column; gap: 12px; min-width: 180px; }
+        .bracket-row { display: flex; justify-content: space-around; gap: 15px; flex-wrap: wrap; }
+        .bracket-match {
+            background: #1a1a1a; border: 2px solid #444; border-radius: 8px; padding: 10px 14px;
+            min-width: 160px; text-align: center; position: relative;
+        }
+        .bracket-match.winner { border-color: #4CAF50; box-shadow: 0 0 8px rgba(76,175,80,0.4); }
+        .bracket-match.loser { border-color: #666; opacity: 0.7; }
+        .bracket-match.current { border-color: #FFD700; box-shadow: 0 0 12px rgba(255,215,0,0.5); }
+        .bracket-team { font-size: 0.85rem; font-weight: bold; padding: 4px 0; }
+        .bracket-team.won { color: #4CAF50; }
+        .bracket-team.lost { color: #f44336; text-decoration: line-through; }
+        .bracket-team.you { color: #00E676; }
+        .bracket-vs { font-size: 0.7rem; color: #888; margin: 2px 0; }
+        .bracket-title { color: #FFD700; font-size: 1.1rem; margin-bottom: 8px; text-align: center; }
+        .bracket-stage-label { text-align: center; color: #aaa; font-size: 0.8rem; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 1px; }
+
     </style>
 </head>
 <body>
 
     <!-- Efeito de Habilidade -->
     <div id="abilityCutin">
-        <img id="cutinImg" src="" class="cutin-img">
-        <div id="cutinText" class="cutin-text">HABILIDADE ATIVADA!</div>
+        <img id="cutinBg" class="cutin-bg" src="" alt="" style="display:none;">
+        <div class="cutin-content">
+            <img id="cutinImg" src="" class="cutin-img">
+            <div id="cutinText" class="cutin-text">HABILIDADE ATIVADA!</div>
+        </div>
     </div>
 
     <div id="customNoticeContainer"></div>
@@ -282,6 +315,16 @@
         </div>
     </div>
 
+    
+    <!-- Modal da Árvore do Campeonato -->
+    <div id="bracketModal" class="modal-overlay">
+        <div class="modal-content" style="max-width: 900px;">
+            <h2 id="bracketTitle" style="color: #FFD700;">🏆 Chaveamento</h2>
+            <div id="bracketContent" class="bracket-container"></div>
+            <button class="close-btn" onclick="document.getElementById('bracketModal').style.display='none'">Fechar</button>
+        </div>
+    </div>
+
     <h1>⚽ FutManager - Ultimate Pro ⚽</h1>
 
     <div class="container">
@@ -300,6 +343,7 @@
         <div class="actions">
             <button class="btn-club" onclick="openClubModal()">🛡️ Meu Clube</button>
             <button class="btn-train" onclick="trainSelectedPlayer()">💪 Treinar (Custo Variável)</button>
+            <button class="btn-sell" onclick="sellSelectedPlayer()">💰 Vender (50% do Treino)</button>
             
             <div style="display: flex; flex-direction: column; align-items: center;">
                 <label style="font-size: 0.75rem; color: #aaa; font-weight: bold; margin-bottom: 2px;">Estratégia</label>
@@ -346,6 +390,7 @@
             <button class="btn-play" id="btnPlay" onclick="startMatch(false, 'amistoso')">▶️ AMISTOSO</button>
             <button class="btn-cup" id="btnCup" onclick="startTournament('normal')" disabled>🏆 MATA-MATA (500 Fãs)</button>
             <button class="btn-cup2" id="btnCupElite" onclick="startTournament('elite')" disabled>💎 TAÇA ELITE (1500 Fãs)</button>
+            <button class="btn-tree" id="btnTree" onclick="showBracket()" style="display:none;">🌳 Ver Chaveamento</button>
         </div>
 
         <div id="scoreboardWrapper" style="display: none;">
@@ -405,10 +450,19 @@
         let timeStopFrames = 0;
         let timeStopper = null;
 
-        function activateAbilityCutin(imgUrl, text, color = "#ff0000") {
+        // abilityBgImages: map ability name -> background image URL (customize freely)
+        const abilityBgImages = {
+            "MANUAL DO MUNDO: ROBÔ JOGADOR!": "",
+            "ZA WARUDO! TEMPO PARADO!": "",
+            "ICEBERG TITÂNICO!": "https://cdn-icons-png.flaticon.com/512/414/414927.png",
+            "REI DO POP!": "https://cdn-icons-png.flaticon.com/512/2995/2995101.png"
+        };
+
+        function activateAbilityCutin(imgUrl, text, color = "#ff0000", bgUrl = null) {
             let cutin = document.getElementById('abilityCutin');
             let cutinImg = document.getElementById('cutinImg');
             let cutinText = document.getElementById('cutinText');
+            let cutinBg = document.getElementById('cutinBg');
             
             cutin.style.borderColor = color;
             cutin.style.boxShadow = `0 0 30px ${color}`;
@@ -417,6 +471,16 @@
             cutinImg.style.boxShadow = `0 0 20px ${color}`;
             cutinText.innerText = text;
             cutinText.style.textShadow = `3px 3px 15px ${color}`;
+
+            // Background image: use explicit bgUrl, or lookup by ability text, or none
+            let resolvedBg = bgUrl || abilityBgImages[text] || "";
+            if (resolvedBg) {
+                cutinBg.src = resolvedBg;
+                cutinBg.style.display = 'block';
+            } else {
+                cutinBg.src = "";
+                cutinBg.style.display = 'none';
+            }
             
             cutin.classList.add('active');
             setTimeout(() => { cutin.classList.remove('active'); }, 1800);
@@ -434,11 +498,23 @@
             let newP = {
                 ...robot, x: summoner.x, y: summoner.y, baseX: summoner.baseX, baseY: summoner.baseY,
                 targetX: summoner.x, targetY: summoner.y, speed: (80 / 100) * 3 + 0.8, cooldown: 0, isHome: summoner.isHome,
-                stunText: "BIP BOP", receiveCooldown: 0, stateInfo: "Ajudando", trail: [], uniqueId: ++playerIdCounter
+                stunText: "BIP BOP", receiveCooldown: 0, stateInfo: "Ajudando", trail: [], uniqueId: ++playerIdCounter,
+                isRobot: true
             };
             if (summoner.isHome) simEntities.homeTeam.push(newP);
             else simEntities.awayTeam.push(newP);
             spawnVFX(summoner.x, summoner.y, '#00e676', 50);
+        }
+
+        // Iceberg state (Titanic ability)
+        let icebergs = []; // { x, y, isHome, framesLeft, melting }
+
+        function spawnIceberg(isHome) {
+            // Middle of the goal of the team that summoned it (defensive)
+            let gx = isHome ? 40 : canvas.width - 40;
+            let gy = canvas.height / 2;
+            icebergs.push({ x: gx, y: gy, isHome: isHome, framesLeft: 15 * 60, melting: false }); // ~15s at 60fps
+            spawnVFX(gx, gy, '#80DEEA', 60);
         }
 
         let clubData = { name: "Meu Time FC", color: "#2196F3", secondaryColor: "#FFD700", icon: "⭐", stats: { w: 0, d: 0, l: 0 }, fans: 120, trophies: [] };
@@ -450,23 +526,49 @@
             { name: "Chuteiras Nitro", minAmount: 30, maxAmount: 50, minGames: 3, maxGames: 5, rarity: "Prata" },
             { name: "Banco Central FC", minAmount: 50, maxAmount: 80, minGames: 4, maxGames: 6, rarity: "Ouro" },
             { name: "Bebidas Fly", minAmount: 80, maxAmount: 120, minGames: 5, maxGames: 8, rarity: "Lenda" },
-            { name: "Seguros Proteção Total", minAmount: 120, maxAmount: 200, minGames: 6, maxGames: 10, rarity: "Místico" }
+            { name: "Seguros Proteção Total", minAmount: 120, maxAmount: 200, minGames: 6, maxGames: 10, rarity: "Místico" },
+            { name: "Açaí do Norte", minAmount: 15, maxAmount: 35, minGames: 2, maxGames: 4, rarity: "Bronze" },
+            { name: "Oficina do Mano", minAmount: 12, maxAmount: 28, minGames: 2, maxGames: 5, rarity: "Bronze" },
+            { name: "Lan House Turbo", minAmount: 25, maxAmount: 45, minGames: 3, maxGames: 5, rarity: "Prata" },
+            { name: "Academia Força Total", minAmount: 35, maxAmount: 55, minGames: 3, maxGames: 6, rarity: "Prata" },
+            { name: "TechBolsa Apps", minAmount: 55, maxAmount: 90, minGames: 4, maxGames: 7, rarity: "Ouro" },
+            { name: "Rede SuperMercado", minAmount: 60, maxAmount: 95, minGames: 4, maxGames: 7, rarity: "Ouro" },
+            { name: "Energia Solar FC", minAmount: 90, maxAmount: 140, minGames: 5, maxGames: 9, rarity: "Lenda" },
+            { name: "Criptomoedas Apex", minAmount: 100, maxAmount: 160, minGames: 5, maxGames: 8, rarity: "Lenda" },
+            { name: "Império dos Games", minAmount: 150, maxAmount: 250, minGames: 7, maxGames: 12, rarity: "Místico" },
+            { name: "Galáxia Motors", minAmount: 130, maxAmount: 220, minGames: 6, maxGames: 11, rarity: "Místico" }
         ];
 
+        // Times com dificuldade base (1 = fácil / iniciante, 2 = médio, 3 = difícil, 4 = elite)
         const enemyTeamsDB = [
-            { name: "Galácticos FC", color: "#FFFFFF", secondaryColor: "#FFD700", icon: "⭐" },
-            { name: "Dragões Vermelhos", color: "#E53935", secondaryColor: "#000000", icon: "🔥" },
-            { name: "Tigres do Norte", color: "#FFB300", secondaryColor: "#000000", icon: "🦁" },
-            { name: "Águias Azuis", color: "#1E88E5", secondaryColor: "#FFFFFF", icon: "🦅" },
-            { name: "Spartans", color: "#43A047", secondaryColor: "#FFEB3B", icon: "🛡️" },
-            { name: "União Sombria", color: "#673AB7", secondaryColor: "#000000", icon: "⚔️" },
-            { name: "Panteras Negras", color: "#424242", secondaryColor: "#FFFFFF", icon: "⚡" }
+            { name: "Galácticos FC", color: "#FFFFFF", secondaryColor: "#FFD700", icon: "⭐", difficulty: 1 },
+            { name: "Dragões Vermelhos", color: "#E53935", secondaryColor: "#000000", icon: "🔥", difficulty: 1 },
+            { name: "Tigres do Norte", color: "#FFB300", secondaryColor: "#000000", icon: "🦁", difficulty: 1 },
+            { name: "Águias Azuis", color: "#1E88E5", secondaryColor: "#FFFFFF", icon: "🦅", difficulty: 1 },
+            { name: "Spartans", color: "#43A047", secondaryColor: "#FFEB3B", icon: "🛡️", difficulty: 1 },
+            { name: "União Sombria", color: "#673AB7", secondaryColor: "#000000", icon: "⚔️", difficulty: 2 },
+            { name: "Panteras Negras", color: "#424242", secondaryColor: "#FFFFFF", icon: "⚡", difficulty: 2 },
+            { name: "Falcões da Serra", color: "#00897B", secondaryColor: "#FFD54F", icon: "🦅", difficulty: 1 },
+            { name: "Lobos do Sul", color: "#5D4037", secondaryColor: "#BDBDBD", icon: "🐺", difficulty: 1 },
+            { name: "Estrela Cadente", color: "#7B1FA2", secondaryColor: "#E1BEE7", icon: "💫", difficulty: 1 },
+            { name: "Maré Alta", color: "#0277BD", secondaryColor: "#B3E5FC", icon: "🌊", difficulty: 2 },
+            { name: "Ferro e Fogo", color: "#BF360C", secondaryColor: "#FFAB91", icon: "⚒️", difficulty: 2 },
+            { name: "Névoa Noturna", color: "#311B92", secondaryColor: "#B39DDB", icon: "🌙", difficulty: 2 },
+            { name: "Titãs de Aço", color: "#37474F", secondaryColor: "#90A4AE", icon: "🦾", difficulty: 3 },
+            { name: "Império Dourado", color: "#F9A825", secondaryColor: "#000000", icon: "👑", difficulty: 3 },
+            { name: "Tempestade FC", color: "#1565C0", secondaryColor: "#FFEB3B", icon: "⛈️", difficulty: 3 },
+            { name: "Cobra Coral", color: "#C62828", secondaryColor: "#FFD600", icon: "🐍", difficulty: 3 },
+            { name: "Eclipse Total", color: "#000000", secondaryColor: "#9C27B0", icon: "🌑", difficulty: 4 },
+            { name: "Lendas Vivas", color: "#FFD700", secondaryColor: "#4A148C", icon: "✨", difficulty: 4 },
+            { name: "Domínio Supremo", color: "#B71C1C", secondaryColor: "#FFD700", icon: "🏆", difficulty: 4 },
+            { name: "Nexus Elite", color: "#00BCD4", secondaryColor: "#FFFFFF", icon: "💎", difficulty: 4 }
         ];
 
         let currentEnemyTeam = null, enemyMatchColor = "#F44336";
         let isManagerView = false, tournamentMode = 'none', tournamentStage = 0;
         const stageNames = ["Amistoso", "Quartas de Final", "Semifinal", "Grande Final!"];
         let lastTrainedId = null;
+        let tournamentBracket = null;
 
         document.addEventListener('keydown', (e) => {
             if (e.key.toLowerCase() === 'k') {
@@ -521,7 +623,55 @@
             { id: 107, name: "Tim", pos: "MEI", ovr: 65, vel: 75, dri: 70, chu: 50, pas: 60, def: 55, fin: 45, photo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRe-nVb6XmyONk94wAz9ghm_uQj6f_H2aRDKAwx03ASyQ&s=10" },
             { id: 108, name: "Poste de Energia", pos: "ZAG", ovr: 61, vel: 80, dri: 55, chu: 40, pas: 50, def: 65, fin: 30, photo: "https://encrypted-tbn0.GcSXrnMq2oiFIFEd0QQFnzIQr4l4MD4d3D92yjonIn_uaw&s=10" },
             { id: 109, name: "Caneta Bic", pos: "LAT", ovr: 68, vel: 65, dri: 65, chu: 55, pas: 70, def: 62, fin: 50, photo: "https://encrypted-tbn1.gstatic.com/shopping?q=tbn:ANd9GcRtByiludnkNR7BfBdK3QpwScywSpDjYCmWVUsg3_fPz18GLoiB-MYcGeBK6okXOPyCxGWjcEVLD4yeJLXHowWDfNWec0aeD3T7d3GRtlbqyDFBi_c0hu3kt49wHLvFUBRsp0eBdw&usqp=CAc" },
-            { id: 110, name: "Hamburguer básico", pos: "VOL", ovr: 67, vel: 82, dri: 60, chu: 50, pas: 65, def: 70, fin: 45, photo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQwDjKhHNsui8Gkwow-hgYTU41i279ytTXlbBW_6SdVnA&s=10" }
+            { id: 110, name: "Hamburguer básico", pos: "VOL", ovr: 67, vel: 82, dri: 60, chu: 50, pas: 65, def: 70, fin: 45, photo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQwDjKhHNsui8Gkwow-hgYTU41i279ytTXlbBW_6SdVnA&s=10" },
+
+            // ===== PLACEHOLDERS ~10 por raridade =====
+            // Bronze (60-69)
+            { id: 200, name: "Venezuela", pos: "ATA", ovr: 63, vel: 60, dri: 58, chu: 62, pas: 55, def: 40, fin: 61, photo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcStWOyWX3koZu-fu5AhjJiL-UkY5mZjl9KOx5YQnyZnDw&s=10" },
+            { id: 201, name: "Conta de Luz", pos: "MEI", ovr: 65, vel: 68, dri: 66, chu: 55, pas: 70, def: 50, fin: 52, photo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTD7KOjPiU1WEiYDCxf-XthT4785DD8kqb6K_IyzVMHrA&s=10" },
+            { id: 202, name: "Gov.Br", pos: "ZAG", ovr: 64, vel: 55, dri: 48, chu: 40, pas: 52, def: 72, fin: 30, photo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSXxCVCVkl8NsOYi-W_AZO7TdUKdNB7e9cy775wFbA_Jg&s=10" },
+            { id: 203, name: "Passaro Boludo", pos: "LAT", ovr: 66, vel: 72, dri: 60, chu: 50, pas: 58, def: 62, fin: 45, photo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTBM9Ov0_vhsWgGFImVVgMEnfyV49rGB7bWkBVb1sqiqA&s=10" },
+            { id: 204, name: "Espada de Madeira", pos: "VOL", ovr: 62, vel: 58, dri: 55, chu: 48, pas: 60, def: 68, fin: 40, photo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS2DgHbctwAlEumKBxbhwh0nmXBiD2u6LRYoynEEbKOtQ&s=10" },
+            { id: 205, name: "Fandangos", pos: "GOL", ovr: 67, vel: 45, dri: 35, chu: 50, pas: 55, def: 75, fin: 20, photo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQl5xKCwp4bMjvjEFcl4OI0QvOvjW8UqxH-XqrfNXZCfQ&s" },
+            { id: 206, name: "Chat GPT", pos: "ATA", ovr: 61, vel: 65, dri: 58, chu: 60, pas: 48, def: 35, fin: 63, photo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTwf78kmIrlVG8lqCC-f4hmnfb-MBJAhew7A4BwMy9-Tg&s=10" },
+            { id: 207, name: "Quadrado", pos: "ZAG", ovr: 68, vel: 50, dri: 42, chu: 38, pas: 48, def: 78, fin: 28, photo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSdsBtpZ84jfA0E97sV9vivdlQkls8C4LCPDuR-KnZ5AQ&s=10" },
+            { id: 208, name: "Homem Pensativo", pos: "MEI", ovr: 64, vel: 62, dri: 68, chu: 52, pas: 65, def: 48, fin: 50, photo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR7DVd4wtxf0H0uDUZcDws2KJ7A1KnnvEzL5sMQdIeKFQ&s=10" },
+            { id: 209, name: "Tutorial", pos: "LAT", ovr: 60, vel: 70, dri: 55, chu: 45, pas: 55, def: 58, fin: 42, photo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRPYsjdOK-4UeUnTQrGm0y9sIIbywRam9lMV9qeG6bpgQ&s=10" },
+            // Prata (70-79)
+            { id: 210, name: "Esqueletin", pos: "ATA", ovr: 74, vel: 82, dri: 75, chu: 72, pas: 68, def: 40, fin: 76, photo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRwz4o7zlRkbjMo_BYZaROZYNHGM6pw7yTdv58vQNWzsw&s=10" },
+            { id: 211, name: "Sapato Pika", pos: "MEI", ovr: 76, vel: 72, dri: 80, chu: 70, pas: 78, def: 55, fin: 68, photo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRc-txt3Qm_IAm2s5XFSKoN2YlYbNGTXYAND9GIx7uE3A&s=10" },
+            { id: 212, name: "Magazine Luiza", pos: "ZAG", ovr: 75, vel: 60, dri: 55, chu: 45, pas: 62, def: 82, fin: 35, photo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQL2lJIycwt6E6bJAF4gFtlx51kOXX0HNP6q97JuDZTmA&s=10" },
+            { id: 213, name: "Chaleira Elétrica", pos: "LAT", ovr: 73, vel: 85, dri: 72, chu: 58, pas: 70, def: 70, fin: 55, photo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRIJD69w4hvEbDcLtMgGHxvaVuu0wCoBWCb1O54MqvsTw&s" },
+            { id: 214, name: "Mesa de Vidro Desmontada", pos: "VOL", ovr: 77, vel: 68, dri: 65, chu: 55, pas: 72, def: 80, fin: 50, photo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSh_mqDCvdpFy94oF7p24KYye1nfA8nIN7QaXR0rez9yA&s=10" },
+            { id: 215, name: "Tijolo Fodase", pos: "GOL", ovr: 78, vel: 48, dri: 38, chu: 55, pas: 60, def: 85, fin: 18, photo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQWHWjg6_EmT7smrUoGBENQn3Ov0PAtamSL44g03AH1gw&s=10" },
+            { id: 216, name: "Macaco Sniper", pos: "ATA", ovr: 71, vel: 78, dri: 70, chu: 105, pas: 62, def: 38, fin: 74, photo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRWMN0r5y7OpxZkZI6RcKqCaLwYiS8edNiapciADgfrxQ&s=10" },
+            { id: 217, name: "Moeda de 1 centavo", pos: "MEI", ovr: 79, vel: 75, dri: 82, chu: 68, pas: 80, def: 52, fin: 70, photo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQU0HS8LNojyr4_H1deQ1urHJEDCpo1mMeLfPCoJfus0g&s=10" },
+            { id: 218, name: "Fio Desencapado", pos: "ZAG", ovr: 72, vel: 58, dri: 50, chu: 42, pas: 58, def: 80, fin: 32, photo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTewsi0h0zGAZWy_FDkA_FspzBxWbL3SKm5YvScpaaKkw&s=10" },
+            { id: 219, name: "Fofão", pos: "LAT", ovr: 70, vel: 88, dri: 68, chu: 52, pas: 65, def: 65, fin: 48, photo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTbKj3mMIupREMdOkIH7l_-cpyTKOTFVeiXqS36FjKVMA&s=10" },
+            // Ouro (80-89)
+            { id: 220, name: "Cadeira Gamer", pos: "ATA", ovr: 85, vel: 82, dri: 84, chu: 88, pas: 75, def: 42, fin: 87, photo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTpukF5vY1W3t9A8lgKFV6BLtVW5s_rDnkGr64WzJREKw&s=10" },
+            { id: 221, name: "Lobão 40666", pos: "MEI", ovr: 86, vel: 78, dri: 88, chu: 80, pas: 90, def: 55, fin: 78, photo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS0U8ECoLOxApWqefWhwBIBIknfuyCjQaFc0kwkaVVsUg&s=10" },
+            { id: 222, name: "Ricardo Borges", pos: "ZAG", ovr: 84, vel: 68, dri: 58, chu: 48, pas: 65, def: 90, fin: 38, photo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT9Uc1iI3XOFh7vP-AFOSU3bKVJKNC-YbjNVYaRnEb7EQ&s=10" },
+            { id: 223, name: "Gary", pos: "GOL", ovr: 87, vel: 52, dri: 42, chu: 58, pas: 65, def: 92, fin: 22, photo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRf8lp_QRl7iWgELmnbKTCmdJKj_Na9fzWrKgW04Wm3xw&s=10" },
+            { id: 224, name: "Helicóptero de Combate", pos: "LAT", ovr: 83, vel: 90, dri: 80, chu: 68, pas: 78, def: 78, fin: 60, photo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRJ0QEfkxLOqBav3pekAWBeF8ePO2Dxy1ll6-Lgc-b9iw&s=10" },
+            { id: 225, name: "Java", pos: "VOL", ovr: 82, vel: 75, dri: 72, chu: 65, pas: 80, def: 85, fin: 58, photo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRt5pXh5oKQnQjz1pW79FxM09sBtvbWWi4IIXswYJ8E6A&s=10" },
+            { id: 226, name: "Samurai", pos: "ATA", ovr: 88, vel: 86, dri: 85, chu: 90, pas: 72, def: 40, fin: 91, photo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTqP6XjlqTLw4zT-obnKDF3LNgpwW0-c03Xufb7oev6PA&s=10" },
+            { id: 227, name: "Pastelaria do Rafa", pos: "MEI", ovr: 81, vel: 80, dri: 82, chu: 75, pas: 85, def: 60, fin: 72, photo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSZTUujNIf22k8d0Vg3GaU3f8NFMT-Q0vhElbVRbOSarA&s=10" },
+            { id: 228, name: "Wall-E", pos: "ZAG", ovr: 80, vel: 65, dri: 55, chu: 45, pas: 60, def: 88, fin: 35, photo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQM1ABVzjybc3TyHpNgrfvxe5kLozmFiEp8wqdBYg_kDQ&s=10" },
+            { id: 229, name: "Vasco", pos: "LAT", ovr: 84, vel: 88, dri: 78, chu: 65, pas: 75, def: 80, fin: 58, photo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSkRYYFO-PViy7MenMqVKv28b7Joc-9iihyY75SO9uzuw&s=10" },
+            // Lenda (90-99)
+            { id: 230, name: "Popeye", pos: "ATA", ovr: 94, vel: 92, dri: 93, chu: 95, pas: 85, def: 45, fin: 96, photo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT-2t_LzZI4W8fQjx-mSEhYLhMcK37o3m6oDylDM_N55g&s=10" },
+            { id: 231, name: "Doutor da Peste Negra", pos: "MEI", ovr: 93, vel: 85, dri: 95, chu: 88, pas: 96, def: 60, fin: 85, photo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSg2aoutLczRlHhbwzz9GTmvYZREWKpzJ4kquqJ2nEGfg&s=10" },
+            { id: 232, name: "Cavalo Gordo", pos: "ZAG", ovr: 91, vel: 70, dri: 60, chu: 50, pas: 70, def: 96, fin: 40, photo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRp5kicljYYQIeSqJKhbsOegnlWepS0PfGRlJR2OjU9DQ&s=10" },
+            { id: 233, name: "Leite Integral Piracanjuba", pos: "GOL", ovr: 92, vel: 55, dri: 45, chu: 60, pas: 70, def: 97, fin: 25, photo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQpLBo2mp34DPN5kybqrC-kyB1T_bc6BoqGAY2I4LUzDg&s=10" },
+            { id: 234, name: "Pinhata Pika", pos: "LAT", ovr: 90, vel: 95, dri: 88, chu: 75, pas: 85, def: 88, fin: 70, photo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRCCl0fGgPkTXNwCqg3YVMfLQjohgB2J3xs426A45UeKg&s" },
+            { id: 235, name: "Faustão no prime", pos: "VOL", ovr: 91, vel: 80, dri: 78, chu: 70, pas: 88, def: 92, fin: 65, photo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQQMk9Sc3O6oX_mVGvuSW3hZdt3twsAK3vV5pFqeK8Hzg&s=10" },
+            { id: 236, name: "Jeff", pos: "ATA", ovr: 96, vel: 94, dri: 96, chu: 97, pas: 88, def: 42, fin: 98, photo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ3RA_HZVj8QwCtJlkdw9j-j0Pw-XD--mqZtEOuu1gw9A&s=10" },
+            { id: 237, name: "Sim, lucas, assisto", pos: "MEI", ovr: 94, vel: 88, dri: 92, chu: 85, pas: 94, def: 70, fin: 82, photo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQj11iHxIYNCdjJvJBE4n3wd44zUSRXtnms432giZsolg&s=10" },
+            { id: 238, name: "BackRooms", pos: "ZAG", ovr: 93, vel: 75, dri: 65, chu: 55, pas: 72, def: 98, fin: 42, photo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQrIdX01gmGFTAzLNXX0jdK38m0O0LTggAhBXxFB6JRaA&s=10" },
+            { id: 239, name: "", pos: "LAT", ovr: 92, vel: 96, dri: 90, chu: 78, pas: 88, def: 90, fin: 72, photo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSGsPTioyUNXhKF_HWOWqNhES6rOQb3p2DLzmNPBxfZiw&s=10" },
+            // Místico (100+) — apenas Iberê, The World (acima) e Titanic
+            { id: 250, name: "Titanic", pos: "GOL", ovr: 101, vel: 55, dri: 40, chu: 70, pas: 75, def: 99, fin: 25, photo: "https://cdn-icons-png.flaticon.com/512/2972/2972185.png" }
         ].map(p => {
             let pot = Math.floor(Math.random() * 20) + 5;
             return { ...p, potential: pot, maxPotential: pot };
@@ -556,7 +706,7 @@
             let list = selectedPlayerInfo.listType === 'starting' ? startingXI : bench;
             let p = list[selectedPlayerInfo.index];
             
-            let customCost = 100 + (Math.max(0, p.ovr - 60) * 10);
+            let customCost = getTrainCost(p);
             if (coins < customCost) { notify(`❌ Moedas insuficientes para treinar! (Custa ${customCost}🪙)`, "#ff4444"); return; }
             if (!p.potential || p.potential <= 0) { notify(`❌ ${p.name} já atingiu seu potencial máximo!`, "#ff4444"); return; }
             
@@ -569,6 +719,14 @@
             p.ovr += pGain;
             p.vel += pGain; p.dri += pGain; p.chu += pGain; p.pas += pGain; p.def += pGain; p.fin += pGain; 
             
+            // Transformação PRIME Michael Jackson
+            if (p.name === "Michael Jackson" && p.ovr >= 110) {
+                p.name = "PRIME Michael Jackson";
+                p.vel = Math.max(p.vel, 99);
+                p.dri = Math.max(p.dri, 99);
+                notify(`✨ MICHAEL JACKSON EVOLUIU PARA PRIME MICHAEL JACKSON! (OVR ${p.ovr}) Habilidade: REI DO POP!`, "#E91E63");
+            }
+
             lastTrainedId = p.uniqueId;
             notify(`✅ ${p.name} treinou intensamente (-${customCost}🪙) e seu OVR subiu para ${p.ovr}!`, "#00E676");
             
@@ -576,6 +734,25 @@
             updateUI(); 
             
             setTimeout(() => { lastTrainedId = null; }, 1000); 
+        }
+
+        function getTrainCost(p) {
+            return 100 + (Math.max(0, p.ovr - 60) * 10);
+        }
+
+        function sellSelectedPlayer() {
+            if (!selectedPlayerInfo) { notify("⚠️ Selecione um jogador (clique na carta) para vender!", "#ff9800"); return; }
+            if (isPlaying) { notify("⚠️ Não é possível vender durante a partida!", "#ff4444"); return; }
+            
+            let list = selectedPlayerInfo.listType === 'starting' ? startingXI : bench;
+            let p = list[selectedPlayerInfo.index];
+            let sellValue = Math.floor(getTrainCost(p) * 0.5);
+            
+            coins += sellValue;
+            list.splice(selectedPlayerInfo.index, 1);
+            selectedPlayerInfo = null;
+            notify(`💰 ${p.name} vendido por ${sellValue}🪙 (50% do valor de treino)!`, "#00E676");
+            updateUI();
         }
 
         function openCustomPlayerModal() {
@@ -705,6 +882,37 @@
         let isPlaying = false, matchTimer = 0, matchScore = { home: 0, away: 0 };
         let simEntities = { ball: { x: 400, y: 200, z: 0, vz: 0, isAirborne: false, vx: 0, vy: 0, trail: [], owner: null }, homeTeam: [], awayTeam: [], vfx: [] };
 
+        const stadiumColors = {
+            amistoso: '#2e7d32',
+            normal: '#1a3a5c',
+            elite: '#4a148c'
+        };
+
+        function setStadiumColor(mode) {
+            let color = stadiumColors[mode] || stadiumColors.amistoso;
+            canvas.style.backgroundColor = color;
+        }
+
+        function pickEnemyTeam(mode) {
+            let targetDiff;
+            if (mode === 'elite') targetDiff = 4;
+            else if (mode === 'normal') targetDiff = 2 + Math.floor(Math.random() * 2);
+            else targetDiff = 1 + (Math.random() < 0.3 ? 1 : 0);
+
+            let candidates = enemyTeamsDB.filter(t => t.difficulty === targetDiff);
+            if (candidates.length === 0) candidates = enemyTeamsDB.filter(t => Math.abs(t.difficulty - targetDiff) <= 1);
+            if (candidates.length === 0) candidates = enemyTeamsDB;
+            return candidates[Math.floor(Math.random() * candidates.length)];
+        }
+
+        function getEnemyOvrBonus(difficulty, mode) {
+            const baseByDiff = { 1: -8, 2: 0, 3: 6, 4: 12 };
+            let bonus = baseByDiff[difficulty] || 0;
+            if (mode === 'elite') bonus += 4;
+            else if (mode === 'normal') bonus += 1;
+            return bonus;
+        }
+
         function drawPitch() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             ctx.strokeStyle = '#fff'; ctx.lineWidth = 3;
@@ -768,6 +976,7 @@
         function resetPositions() {
             timeStopFrames = 0;
             timeStopper = null;
+            // Icebergs persistem entre gols até derreterem (não limpar aqui)
             simEntities.ball = { x: canvas.width/2, y: canvas.height/2, z: 0, vz: 0, isAirborne: false, vx: 0, vy: 0, trail: [], owner: null };
             simEntities.vfx = [];
             simEntities.homeTeam.forEach(p => { p.baseX = getBasePositionX(p.pos, true) + (p.offenseBias || 0); p.x = p.baseX; p.y = p.baseY; p.cooldown = 0; p.receiveCooldown = 0; p.stateInfo = "Posicionando"; p.targetX = p.baseX; p.targetY = p.baseY; p.trail = [];});
@@ -777,26 +986,60 @@
         function initSim() {
             timeStopFrames = 0;
             timeStopper = null;
+            icebergs = [];
             simEntities.ball = { x: canvas.width/2, y: canvas.height/2, z: 0, vz: 0, isAirborne: false, vx: 0, vy: 0, trail: [], owner: null };
             simEntities.vfx = [];
             
             // Reseta a marcação de habilidade utilizada para cada partida nova
-            startingXI.forEach(p => p.abilityUsed = false);
+            startingXI.forEach(p => { p.abilityUsed = false; p.popActiveFrames = 0; p.popCooldown = 0; });
             
             simEntities.homeTeam = setupTeamPositions(startingXI, true);
             
-            currentEnemyTeam = enemyTeamsDB[Math.floor(Math.random() * enemyTeamsDB.length)];
+            if (!currentEnemyTeam || tournamentMode === 'none') {
+                currentEnemyTeam = pickEnemyTeam(tournamentMode === 'none' ? 'amistoso' : tournamentMode);
+            }
             enemyMatchColor = currentEnemyTeam.color;
             if (colorDistance(clubData.color, enemyMatchColor) < 80) enemyMatchColor = darkenColor(enemyMatchColor);
             document.getElementById('awayNameTag').innerText = currentEnemyTeam.name;
 
             let myAvgOvr = startingXI.reduce((sum, p) => sum + p.ovr, 0) / startingXI.length;
-            let enemyBonus = tournamentMode === 'elite' ? 10 : (tournamentMode === 'normal' ? 2 : 0);
+            let enemyBonus = getEnemyOvrBonus(currentEnemyTeam.difficulty || 1, tournamentMode);
             
+            // Chance de personagens custom no elenco inimigo
+            // Místicos com habilidades (Iberê, The World, Titanic) = 1% extremamente raro
+            let abilityMythics = starPlayers.filter(sp => sp.ovr >= 100 && (sp.name === "Iberê Thenório" || sp.name === "The World" || sp.name === "Titanic"));
+            let otherStars = starPlayers.filter(sp => sp.ovr < 100);
+
             let enemyRoster = ["GOL", "ZAG", "ZAG", "LAT", "LAT", "VOL", "VOL", "MEI", "ATA", "ATA", "ATA"].map(role => {
-                let p = createGenericPlayer(role === "GOL"); p.pos = role; p.ovr = Math.max(60, myAvgOvr + enemyBonus + (Math.random()*10 - 5));
-                Object.assign(p, generateRandomStats(p.ovr)); return p;
+                let p;
+                let roll = Math.random();
+                // 1% chance de místico com habilidade
+                if (roll < 0.01 && abilityMythics.length > 0) {
+                    let base = abilityMythics[Math.floor(Math.random() * abilityMythics.length)];
+                    // Prefer matching position if possible, else any
+                    let samePos = abilityMythics.filter(sp => sp.pos === role);
+                    if (samePos.length > 0) base = samePos[Math.floor(Math.random() * samePos.length)];
+                    p = { ...base, offenseBias: (Math.random()-0.5)*80, defenseBias: (Math.random()-0.5)*60, uniqueId: ++playerIdCounter, abilityUsed: false };
+                }
+                // ~18% chance de estrela custom (não místico)
+                else if (roll < 0.19 && otherStars.length > 0) {
+                    let candidates = otherStars.filter(sp => sp.pos === role);
+                    if (candidates.length === 0) candidates = otherStars;
+                    let base = candidates[Math.floor(Math.random() * candidates.length)];
+                    p = { ...base, offenseBias: (Math.random()-0.5)*80, defenseBias: (Math.random()-0.5)*60, uniqueId: ++playerIdCounter };
+                    // Ajusta OVR levemente para dificuldade
+                    p.ovr = Math.max(60, Math.round(p.ovr + enemyBonus * 0.3 + (Math.random()*4 - 2)));
+                } else {
+                    p = createGenericPlayer(role === "GOL");
+                    p.pos = role;
+                    p.ovr = Math.max(60, Math.round(myAvgOvr + enemyBonus + (Math.random()*8 - 4)));
+                    Object.assign(p, generateRandomStats(p.ovr));
+                    p.uniqueId = ++playerIdCounter;
+                }
+                return p;
             });
+            // Garante no máximo 1 goleiro com pos GOL
+            icebergs = [];
             simEntities.awayTeam = setupTeamPositions(enemyRoster, false);
         }
 
@@ -831,8 +1074,29 @@
                     if (ball.x >= canvas.width - 10 && (ball.y < canvas.height/2 - 60 || ball.y > canvas.height/2 + 60)) ball.vx *= -1;
                     
                     if (!ball.isAirborne) {
-                        if (ball.x <= 10 && ball.y >= canvas.height/2 - 60 && ball.y <= canvas.height/2 + 60) { goal(false); return; }
-                        if (ball.x >= canvas.width - 10 && ball.y >= canvas.height/2 - 60 && ball.y <= canvas.height/2 + 60) { goal(true); return; }
+                        // Iceberg bloqueia gol
+                        let blockedByIce = false;
+                        for (let ib of icebergs) {
+                            if (ib.framesLeft <= 0) continue;
+                            // Iceberg do time da casa bloqueia gol no lado esquerdo (x pequeno)
+                            // Iceberg do visitante bloqueia lado direito
+                            let inGoalMouth = false;
+                            if (ib.isHome && ball.x <= 25 && ball.y >= canvas.height/2 - 70 && ball.y <= canvas.height/2 + 70) inGoalMouth = true;
+                            if (!ib.isHome && ball.x >= canvas.width - 25 && ball.y >= canvas.height/2 - 70 && ball.y <= canvas.height/2 + 70) inGoalMouth = true;
+                            if (inGoalMouth) {
+                                // Reflete a bola
+                                ball.vx = -ball.vx * 0.8 || (ib.isHome ? 6 : -6);
+                                ball.vy = (Math.random() - 0.5) * 8;
+                                ball.x = ib.isHome ? 30 : canvas.width - 30;
+                                spawnVFX(ball.x, ball.y, '#80DEEA', 25);
+                                blockedByIce = true;
+                                break;
+                            }
+                        }
+                        if (!blockedByIce) {
+                            if (ball.x <= 10 && ball.y >= canvas.height/2 - 60 && ball.y <= canvas.height/2 + 60) { goal(false); return; }
+                            if (ball.x >= canvas.width - 10 && ball.y >= canvas.height/2 - 60 && ball.y <= canvas.height/2 + 60) { goal(true); return; }
+                        }
                     }
                 }
             } else {
@@ -861,21 +1125,52 @@
             allPlayers.forEach(p => {
                 if (activeTimeStopper && p !== activeTimeStopper) return; // Congelado no tempo
 
+                // Cooldown PRIME Michael Jackson
+                if (p.popCooldown > 0) p.popCooldown--;
+                if (p.popActiveFrames > 0) {
+                    p.popActiveFrames--;
+                    if (p.popActiveFrames === 0) p.stunText = "";
+                }
+
                 // Lógica de Ativação de Habilidades Especiais Místicas
-                if (p.ovr >= 100 && !activeTimeStopper) {
-                    if (p.abilityCooldown === undefined) p.abilityCooldown = Math.floor(Math.random() * 200) + 100;
-                    if (p.abilityCooldown > 0) {
-                        p.abilityCooldown--;
-                    } else {
-                        if (p.name === "Iberê Thenório" && !p.abilityUsed) {
-                            p.abilityUsed = true;
-                            activateAbilityCutin(p.photo, "MANUAL DO MUNDO: ROBÔ JOGADOR!", "#00e676");
-                            spawnRobot(p);
-                        } else if (p.name === "The World") {
-                            p.abilityCooldown = 1500; // Demora bastante para usar de novo
-                            timeStopFrames = 120; // 2 segundos (a ~60fps)
-                            timeStopper = p;
-                            activateAbilityCutin(p.photo, "ZA WARUDO! TEMPO PARADO!", "#ff007f");
+                if (!activeTimeStopper) {
+                    // PRIME Michael Jackson (ovr >= 110 e nome PRIME...)
+                    if ((p.name === "PRIME Michael Jackson" || (p.name === "Michael Jackson" && p.ovr >= 110)) && ball.owner === p) {
+                        if (p.popCooldown === undefined) p.popCooldown = 0;
+                        if (p.popCooldown <= 0 && (!p.popActiveFrames || p.popActiveFrames <= 0)) {
+                            p.popActiveFrames = 5 * 60; // ~5 segundos
+                            p.popCooldown = 20 * 60; // 20s cooldown
+                            activateAbilityCutin(p.photo, "REI DO POP!", "#E91E63");
+                            p.stunText = "REI DO POP!";
+                        }
+                    }
+
+                    if (p.ovr >= 100) {
+                        if (p.abilityCooldown === undefined) p.abilityCooldown = Math.floor(Math.random() * 200) + 100;
+                        if (p.abilityCooldown > 0) {
+                            p.abilityCooldown--;
+                        } else {
+                            if (p.name === "Iberê Thenório" && !p.abilityUsed) {
+                                p.abilityUsed = true;
+                                activateAbilityCutin(p.photo, "MANUAL DO MUNDO: ROBÔ JOGADOR!", "#00e676");
+                                spawnRobot(p);
+                            } else if (p.name === "The World") {
+                                p.abilityCooldown = 1500;
+                                timeStopFrames = 120;
+                                timeStopper = p;
+                                activateAbilityCutin(p.photo, "ZA WARUDO! TEMPO PARADO!", "#ff007f");
+                            } else if (p.name === "Titanic") {
+                                // Iceberg: só se não houver iceberg ativo do mesmo time
+                                let hasIce = icebergs.some(ib => ib.isHome === p.isHome && ib.framesLeft > 0);
+                                if (!hasIce) {
+                                    p.abilityCooldown = 10 * 60; // 10s cooldown após derreter (aplicado no derretimento também)
+                                    spawnIceberg(p.isHome);
+                                    activateAbilityCutin(p.photo, "ICEBERG TITÂNICO!", "#00BCD4");
+                                    p.stunText = "ICEBERG!";
+                                } else {
+                                    p.abilityCooldown = 30; // tenta de novo em breve
+                                }
+                            }
                         }
                     }
                 }
@@ -906,7 +1201,11 @@
 
                 if (distBall < 14 && p.cooldown === 0 && (!ball.owner || ball.owner.isHome !== p.isHome) && !goalieImmunity && !ball.isAirborne) {
                     let success = p.pos === "GOL" ? true : (!ball.owner ? true : Math.random() < (0.5 + ((p.def - ball.owner.dri) * 0.008)));
-                    if (activeTimeStopper === p) success = true; // Sempre rouba no tempo parado
+                    if (activeTimeStopper === p) success = true;
+                    // PRIME Michael Jackson (Rei do Pop): 100% de drible contra não-goleiros
+                    if (ball.owner && ball.owner.popActiveFrames > 0 && p.pos !== "GOL") {
+                        success = false;
+                    }
                     
                     if (success) {
                         let wasSteal = ball.owner != null;
@@ -929,7 +1228,69 @@
                     
                     let isShootingImmediate = distToGoal < (150 + (p.chu * 0.8)) && Math.random() < 0.1;
 
-                    if (p.receiveCooldown <= 0 || isShootingImmediate) {
+                    // Helper: escolhe melhor alvo de passe (estrito)
+                    const pickSafePassTarget = () => {
+                        let enemiesNearMe = enemies.filter(e => Math.hypot(e.x - p.x, e.y - p.y) < 80).length;
+                        let candidates = teamMates.filter(t => t !== p);
+                        // Nunca passa pro goleiro se houver inimigos próximos do goleiro OU do passador
+                        candidates = candidates.filter(t => {
+                            if (t.pos === "GOL") {
+                                let enemiesNearGk = enemies.filter(e => Math.hypot(e.x - t.x, e.y - t.y) < 100).length;
+                                if (enemiesNearGk > 0 || enemiesNearMe >= 2) return false;
+                            }
+                            return true;
+                        });
+                        if (candidates.length === 0) return null;
+
+                        // Se muitos inimigos perto: prioriza quem está COMPLETAMENTE sozinho (sem inimigo < 70)
+                        if (enemiesNearMe >= 2) {
+                            let alone = candidates.map(t => {
+                                let closestE = Math.min(...enemies.map(e => Math.hypot(t.x - e.x, t.y - e.y)), 999);
+                                let distMe = Math.hypot(t.x - p.x, t.y - p.y);
+                                return { t, closestE, distMe };
+                            }).filter(o => o.closestE >= 70);
+                            if (alone.length > 0) {
+                                alone.sort((a,b) => a.distMe - b.distMe);
+                                return alone[0].t; // mais próximo e sozinho
+                            }
+                            // Se ninguém sozinho, pega o mais isolado
+                            let ranked = candidates.map(t => {
+                                let closestE = Math.min(...enemies.map(e => Math.hypot(t.x - e.x, t.y - e.y)), 999);
+                                let distMe = Math.hypot(t.x - p.x, t.y - p.y);
+                                let distanceUpfield = p.isHome ? t.x : (canvas.width - t.x);
+                                return { t, score: closestE * 3.0 + distanceUpfield * 0.5 - distMe * 0.2 };
+                            }).sort((a,b) => b.score - a.score);
+                            return ranked[0].t;
+                        }
+                        // Situação normal: equilíbrio isolamento + avanço
+                        let best = null, maxScore = -1e9;
+                        candidates.forEach(t => {
+                            let closestE = Math.min(...enemies.map(e => Math.hypot(t.x-e.x, t.y-e.y)), 999);
+                            let distanceUpfield = p.isHome ? t.x : (canvas.width - t.x);
+                            let score = (closestE * 2.0) + (distanceUpfield * 1.5);
+                            if (score > maxScore) { maxScore = score; best = t; }
+                        });
+                        return best;
+                    };
+
+                    // ROBÔ: sempre procura a bola e, com a bola, passa pro companheiro mais próximo
+                    if (p.isRobot) {
+                        if (p.receiveCooldown <= 0) {
+                            let nearTeammates = teamMates.filter(t => t !== p && t.pos !== "GOL")
+                                .map(t => ({ t, d: Math.hypot(t.x - p.x, t.y - p.y) }))
+                                .sort((a,b) => a.d - b.d);
+                            if (nearTeammates.length > 0) {
+                                let target = nearTeammates[0].t;
+                                ball.owner = null; p.cooldown = 15; p.receiveCooldown = 0;
+                                let pDx = target.x - p.x, pDy = target.y - p.y, pDist = Math.hypot(pDx, pDy) || 1;
+                                let passSpeed = 7 + (p.pas/15);
+                                ball.vx = (pDx/pDist) * passSpeed; ball.vy = (pDy/pDist) * passSpeed;
+                                p.targetX = target.x; p.targetY = target.y;
+                                p.stunText = "PASSE!";
+                            }
+                        }
+                    }
+                    else if (p.receiveCooldown <= 0 || isShootingImmediate) {
                         if (p.pos === "GOL") {
                             let enemiesNear = enemies.filter(e => Math.hypot(e.x - p.x, e.y - p.y) < 120).length;
                             if (enemiesNear >= 2 && Math.random() < 0.6) {
@@ -941,19 +1302,11 @@
                                 spawnVFX(p.x, p.y, '#ffffff', 40);
                                 p.stunText = "BICUDA!"; p.targetX = p.x + ball.vx*20; p.targetY = p.y + ball.vy*20;
                             }
-                            else if (Math.random() < 0.05) {
-                                let bestTarget = null, maxScore = -1;
-                                teamMates.forEach(t => {
-                                    if(t === p) return;
-                                    let closestE = Math.min(...enemies.map(e => Math.hypot(t.x-e.x, t.y-e.y)));
-                                    let distanceUpfield = p.isHome ? t.x : (canvas.width - t.x);
-                                    let score = (closestE * 2.0) + (distanceUpfield * 1.5);
-                                    if(score > maxScore) { maxScore = score; bestTarget = t; }
-                                });
-                                
+                            else if (Math.random() < 0.08 || enemiesNear >= 1) {
+                                let bestTarget = pickSafePassTarget();
                                 if (bestTarget) {
                                     ball.owner = null; p.cooldown = 30; p.receiveCooldown = 0;
-                                    let pDx = bestTarget.x - p.x, pDy = bestTarget.y - p.y, pDist = Math.hypot(pDx, pDy);
+                                    let pDx = bestTarget.x - p.x, pDy = bestTarget.y - p.y, pDist = Math.hypot(pDx, pDy) || 1;
                                     let passSpeed = 8 + (p.pas/15);
                                     ball.vx = (pDx/pDist) * passSpeed; ball.vy = (pDy/pDist) * passSpeed;
                                     p.targetX = bestTarget.x; p.targetY = bestTarget.y;
@@ -973,27 +1326,44 @@
                             ball.vy = goalYDir * (6 + Math.random()*2) + (Math.random() - 0.5) * ((100 - p.fin) / 10); 
                             p.targetX = targetGoalX; p.targetY = aimY;
                         } 
-                        else if (Math.random() < 0.03) { 
-                            let teammatesForward = teamMates.filter(t => t !== p && (p.isHome ? t.x > p.x - 20 : t.x < p.x + 20));
-                            if (teammatesForward.length > 0) {
-                                let target = teammatesForward[Math.floor(Math.random() * teammatesForward.length)];
-                                ball.owner = null; p.cooldown = 20; p.receiveCooldown = 0;
-                                let pDx = target.x - p.x, pDy = target.y - p.y, pDist = Math.hypot(pDx, pDy);
-                                let passSpeed = 6 + (p.pas/15);
-                                ball.vx = (pDx/pDist) * passSpeed; ball.vy = (pDy/pDist) * passSpeed;
-                                p.targetX = target.x; p.targetY = target.y;
+                        else {
+                            // Pressão: se muitos inimigos perto, SEMPRE passa pro mais isolado
+                            let enemiesNearMe = enemies.filter(e => Math.hypot(e.x - p.x, e.y - p.y) < 80).length;
+                            if (enemiesNearMe >= 2 || Math.random() < 0.04) {
+                                let target = pickSafePassTarget();
+                                if (target) {
+                                    ball.owner = null; p.cooldown = 20; p.receiveCooldown = 0;
+                                    let pDx = target.x - p.x, pDy = target.y - p.y, pDist = Math.hypot(pDx, pDy) || 1;
+                                    let passSpeed = 6 + (p.pas/15);
+                                    ball.vx = (pDx/pDist) * passSpeed; ball.vy = (pDy/pDist) * passSpeed;
+                                    p.targetX = target.x; p.targetY = target.y;
+                                }
+                            } else {
+                                // Drible / avanço (PRIME MJ mais rápido)
+                                let driMod = p.dri > 80 ? 1.2 : 0.8;
+                                if (p.popActiveFrames > 0) driMod = 1.8;
+                                let moveX = (p.isHome ? p.speed : -p.speed) * driMod;
+                                let moveY = p.y < canvas.height/2 ? p.speed*0.15 : -p.speed*0.15;
+                                p.x += moveX; p.y += moveY;
+                                p.targetX = p.x + moveX*10; p.targetY = p.y + moveY*10;
                             }
-                        } 
-                        else { 
-                            let driMod = p.dri > 80 ? 1.2 : 0.8;
-                            let moveX = (p.isHome ? p.speed : -p.speed) * driMod;
-                            let moveY = p.y < canvas.height/2 ? p.speed*0.15 : -p.speed*0.15;
-                            p.x += moveX; p.y += moveY;
-                            p.targetX = p.x + moveX*10; p.targetY = p.y + moveY*10;
                         }
                     }
                 } 
                 else if (!goalieImmunity) {
+                    // ROBÔ: sempre persegue a bola
+                    if (p.isRobot) {
+                        p.stateInfo = "Caçando Bola";
+                        if (distBall > 2) {
+                            p.x += (dxBall/distBall) * p.speed * 1.35;
+                            p.y += (dyBall/distBall) * p.speed * 1.35;
+                            p.targetX = ball.x; p.targetY = ball.y;
+                        }
+                        p.x = Math.max(10, Math.min(canvas.width-10, p.x));
+                        p.y = Math.max(10, Math.min(canvas.height-10, p.y));
+                        return; // pula IA normal
+                    }
+
                     let teamDistances = p.isHome ? homeDistances : awayDistances;
                     let isClosest = teamDistances[0].p === p;
                     let isSecondClosest = teamDistances.length > 1 && teamDistances[1].p === p;
@@ -1065,6 +1435,22 @@
                 if (e.opacity <= 0) simEntities.vfx.splice(i, 1);
             }
 
+            // Tick icebergs (não pausa com The World — gelo derrete no tempo real do jogo)
+            if (!activeTimeStopper) {
+                for (let i = icebergs.length - 1; i >= 0; i--) {
+                    icebergs[i].framesLeft--;
+                    if (icebergs[i].framesLeft <= 0) {
+                        spawnVFX(icebergs[i].x, icebergs[i].y, '#E0F7FA', 40);
+                        // Aplica cooldown de 10s no Titanic do mesmo time
+                        let team = icebergs[i].isHome ? simEntities.homeTeam : simEntities.awayTeam;
+                        team.forEach(pl => {
+                            if (pl.name === "Titanic") pl.abilityCooldown = Math.max(pl.abilityCooldown || 0, 10 * 60);
+                        });
+                        icebergs.splice(i, 1);
+                    }
+                }
+            }
+
             drawFrame();
             
             // Só avança o tempo se o The World não parou o tempo
@@ -1079,6 +1465,36 @@
 
         function drawFrame() {
             drawPitch();
+
+            // Desenha icebergs
+            icebergs.forEach(ib => {
+                if (ib.framesLeft <= 0) return;
+                let alpha = Math.min(1, ib.framesLeft / 60);
+                ctx.save();
+                ctx.globalAlpha = 0.55 + 0.35 * alpha;
+                // Iceberg shape
+                ctx.fillStyle = '#B3E5FC';
+                ctx.beginPath();
+                ctx.moveTo(ib.x - 28, ib.y + 35);
+                ctx.lineTo(ib.x - 18, ib.y - 25);
+                ctx.lineTo(ib.x - 5, ib.y - 40);
+                ctx.lineTo(ib.x + 8, ib.y - 20);
+                ctx.lineTo(ib.x + 22, ib.y - 30);
+                ctx.lineTo(ib.x + 28, ib.y + 35);
+                ctx.closePath();
+                ctx.fill();
+                ctx.strokeStyle = '#E1F5FE';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+                ctx.fillStyle = 'rgba(255,255,255,0.5)';
+                ctx.beginPath();
+                ctx.moveTo(ib.x - 10, ib.y - 10);
+                ctx.lineTo(ib.x - 5, ib.y - 35);
+                ctx.lineTo(ib.x + 5, ib.y - 15);
+                ctx.closePath();
+                ctx.fill();
+                ctx.restore();
+            });
 
             if (timeStopFrames > 0) {
                 ctx.fillStyle = "rgba(0, 0, 0, 0.4)";
@@ -1202,10 +1618,164 @@
             setTimeout(() => { resetPositions(); isPlaying = true; requestAnimationFrame(updateSim); }, 2000);
         }
 
+
+        // ========== BRACKET / ÁRVORE DO CAMPEONATO ==========
+        function buildTournamentBracket(mode) {
+            let pool = enemyTeamsDB.filter(t => {
+                if (mode === 'elite') return t.difficulty >= 3;
+                return t.difficulty <= 3;
+            });
+            pool = pool.sort(() => Math.random() - 0.5).slice(0, 7);
+            while (pool.length < 7) {
+                let extra = enemyTeamsDB[Math.floor(Math.random() * enemyTeamsDB.length)];
+                if (!pool.find(t => t.name === extra.name)) pool.push(extra);
+            }
+
+            let you = { name: clubData.name, isYou: true, color: clubData.color, icon: clubData.icon };
+            let allTeams = [you, ...pool.map(t => ({ name: t.name, isYou: false, color: t.color, icon: t.icon, difficulty: t.difficulty, ref: t }))];
+            allTeams = allTeams.sort(() => Math.random() - 0.5);
+
+            let quarters = [];
+            for (let i = 0; i < 4; i++) {
+                quarters.push({
+                    home: allTeams[i*2],
+                    away: allTeams[i*2+1],
+                    winner: null,
+                    loser: null,
+                    score: null,
+                    played: false
+                });
+            }
+
+            tournamentBracket = {
+                mode: mode,
+                rounds: [
+                    { name: "Quartas de Final", matches: quarters },
+                    { name: "Semifinal", matches: [
+                        { home: null, away: null, winner: null, loser: null, score: null, played: false },
+                        { home: null, away: null, winner: null, loser: null, score: null, played: false }
+                    ]},
+                    { name: "Grande Final!", matches: [
+                        { home: null, away: null, winner: null, loser: null, score: null, played: false }
+                    ]}
+                ],
+                playerPath: []
+            };
+
+            for (let i = 0; i < 4; i++) {
+                if (quarters[i].home.isYou || quarters[i].away.isYou) {
+                    tournamentBracket.playerPath = [i];
+                    currentEnemyTeam = quarters[i].home.isYou ? quarters[i].away.ref : quarters[i].home.ref;
+                    if (!currentEnemyTeam) currentEnemyTeam = pickEnemyTeam(mode);
+                    break;
+                }
+            }
+        }
+
+        function simulateOtherMatches(roundIdx) {
+            let matches = tournamentBracket.rounds[roundIdx].matches;
+            matches.forEach((m) => {
+                if (m.played) return;
+                let isPlayerMatch = (m.home && m.home.isYou) || (m.away && m.away.isYou);
+                if (isPlayerMatch) return;
+                let homeWins = Math.random() < 0.5;
+                m.winner = homeWins ? m.home : m.away;
+                m.loser = homeWins ? m.away : m.home;
+                m.score = homeWins ? `${Math.floor(Math.random()*3)+1}-${Math.floor(Math.random()*2)}` : `${Math.floor(Math.random()*2)}-${Math.floor(Math.random()*3)+1}`;
+                m.played = true;
+            });
+        }
+
+        function advanceBracket(playerWon) {
+            if (!tournamentBracket) return;
+            let stage = tournamentStage - 1;
+            let pathIdx = tournamentBracket.playerPath[stage];
+            let match = tournamentBracket.rounds[stage].matches[pathIdx];
+
+            match.played = true;
+            match.score = `${matchScore.home}-${matchScore.away}`;
+            if (playerWon) {
+                match.winner = match.home.isYou ? match.home : match.away;
+                match.loser = match.home.isYou ? match.away : match.home;
+            } else {
+                match.winner = match.home.isYou ? match.away : match.home;
+                match.loser = match.home.isYou ? match.home : match.away;
+            }
+
+            simulateOtherMatches(stage);
+
+            if (playerWon && stage < 2) {
+                let nextRound = tournamentBracket.rounds[stage + 1];
+                let winners = tournamentBracket.rounds[stage].matches.map(m => m.winner);
+                if (stage === 0) {
+                    nextRound.matches[0] = { home: winners[0], away: winners[1], winner: null, loser: null, score: null, played: false };
+                    nextRound.matches[1] = { home: winners[2], away: winners[3], winner: null, loser: null, score: null, played: false };
+                    for (let i = 0; i < 2; i++) {
+                        if (nextRound.matches[i].home.isYou || nextRound.matches[i].away.isYou) {
+                            tournamentBracket.playerPath.push(i);
+                            let opp = nextRound.matches[i].home.isYou ? nextRound.matches[i].away : nextRound.matches[i].home;
+                            currentEnemyTeam = opp.ref || pickEnemyTeam(tournamentMode);
+                            break;
+                        }
+                    }
+                } else if (stage === 1) {
+                    nextRound.matches[0] = { home: winners[0], away: winners[1], winner: null, loser: null, score: null, played: false };
+                    tournamentBracket.playerPath.push(0);
+                    let opp = nextRound.matches[0].home.isYou ? nextRound.matches[0].away : nextRound.matches[0].home;
+                    currentEnemyTeam = opp.ref || pickEnemyTeam(tournamentMode);
+                }
+            }
+        }
+
+        function showBracket() {
+            if (!tournamentBracket) {
+                notify("Nenhum campeonato em andamento!", "#ff9800");
+                return;
+            }
+            let title = tournamentBracket.mode === 'elite' ? "💎 Taça Elite - Chaveamento" : "🏆 Mata-Mata - Chaveamento";
+            document.getElementById('bracketTitle').innerText = title;
+
+            let html = '';
+            tournamentBracket.rounds.forEach((round, rIdx) => {
+                html += `<div class="bracket-stage-label">${round.name}</div>`;
+                html += `<div class="bracket-row">`;
+                round.matches.forEach((m) => {
+                    let isPlayer = (m.home && m.home.isYou) || (m.away && m.away.isYou);
+                    let isCurrent = isPlayer && tournamentStage - 1 === rIdx && !m.played;
+                    let cls = 'bracket-match';
+                    if (m.played) cls += m.winner && m.winner.isYou ? ' winner' : ' loser';
+                    if (isCurrent) cls += ' current';
+
+                    let homeName = m.home ? (m.home.isYou ? `⭐ ${m.home.name}` : m.home.name) : '???';
+                    let awayName = m.away ? (m.away.isYou ? `⭐ ${m.away.name}` : m.away.name) : '???';
+                    let homeCls = 'bracket-team' + (m.home && m.home.isYou ? ' you' : '');
+                    let awayCls = 'bracket-team' + (m.away && m.away.isYou ? ' you' : '');
+                    if (m.played) {
+                        if (m.winner === m.home) { homeCls += ' won'; awayCls += ' lost'; }
+                        else { awayCls += ' won'; homeCls += ' lost'; }
+                    }
+
+                    html += `<div class="${cls}">
+                        <div class="${homeCls}">${homeName}</div>
+                        <div class="bracket-vs">${m.score ? m.score : 'vs'}</div>
+                        <div class="${awayCls}">${awayName}</div>
+                    </div>`;
+                });
+                html += `</div>`;
+            });
+
+            document.getElementById('bracketContent').innerHTML = html;
+            document.getElementById('bracketModal').style.display = 'flex';
+        }
+
         function startTournament(mode) {
             let req = mode === 'elite' ? 1500 : 500;
             if (clubData.fans < req) return;
-            tournamentMode = mode; tournamentStage = 1; startMatch(true);
+            tournamentMode = mode; tournamentStage = 1;
+            buildTournamentBracket(mode);
+            document.getElementById('btnTree').style.display = 'inline-block';
+            setStadiumColor(mode);
+            startMatch(true);
         }
 
         function startMatch(isTournament) {
@@ -1219,8 +1789,16 @@
             if (isTournament) {
                 let compName = tournamentMode === 'elite' ? "TAÇA ELITE" : "MATA-MATA";
                 logEvent(`🏆 ${compName} (${stageNames[tournamentStage]}): Apita o árbitro!`);
+                setStadiumColor(tournamentMode);
             }
-            else { tournamentMode = 'none'; logEvent("Apita o árbitro! Começa o Amistoso!"); }
+            else { 
+                tournamentMode = 'none'; 
+                tournamentBracket = null;
+                currentEnemyTeam = null;
+                document.getElementById('btnTree').style.display = 'none';
+                setStadiumColor('amistoso');
+                logEvent("Apita o árbitro! Começa o Amistoso!"); 
+            }
 
             matchTimer = 0; matchScore = { home: 0, away: 0 };
             document.getElementById('scoreHome').innerText = "0"; document.getElementById('scoreAway').innerText = "0";
@@ -1352,6 +1930,7 @@
             let resultTxt = `Fim de Jogo! ${matchScore.home} x ${matchScore.away}. (+${ganhoCoins}🪙${sponsorTxt} | ${ganhoFans >= 0 ? '+' : ''}${ganhoFans}📣)`;
 
             if (tournamentMode !== 'none') {
+                advanceBracket(win);
                 if (win) {
                     if (tournamentStage < 3) {
                         tournamentStage++; notify(`🎉 VITÓRIA! Você avançou para a ${stageNames[tournamentStage]}!`, "#00E676"); 
@@ -1366,9 +1945,15 @@
                         coins += prize; clubData.fans += Math.floor(clubData.fans * fanBoost); 
                         clubData.trophies.push(trophyName);
                         tournamentMode = 'none';
+                        tournamentBracket = null;
+                        document.getElementById('btnTree').style.display = 'none';
+                        setStadiumColor('amistoso');
                     }
                 } else {
-                    notify(`❌ ELIMINADO! Seu time caiu na fase: ${stageNames[tournamentStage]}.`, "#ff4444"); tournamentMode = 'none';
+                    notify(`❌ ELIMINADO! Seu time caiu na fase: ${stageNames[tournamentStage]}.`, "#ff4444"); 
+                    tournamentMode = 'none';
+                    document.getElementById('btnTree').style.display = 'inline-block';
+                    setStadiumColor('amistoso');
                 }
             }
             logEvent(resultTxt); document.getElementById('btnPlay').disabled = false; updateUI();
@@ -1512,7 +2097,8 @@
                 sideBadge = `<span class="p-side">${side}</span>`;
             }
 
-            let tCost = 100 + (Math.max(0, p.ovr - 60) * 10);
+            let tCost = getTrainCost(p);
+            let sellVal = Math.floor(tCost * 0.5);
             let potMax = p.maxPotential || 1;
             let potCurrent = p.potential || 0;
             let pCompleted = Math.round(((potMax - potCurrent) / potMax) * 100);
@@ -1522,6 +2108,7 @@
                         <div class="p-tooltip">
                             <b>Análise do Scout</b><br>
                             Custo de Treino: 🪙 ${tCost}<br>
+                            Valor de Venda: 🪙 ${sellVal}<br>
                             Potencial Extraído: ${pCompleted}%
                         </div>
                         <div style="display:flex; justify-content:space-between; align-items:flex-start;">
