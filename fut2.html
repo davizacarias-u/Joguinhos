@@ -5,56 +5,244 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>FutManager - Ultimate Pro</title>
     <style>
-        * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-        body { background-color: #121212; color: #fff; margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; }
-        h1 { color: #4CAF50; text-shadow: 2px 2px 4px rgba(0,0,0,0.5); margin-bottom: 10px; }
+        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&display=swap');
+        * { box-sizing: border-box; font-family: 'Outfit', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body {
+            background: #0a0e17;
+            background-image:
+                radial-gradient(ellipse 80% 50% at 20% -10%, rgba(34, 197, 94, 0.18), transparent),
+                radial-gradient(ellipse 60% 40% at 90% 10%, rgba(59, 130, 246, 0.12), transparent),
+                radial-gradient(ellipse 50% 30% at 50% 100%, rgba(168, 85, 247, 0.08), transparent);
+            color: #e8edf5;
+            margin: 0; padding: 24px 16px 48px; display: flex; flex-direction: column; align-items: center;
+            min-height: 100vh;
+        }
+        .app-title {
+            font-size: clamp(1.6rem, 4vw, 2.2rem); font-weight: 800; letter-spacing: -0.02em;
+            margin: 0 0 6px; background: linear-gradient(135deg, #4ade80, #22d3ee, #a78bfa);
+            -webkit-background-clip: text; background-clip: text; color: transparent;
+            text-align: center;
+        }
+        .app-sub { color: #64748b; font-size: 0.85rem; margin-bottom: 22px; text-align: center; font-weight: 500; }
+
+        .container {
+            max-width: 1000px; width: 100%;
+            background: linear-gradient(165deg, rgba(30, 36, 50, 0.95), rgba(18, 22, 32, 0.98));
+            padding: 22px 24px; border-radius: 18px; margin-bottom: 20px;
+            border: 1px solid rgba(148, 163, 184, 0.12);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.04);
+            backdrop-filter: blur(12px);
+        }
         
-        .container { max-width: 950px; width: 100%; background-color: #1e1e1e; padding: 20px; border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.3); margin-bottom: 20px; }
-        
-        .header-info { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #333; padding-bottom: 10px; margin-bottom: 15px; }
-        .resources { display: flex; gap: 20px; font-size: 1.1rem; font-weight: bold; align-items: center;}
-        .coins { color: #FFD700; }
-        .fans { color: #00E676; }
-        .sponsor-tag { font-size: 0.8rem; background: #333; padding: 3px 8px; border-radius: 5px; color: #00bcd4; border: 1px solid #00bcd4; }
-        
+        .header-info {
+            display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 14px;
+            border-bottom: 1px solid rgba(148, 163, 184, 0.12); padding-bottom: 16px; margin-bottom: 18px;
+        }
+        .header-info h2 { margin: 0; font-size: 1.45rem; font-weight: 700; color: #f1f5f9; letter-spacing: -0.02em; }
+        .team-ovr-badge {
+            display: inline-flex; align-items: center; gap: 6px; margin-top: 6px;
+            font-size: 0.8rem; color: #94a3b8; font-weight: 600;
+        }
+        .team-ovr-badge span {
+            background: rgba(74, 222, 128, 0.15); color: #4ade80; padding: 2px 10px;
+            border-radius: 999px; border: 1px solid rgba(74, 222, 128, 0.25); font-weight: 700;
+        }
+        .resources { display: flex; gap: 10px; font-size: 0.95rem; font-weight: 700; align-items: center; flex-wrap: wrap; }
+        .res-pill {
+            display: flex; align-items: center; gap: 6px; padding: 8px 14px; border-radius: 12px;
+            background: rgba(15, 23, 42, 0.7); border: 1px solid rgba(148, 163, 184, 0.15);
+        }
+        .coins { color: #fbbf24; }
+        .fans { color: #4ade80; }
+        .sponsor-tag {
+            font-size: 0.75rem; background: rgba(6, 182, 212, 0.12); padding: 6px 12px; border-radius: 999px;
+            color: #22d3ee; border: 1px solid rgba(34, 211, 238, 0.35); font-weight: 600;
+        }
+
+        .action-bar { display: flex; flex-direction: column; gap: 12px; margin-bottom: 18px; }
+        .action-row {
+            display: flex; gap: 8px; flex-wrap: wrap; align-items: center; justify-content: center;
+            padding: 12px 14px; border-radius: 14px;
+            background: rgba(15, 23, 42, 0.45); border: 1px solid rgba(148, 163, 184, 0.08);
+        }
+        .action-label {
+            width: 100%; text-align: center; font-size: 0.7rem; font-weight: 700; letter-spacing: 0.12em;
+            text-transform: uppercase; color: #64748b; margin-bottom: -2px;
+        }
         .actions { display: flex; gap: 10px; margin-bottom: 15px; justify-content: center; flex-wrap: wrap; align-items: center; }
-        button { background-color: #4CAF50; color: white; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer; font-size: 0.95rem; font-weight: bold; transition: 0.2s; position: relative; }
-        button:hover { background-color: #45a049; }
-        button:disabled { background-color: #555 !important; cursor: not-allowed; color: #888; box-shadow: none; }
+        button {
+            background: linear-gradient(180deg, #22c55e, #16a34a); color: white; border: none;
+            padding: 10px 16px; border-radius: 11px; cursor: pointer; font-size: 0.9rem; font-weight: 700;
+            transition: transform 0.15s, box-shadow 0.15s, filter 0.15s; position: relative;
+            box-shadow: 0 2px 8px rgba(22, 163, 74, 0.25); letter-spacing: 0.01em;
+        }
+        button:hover { filter: brightness(1.08); transform: translateY(-1px); }
+        button:active { transform: translateY(0); }
+        button:disabled { background: #334155 !important; cursor: not-allowed; color: #64748b; box-shadow: none; filter: none; transform: none; }
         
         .pack-btn { position: relative; }
         .pack-tooltip {
             display: none; position: absolute; bottom: 120%; left: 50%; transform: translateX(-50%);
-            background: #000; color: #fff; padding: 8px 12px; border-radius: 6px; font-size: 0.75rem;
-            white-space: nowrap; border: 1px solid #444; box-shadow: 0 4px 10px rgba(0,0,0,0.8); z-index: 100;
-            pointer-events: none; text-align: left; line-height: 1.4;
+            background: #0f172a; color: #e2e8f0; padding: 10px 14px; border-radius: 10px; font-size: 0.75rem;
+            white-space: nowrap; border: 1px solid rgba(148,163,184,0.2); box-shadow: 0 8px 24px rgba(0,0,0,0.6); z-index: 100;
+            pointer-events: none; text-align: left; line-height: 1.45;
         }
         .pack-btn:hover .pack-tooltip { display: block; }
 
-        .pack-comum { background-color: #8b4513; } .pack-comum:hover { background-color: #a0522d; }
-        .pack-raro { background-color: #a9a9a9; color: #000; } .pack-raro:hover { background-color: #c0c0c0; }
-        .pack-lenda { background-color: #ff007f; box-shadow: 0 0 10px #ff007f; } .pack-lenda:hover { background-color: #e60073; }
-        .btn-play { background-color: #2196F3; font-size: 1.1rem; } .btn-play:hover { background-color: #1976D2; }
-        .btn-cup { background-color: #FF9800; font-size: 1.1rem; } .btn-cup:hover { background-color: #F57C00; }
-        .btn-cup2 { background-color: #E91E63; font-size: 1.1rem; } .btn-cup2:hover { background-color: #C2185B; }
-        .btn-club { background-color: #9C27B0; } .btn-club:hover { background-color: #7B1FA2; }
-        .btn-train { background-color: #00BCD4; } .btn-train:hover { background-color: #008BA3; }
-        .btn-sell { background-color: #f44336; } .btn-sell:hover { background-color: #d32f2f; }
-        .btn-tree { background-color: #607D8B; } .btn-tree:hover { background-color: #455A64; }
+        .pack-comum { background: linear-gradient(180deg, #a16207, #78350f); box-shadow: 0 2px 8px rgba(120,53,15,0.4); }
+        .pack-comum:hover { filter: brightness(1.1); }
+        .pack-raro { background: linear-gradient(180deg, #cbd5e1, #94a3b8); color: #0f172a; box-shadow: 0 2px 8px rgba(148,163,184,0.3); }
+        .pack-raro:hover { filter: brightness(1.08); }
+        .pack-lenda { background: linear-gradient(180deg, #f472b6, #db2777); box-shadow: 0 0 14px rgba(236,72,153,0.45); }
+        .pack-lenda:hover { filter: brightness(1.08); }
+        .pack-ultra { background: linear-gradient(135deg, #fbbf24, #f59e0b, #ea580c); color: #0f172a; box-shadow: 0 0 16px rgba(251,191,36,0.4); }
+        .pack-ultra:hover { filter: brightness(1.08); }
+        .btn-play { background: linear-gradient(180deg, #3b82f6, #2563eb); font-size: 1.05rem; box-shadow: 0 2px 10px rgba(37,99,235,0.35); }
+        .btn-play:hover { filter: brightness(1.1); }
+        .btn-cup { background: linear-gradient(180deg, #fb923c, #ea580c); font-size: 1.05rem; box-shadow: 0 2px 10px rgba(234,88,12,0.3); }
+        .btn-cup:hover { filter: brightness(1.1); }
+        .btn-cup2 { background: linear-gradient(180deg, #e879f9, #c026d3); font-size: 1.05rem; box-shadow: 0 2px 10px rgba(192,38,211,0.35); }
+        .btn-cup2:hover { filter: brightness(1.1); }
+        .btn-club { background: linear-gradient(180deg, #a78bfa, #7c3aed); box-shadow: 0 2px 8px rgba(124,58,237,0.3); }
+        .btn-club:hover { filter: brightness(1.1); }
+        .btn-train { background: linear-gradient(180deg, #22d3ee, #0891b2); box-shadow: 0 2px 8px rgba(8,145,178,0.3); }
+        .btn-train:hover { filter: brightness(1.1); }
+        .btn-sell { background: linear-gradient(180deg, #f87171, #dc2626); box-shadow: 0 2px 8px rgba(220,38,38,0.3); }
+        .btn-sell:hover { filter: brightness(1.1); }
+        .btn-tree { background: linear-gradient(180deg, #64748b, #475569); box-shadow: 0 2px 8px rgba(71,85,105,0.3); }
+        .btn-tree:hover { filter: brightness(1.1); }
 
-        input[type="text"], input[type="number"], select { padding: 8px; border-radius: 4px; border: 1px solid #333; background-color: #2a2a2a; color: white; font-size: 1rem; width: 100%; }
+        .strat-wrap {
+            display: flex; flex-direction: column; align-items: center; gap: 4px;
+            padding: 4px 8px; border-radius: 10px; background: rgba(15,23,42,0.5);
+        }
+        .strat-wrap label { font-size: 0.65rem; color: #64748b; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; }
+        #teamStrategy {
+            padding: 8px 12px; border-radius: 8px; font-weight: 600; background: #1e293b;
+            border: 1px solid rgba(148,163,184,0.2); color: #e2e8f0; cursor: pointer; font-size: 0.85rem;
+        }
+
+        input[type="text"], input[type="number"], select {
+            padding: 10px 12px; border-radius: 10px; border: 1px solid rgba(148,163,184,0.2);
+            background-color: #1e293b; color: #f1f5f9; font-size: 0.95rem; width: 100%;
+        }
+        input:focus, select:focus { outline: none; border-color: #22d3ee; box-shadow: 0 0 0 3px rgba(34,211,238,0.15); }
         
-        .scoreboard { background: linear-gradient(to right, #0d47a1, #1a237e, #b71c1c); padding: 10px 20px; border-radius: 8px; margin-bottom: 15px; display: flex; justify-content: center; align-items: center; gap: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.5); border: 2px solid #444; }
-        .score-team { font-size: 1.2rem; font-weight: bold; text-transform: uppercase; width: 150px; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .score-numbers { font-size: 2rem; font-weight: bold; background: #000; padding: 5px 15px; border-radius: 5px; color: #fff; letter-spacing: 2px; }
-        .score-time { font-size: 1.2rem; color: #ffeb3b; background: rgba(0,0,0,0.5); padding: 5px 10px; border-radius: 5px; font-family: monospace; font-weight: bold; }
+        .scoreboard {
+            background: linear-gradient(105deg, #1e3a5f 0%, #1e1b4b 45%, #7f1d1d 100%);
+            padding: 12px 22px; border-radius: 14px; margin-bottom: 14px;
+            display: flex; justify-content: center; align-items: center; gap: 18px;
+            box-shadow: 0 6px 24px rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.08);
+        }
+        .score-team { font-size: 1.1rem; font-weight: 700; text-transform: uppercase; width: 150px; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; letter-spacing: 0.03em; }
+        .score-numbers { font-size: 2rem; font-weight: 800; background: rgba(0,0,0,0.55); padding: 6px 18px; border-radius: 10px; color: #fff; letter-spacing: 3px; border: 1px solid rgba(255,255,255,0.1); }
+        .score-time { font-size: 1.15rem; color: #fde047; background: rgba(0,0,0,0.45); padding: 6px 12px; border-radius: 8px; font-family: 'Outfit', monospace; font-weight: 700; }
 
-        canvas { background-color: #2e7d32; border: 3px solid #fff; border-radius: 5px; display: block; margin: 0 auto 5px auto; max-width: 100%; box-shadow: inset 0 0 20px rgba(0,0,0,0.5); }
-        .manager-hint { text-align: center; font-size: 0.85rem; color: #aaa; margin-bottom: 15px; }
-        .manager-on { color: #00e676; font-weight: bold; }
+        canvas { background-color: #2e7d32; border: 3px solid rgba(255,255,255,0.9); border-radius: 12px; display: block; margin: 0 auto 8px auto; max-width: 100%; box-shadow: inset 0 0 24px rgba(0,0,0,0.45), 0 8px 28px rgba(0,0,0,0.35); }
+        .pitch-wrap { position: relative; }
+        .manager-hint {
+            text-align: center; font-size: 0.8rem; color: #64748b; margin-bottom: 10px; font-weight: 600;
+            display: flex; align-items: center; justify-content: center; gap: 8px;
+        }
+        .manager-hint .kbd {
+            background: #1e293b; border: 1px solid rgba(148,163,184,0.25); padding: 2px 8px;
+            border-radius: 6px; color: #94a3b8; font-size: 0.75rem; font-weight: 700;
+        }
+        .manager-on { color: #4ade80; font-weight: 800; }
 
-        .section-title { border-bottom: 1px solid #444; padding-bottom: 5px; margin-top: 20px; color: #aaa; display: flex; justify-content: space-between;}
-        .team-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 12px; margin-top: 10px; min-height: 80px; background: #111; padding: 15px; border-radius: 5px; }
+        #matchLog {
+            text-align: center; color: #fde047; font-weight: 700; min-height: 28px; font-size: 1rem;
+            background: rgba(15, 23, 42, 0.6); border-radius: 10px; padding: 10px 14px;
+            border: 1px solid rgba(253, 224, 71, 0.15);
+        }
+        .game-tips {
+            text-align: center; font-size: 0.8rem; color: #94a3b8; font-weight: 600;
+            background: rgba(30, 41, 59, 0.55); border: 1px dashed rgba(148, 163, 184, 0.25);
+            border-radius: 10px; padding: 8px 14px; margin-bottom: 12px; line-height: 1.4;
+        }
+        .btn-totem { background: linear-gradient(180deg, #f59e0b, #b45309); box-shadow: 0 2px 10px rgba(180,83,9,0.4); }
+        .btn-totem:hover { filter: brightness(1.1); }
+        .btn-save { background: linear-gradient(180deg, #64748b, #334155); box-shadow: 0 2px 8px rgba(51,65,85,0.35); }
+        .btn-save:hover { filter: brightness(1.1); }
+        .btn-load { background: linear-gradient(180deg, #0ea5e9, #0369a1); box-shadow: 0 2px 8px rgba(3,105,161,0.35); }
+        .btn-load:hover { filter: brightness(1.1); }
+
+        .totem-stage {
+            position: relative; background: linear-gradient(180deg, #1a1008 0%, #0c0a12 60%, #1a0a20 100%);
+            border-radius: 16px; padding: 24px 16px 20px; margin-bottom: 16px;
+            border: 1px solid rgba(251,191,36,0.25); overflow: hidden;
+            box-shadow: inset 0 0 40px rgba(251,191,36,0.08);
+        }
+        .totem-stage::before {
+            content: ''; position: absolute; inset: 0; pointer-events: none;
+            background:
+                radial-gradient(circle at 20% 80%, rgba(251,191,36,0.12), transparent 40%),
+                radial-gradient(circle at 80% 30%, rgba(168,85,247,0.1), transparent 35%);
+        }
+        .totem-pillar {
+            width: 72px; height: 110px; margin: 0 auto 8px; position: relative;
+            background: linear-gradient(90deg, #78350f, #b45309 40%, #fbbf24 50%, #b45309 60%, #78350f);
+            border-radius: 8px 8px 4px 4px;
+            box-shadow: 0 0 24px rgba(251,191,36,0.45), 0 8px 20px rgba(0,0,0,0.5);
+        }
+        .totem-pillar::before {
+            content: '☯'; position: absolute; top: 12px; left: 50%; transform: translateX(-50%);
+            font-size: 1.6rem; color: #fef3c7; text-shadow: 0 0 10px #fbbf24;
+        }
+        .totem-pillar::after {
+            content: ''; position: absolute; bottom: -6px; left: 50%; transform: translateX(-50%);
+            width: 90px; height: 14px; background: radial-gradient(ellipse, rgba(251,191,36,0.5), transparent 70%);
+        }
+        .totem-runes {
+            display: flex; justify-content: center; gap: 14px; margin-top: 6px;
+            font-size: 1.1rem; color: #fbbf24; opacity: 0.7; letter-spacing: 0.2em;
+        }
+        .totem-title {
+            text-align: center; font-weight: 800; font-size: 1.15rem; color: #fbbf24;
+            margin: 8px 0 4px; letter-spacing: 0.06em; text-shadow: 0 0 12px rgba(251,191,36,0.5);
+        }
+        .totem-sub { text-align: center; font-size: 0.8rem; color: #a8a29e; margin-bottom: 12px; }
+
+        .recipe-book {
+            background: rgba(15,23,42,0.7); border: 1px solid rgba(148,163,184,0.15);
+            border-radius: 12px; padding: 12px; max-height: 180px; overflow-y: auto; text-align: left; margin-bottom: 14px;
+        }
+        .recipe-item {
+            padding: 8px 10px; border-radius: 8px; margin-bottom: 6px;
+            background: rgba(30,41,59,0.6); border: 1px solid rgba(148,163,184,0.1);
+            font-size: 0.85rem; color: #e2e8f0;
+        }
+        .recipe-item.known { border-color: rgba(74,222,128,0.35); }
+        .recipe-item .r-result { color: #fbbf24; font-weight: 700; }
+        .recipe-item .r-unk { color: #64748b; font-style: italic; }
+
+        .fuse-row {
+            display: flex; gap: 10px; align-items: center; justify-content: center; flex-wrap: wrap; margin: 12px 0;
+        }
+        .fuse-slot {
+            min-width: 140px; background: rgba(15,23,42,0.8); border: 2px dashed rgba(251,191,36,0.35);
+            border-radius: 12px; padding: 10px; text-align: center; font-size: 0.85rem; color: #94a3b8;
+        }
+        .fuse-slot.has { border-style: solid; border-color: #fbbf24; color: #fef3c7; font-weight: 700; }
+        .fuse-plus { font-size: 1.4rem; color: #fbbf24; font-weight: 800; }
+        .save-code-box {
+            width: 100%; min-height: 100px; font-family: monospace; font-size: 0.75rem;
+            background: #0f172a; color: #4ade80; border: 1px solid rgba(74,222,128,0.3);
+            border-radius: 10px; padding: 12px; resize: vertical; word-break: break-all;
+        }
+        .warning { color: #f87171; font-size: 0.85rem; font-weight: 600; }
+
+        .section-title {
+            border-bottom: 1px solid rgba(148,163,184,0.12); padding-bottom: 10px; margin-top: 8px; margin-bottom: 4px;
+            color: #94a3b8; display: flex; justify-content: space-between; align-items: center;
+            font-size: 0.95rem; font-weight: 700; letter-spacing: 0.02em;
+        }
+        .section-title span:first-child { color: #e2e8f0; }
+        .team-grid {
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 12px; margin-top: 12px;
+            min-height: 80px; background: rgba(8, 12, 20, 0.65); padding: 16px; border-radius: 14px;
+            border: 1px solid rgba(148,163,184,0.08);
+        }
         
         .player-card { padding: 10px; border-radius: 8px; text-align: center; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s, background 0.5s; border: 2px solid transparent; user-select: none; position: relative; overflow: visible; display: flex; flex-direction: column; }
         .player-card:hover { transform: translateY(-5px); z-index: 20; }
@@ -84,6 +272,35 @@
         .icon::before { content: "⭐ LENDA"; position: absolute; top: 2px; right: 4px; font-size: 0.55rem; font-weight: bold; color: #ffd700; }
         .mystic { background: linear-gradient(135deg, #8b0000, #ff0000); border-color: #ff3333; color: #fff; box-shadow: 0 0 20px rgba(255, 0, 0, 0.8); }
         .mystic::before { content: "🔥 MÍSTICO"; position: absolute; top: 2px; right: 4px; font-size: 0.55rem; font-weight: bold; color: #fff; }
+        .divine { background: linear-gradient(135deg, #0f172a, #1e293b, #334155); border-color: #fbbf24; color: #fff; box-shadow: 0 0 28px rgba(251, 191, 36, 0.85), inset 0 0 20px rgba(251,191,36,0.15); }
+        .divine::before { content: "⚜️ DIVINO"; position: absolute; top: 2px; right: 4px; font-size: 0.55rem; font-weight: bold; color: #fbbf24; }
+
+        #mythicReveal {
+            position: fixed; inset: 0; z-index: 10000; background: #000;
+            display: none; flex-direction: column; align-items: center; justify-content: center;
+            pointer-events: none;
+        }
+        #mythicReveal.active { display: flex; animation: mythicPulse 0.4s ease-out; }
+        #mythicReveal img {
+            width: 180px; height: 180px; border-radius: 50%; object-fit: cover;
+            border: 5px solid #ff3333; box-shadow: 0 0 60px #ff0000, 0 0 120px rgba(255,0,0,0.5);
+            opacity: 0; transform: scale(0.3);
+            transition: opacity 0.6s ease, transform 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        #mythicReveal.show-img img { opacity: 1; transform: scale(1); }
+        #mythicReveal .mythic-label {
+            margin-top: 28px; font-size: 2.2rem; font-weight: 900; color: #ff3333;
+            letter-spacing: 0.15em; text-transform: uppercase; opacity: 0;
+            text-shadow: 0 0 30px #ff0000; transition: opacity 0.5s ease 0.3s;
+        }
+        #mythicReveal.show-img .mythic-label { opacity: 1; }
+        #mythicReveal.divine-reveal img { border-color: #fbbf24; box-shadow: 0 0 60px #fbbf24, 0 0 120px rgba(251,191,36,0.5); }
+        #mythicReveal.divine-reveal .mythic-label { color: #fbbf24; text-shadow: 0 0 30px #fbbf24; }
+        @keyframes mythicPulse {
+            0% { background: #000; }
+            30% { background: #1a0000; }
+            100% { background: #000; }
+        }
         
         .p-ovr { font-size: 1.5rem; font-weight: bold; margin: 0; transition: color 0.3s; }
         .p-pos { font-size: 0.75rem; background: rgba(0,0,0,0.4); color:#fff; padding: 2px 5px; border-radius: 4px; display: inline-block; font-weight: bold; }
@@ -99,12 +316,27 @@
         #matchLog { text-align: center; color: #ffeb3b; font-weight: bold; height: 20px; font-size: 1.1rem; }
         .warning { color: #ff4444; font-size: 0.9rem; font-weight: normal; }
 
-        .modal-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.85); z-index: 1000; display: none; justify-content: center; align-items: center; }
-        .modal-content { background: #222; padding: 30px; border-radius: 10px; max-width: 500px; width: 100%; box-shadow: 0 0 20px #000; text-align: center; max-height: 90vh; overflow-y: auto;}
-        .close-btn { background: #f44336; margin-top: 20px; width: 100%; }
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background: rgba(2, 6, 23, 0.82); backdrop-filter: blur(8px);
+            z-index: 1000; display: none; justify-content: center; align-items: center;
+        }
+        .modal-content {
+            background: linear-gradient(165deg, #1e293b, #0f172a); padding: 28px 30px; border-radius: 18px;
+            max-width: 500px; width: 92%; box-shadow: 0 24px 64px rgba(0,0,0,0.6);
+            text-align: center; max-height: 90vh; overflow-y: auto;
+            border: 1px solid rgba(148,163,184,0.15);
+        }
+        .modal-content h2 { margin-top: 0; font-weight: 800; letter-spacing: -0.02em; }
+        .close-btn { background: linear-gradient(180deg, #f87171, #dc2626); margin-top: 20px; width: 100%; border-radius: 12px; padding: 12px; }
 
         #customNoticeContainer { position: fixed; top: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; pointer-events: none; }
-        .custom-toast { background: #333; color: #fff; border-left: 5px solid #4CAF50; padding: 12px 20px; border-radius: 4px; box-shadow: 0 4px 12px rgba(0,0,0,0.5); font-weight: bold; animation: slideIn 0.3s ease-out; }
+        .custom-toast {
+            background: rgba(15, 23, 42, 0.95); color: #f1f5f9; border-left: 4px solid #4ade80;
+            padding: 14px 18px; border-radius: 12px; box-shadow: 0 8px 28px rgba(0,0,0,0.5);
+            font-weight: 600; animation: slideIn 0.3s ease-out; border: 1px solid rgba(148,163,184,0.12);
+            backdrop-filter: blur(10px); font-size: 0.9rem;
+        }
         @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
         
         .customizer-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; text-align: left; margin-top: 20px; }
@@ -121,15 +353,19 @@
         .shield-pattern-cross { background-image: linear-gradient(0deg, transparent 40%, rgba(0,0,0,0.4) 40%, rgba(0,0,0,0.4) 60%, transparent 60%), linear-gradient(90deg, transparent 40%, rgba(0,0,0,0.4) 40%, rgba(0,0,0,0.4) 60%, transparent 60%); }
         .shield-pattern-dots { background-image: radial-gradient(rgba(0,0,0,0.4) 20%, transparent 20%); background-size: 15px 15px; }
 
-        .stats-box { background: #111; padding: 15px; border-radius: 5px; display: flex; justify-content: space-around; margin-top: 15px; border: 1px solid #444; }
+        .stats-box { background: rgba(15,23,42,0.8); padding: 16px; border-radius: 14px; display: flex; justify-content: space-around; margin-top: 15px; border: 1px solid rgba(148,163,184,0.12); }
         .stat-t { font-size: 0.8rem; color: #aaa; } .stat-v { font-size: 1.5rem; font-weight: bold; }
         .win { color: #4CAF50; } .draw { color: #FFEB3B; } .loss { color: #F44336; }
 
         .trophies-container { display: flex; justify-content: center; gap: 10px; margin-top: 15px; flex-wrap: wrap; }
         .trophy-item { font-size: 2rem; background: #333; padding: 10px; border-radius: 50%; border: 2px solid #FFD700; width: 60px; height: 60px; display: flex; justify-content: center; align-items: center; box-shadow: 0 0 10px rgba(255, 215, 0, 0.5); }
 
-        .interview-btn { background: #333; border: 1px solid #555; text-align: left; padding: 12px; margin: 8px 0; width: 100%; border-radius: 5px; font-size: 0.95rem; color: white; cursor: pointer; }
-        .interview-btn:hover { background: #444; border-color: #00E676; }
+        .interview-btn {
+            background: rgba(30, 41, 59, 0.9); border: 1px solid rgba(148,163,184,0.2); text-align: left;
+            padding: 14px 16px; margin: 8px 0; width: 100%; border-radius: 12px; font-size: 0.95rem;
+            color: #e2e8f0; cursor: pointer; transition: 0.15s; font-weight: 600;
+        }
+        .interview-btn:hover { background: rgba(34, 197, 94, 0.12); border-color: #4ade80; transform: translateX(4px); }
 
         /* NOVO: Efeito de Habilidade Especial */
         #abilityCutin {
@@ -140,7 +376,7 @@
             clip-path: polygon(0 15%, 100% 0, 100% 85%, 0 100%);
             border-top: 4px solid #fff; border-bottom: 4px solid #fff;
             transform: scaleX(0); transform-origin: center;
-            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            transition: transform 0.15s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             pointer-events: none;
             box-shadow: 0 0 40px rgba(255, 255, 255, 0.5);
             overflow: hidden;
@@ -161,7 +397,7 @@
         .bracket-round { display: flex; flex-direction: column; gap: 12px; min-width: 180px; }
         .bracket-row { display: flex; justify-content: space-around; gap: 15px; flex-wrap: wrap; }
         .bracket-match {
-            background: #1a1a1a; border: 2px solid #444; border-radius: 8px; padding: 10px 14px;
+            background: rgba(15, 23, 42, 0.9); border: 2px solid rgba(148,163,184,0.2); border-radius: 12px; padding: 12px 14px;
             min-width: 160px; text-align: center; position: relative;
         }
         .bracket-match.winner { border-color: #4CAF50; box-shadow: 0 0 8px rgba(76,175,80,0.4); }
@@ -188,7 +424,76 @@
         </div>
     </div>
 
+    <!-- Reveal Sol's RNG style para Mítico/Divino -->
+    <div id="mythicReveal">
+        <img id="mythicRevealImg" src="" alt="">
+        <div class="mythic-label" id="mythicRevealLabel">MÍSTICO</div>
+    </div>
+
     <div id="customNoticeContainer"></div>
+
+    <!-- Totem da União -->
+    <div id="totemModal" class="modal-overlay">
+        <div class="modal-content" style="max-width: 560px;">
+            <div class="totem-stage">
+                <div class="totem-pillar"></div>
+                <div class="totem-runes">✦ ◆ ☿ ✦ ◆</div>
+                <div class="totem-title">TOTEM DA UNIÃO</div>
+                <div class="totem-sub">Sacrifique dois jogadores para forjar um novo destino</div>
+            </div>
+
+            <div id="totemLockedView" style="display:none;">
+                <p style="color:#cbd5e1; margin: 8px 0 16px;">O totem está selado. Gaste <b style="color:#fbbf24">2500 🪙</b> para despertá-lo.</p>
+                <button onclick="unlockTotem()" style="background:linear-gradient(180deg,#fbbf24,#b45309); color:#000;">🔓 Desbloquear Totem (2500)</button>
+            </div>
+
+            <div id="totemOpenView" style="display:none;">
+                <h3 style="margin:0 0 8px; color:#e2e8f0; font-size:0.95rem;">📖 Livro de Receitas</h3>
+                <div class="recipe-book" id="recipeBookList"></div>
+
+                <h3 style="margin:12px 0 6px; color:#e2e8f0; font-size:0.95rem;">⚗️ Fusão (custo: 100 🪙)</h3>
+                <p style="font-size:0.8rem; color:#94a3b8; margin:0 0 8px;">Clique em 2 jogadores do <b>banco</b> abaixo. O potencial do resultado é rolado do zero. Receita errada <b>não gasta</b> moedas.</p>
+                <div class="fuse-row">
+                    <div class="fuse-slot" id="fuseSlotA">Slot A</div>
+                    <div class="fuse-plus">+</div>
+                    <div class="fuse-slot" id="fuseSlotB">Slot B</div>
+                </div>
+                <div id="totemBenchList" style="display:flex; flex-wrap:wrap; gap:6px; justify-content:center; max-height:140px; overflow-y:auto; margin-bottom:10px;"></div>
+                <div style="display:flex; gap:8px; justify-content:center; flex-wrap:wrap;">
+                    <button onclick="confirmFusion()" style="background:linear-gradient(180deg,#fbbf24,#b45309); color:#000;">✨ Fundir (100)</button>
+                    <button onclick="clearFusionSlots()" style="background:#334155;">Limpar slots</button>
+                </div>
+            </div>
+            <button class="close-btn" onclick="document.getElementById('totemModal').style.display='none'">Fechar</button>
+        </div>
+    </div>
+
+    <!-- Save Modal -->
+    <div id="saveModal" class="modal-overlay">
+        <div class="modal-content" style="max-width: 520px;">
+            <h2 style="color:#4ade80;">💾 Código de Salvamento</h2>
+            <p style="color:#94a3b8; font-size:0.9rem;">Copie e guarde este código. Ele contém todo o seu progresso (criptografado).</p>
+            <textarea id="saveCodeOutput" class="save-code-box" readonly></textarea>
+            <div style="display:flex; gap:8px; margin-top:12px; justify-content:center; flex-wrap:wrap;">
+                <button onclick="copySaveCode()" style="background:linear-gradient(180deg,#4ade80,#16a34a);">📋 Copiar</button>
+                <button class="close-btn" style="margin-top:0; width:auto;" onclick="document.getElementById('saveModal').style.display='none'">Fechar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Load Modal -->
+    <div id="loadModal" class="modal-overlay">
+        <div class="modal-content" style="max-width: 520px;">
+            <h2 style="color:#38bdf8;">📂 Carregar Progresso</h2>
+            <p style="color:#94a3b8; font-size:0.9rem;">Cole um código de salvamento válido. Isso <b style="color:#f87171;">substitui</b> o progresso atual.</p>
+            <textarea id="loadCodeInput" class="save-code-box" placeholder="Cole o código aqui..." style="color:#38bdf8;"></textarea>
+            <div style="display:flex; gap:8px; margin-top:12px; justify-content:center; flex-wrap:wrap;">
+                <button onclick="loadFromCode()" style="background:linear-gradient(180deg,#38bdf8,#0284c7);">⚡ Carregar</button>
+                <button class="close-btn" style="margin-top:0; width:auto;" onclick="document.getElementById('loadModal').style.display='none'">Cancelar</button>
+            </div>
+        </div>
+    </div>
+
 
     <div id="packModal" class="modal-overlay" style="flex-direction: column;">
         <div id="packIcon" style="font-size: 6rem; cursor: pointer;">🎁</div>
@@ -325,73 +630,96 @@
         </div>
     </div>
 
-    <h1>⚽ FutManager - Ultimate Pro ⚽</h1>
+    <h1 class="app-title">⚽ FutManager Ultimate Pro</h1>
+    <p class="app-sub">Gerencie · Treine · Domine o campo</p>
 
     <div class="container">
         <div class="header-info">
             <div>
-                <h2 id="displayTeamName" style="margin: 0; color: #fff;">Meu Time FC</h2>
-                <div style="font-size: 0.9rem; color: #aaa;">OVR Titulares: <span id="teamOvr">0</span></div>
+                <h2 id="displayTeamName">Meu Time FC</h2>
+                <div class="team-ovr-badge">OVR Titulares <span id="teamOvr">0</span></div>
             </div>
             <div class="resources">
-                <div class="fans">📣 <span id="fanCount">120</span> Fãs</div>
-                <div class="coins">🪙 <span id="coinCount">200</span> Moedas</div>
+                <div class="res-pill fans">📣 <span id="fanCount">120</span> Fãs</div>
+                <div class="res-pill coins">🪙 <span id="coinCount">200</span></div>
                 <div id="sponsorDisplay" class="sponsor-tag" style="display: none;">Patrocínio Ativo</div>
             </div>
         </div>
 
-        <div class="actions">
-            <button class="btn-club" onclick="openClubModal()">🛡️ Meu Clube</button>
-            <button class="btn-train" onclick="trainSelectedPlayer()">💪 Treinar (Custo Variável)</button>
-            <button class="btn-sell" onclick="sellSelectedPlayer()">💰 Vender (50% do Treino)</button>
-            
-            <div style="display: flex; flex-direction: column; align-items: center;">
-                <label style="font-size: 0.75rem; color: #aaa; font-weight: bold; margin-bottom: 2px;">Estratégia</label>
-                <select id="teamStrategy" style="padding: 8px; border-radius: 5px; font-weight: bold; background: #333; cursor: pointer;">
-                    <option value="very_defensive">Focar Muito na Defesa</option>
-                    <option value="defensive">Focar na Defesa</option>
-                    <option value="balanced" selected>Balanceado</option>
-                    <option value="offensive">Focar no Ataque</option>
-                    <option value="very_offensive">Focar Muito no Ataque</option>
-                </select>
+        <div class="action-bar">
+            <div class="action-row">
+                <div class="action-label">Gestão</div>
+                <button class="btn-club" onclick="openClubModal()">🛡️ Meu Clube</button>
+                <button class="btn-train" onclick="trainSelectedPlayer()">💪 Treinar</button>
+                <button class="btn-sell" onclick="sellSelectedPlayer()">💰 Vender</button>
+                <button class="btn-totem" id="btnTotem" onclick="openTotemModal()">🗿 Totem da União</button>
+                <button class="btn-save" onclick="openSaveModal()">💾 Salvar</button>
+                <button class="btn-load" onclick="openLoadModal()">📂 Carregar</button>
+                <div class="strat-wrap">
+                    <label>Estratégia</label>
+                    <select id="teamStrategy">
+                        <option value="very_defensive">Muito Defensivo</option>
+                        <option value="defensive">Defensivo</option>
+                        <option value="balanced" selected>Balanceado</option>
+                        <option value="offensive">Ofensivo</option>
+                        <option value="very_offensive">Muito Ofensivo</option>
+                    </select>
+                </div>
             </div>
 
-            <button class="pack-comum pack-btn" id="btnComum" onclick="buyPack('comum')">
-                🥉 Pacote (50)
-                <div class="pack-tooltip">
-                    <b>Chances de Raridade:</b><br>
-                    • Bronze: 75%<br>
-                    • Prata: 15%<br>
-                    • Ouro: 9%<br>
-                    • Lenda: 1%
-                </div>
-            </button>
-            <button class="pack-raro pack-btn" id="btnRaro" onclick="buyPack('raro')">
-                🥈 Pacote (150)
-                <div class="pack-tooltip">
-                    <b>Chances de Raridade:</b><br>
-                    • Bronze: 15%<br>
-                    • Prata: 65%<br>
-                    • Ouro: 15%<br>
-                    • Lenda: 5%
-                </div>
-            </button>
-            <button class="pack-lenda pack-btn" id="btnLenda" onclick="buyPack('lenda')">
-                🌟 Pacote (400)
-                <div class="pack-tooltip">
-                    <b>Chances de Raridade:</b><br>
-                    • Prata: 15%<br>
-                    • Ouro: 55%<br>
-                    • Lenda: 29%<br>
-                    • Místico: 1%
-                </div>
-            </button>
-            
-            <button class="btn-play" id="btnPlay" onclick="startMatch(false, 'amistoso')">▶️ AMISTOSO</button>
-            <button class="btn-cup" id="btnCup" onclick="startTournament('normal')" disabled>🏆 MATA-MATA (500 Fãs)</button>
-            <button class="btn-cup2" id="btnCupElite" onclick="startTournament('elite')" disabled>💎 TAÇA ELITE (1500 Fãs)</button>
-            <button class="btn-tree" id="btnTree" onclick="showBracket()" style="display:none;">🌳 Ver Chaveamento</button>
+            <div class="action-row">
+                <div class="action-label">Loja de Pacotes</div>
+                <button class="pack-comum pack-btn" id="btnComum" onclick="buyPack('comum')">
+                    🥉 Comum · 50
+                    <div class="pack-tooltip">
+                        <b>Chances de Raridade:</b><br>
+                        • Bronze: 75%<br>
+                        • Prata: 15%<br>
+                        • Ouro: 9%<br>
+                        • Lenda: 1%
+                    </div>
+                </button>
+                <button class="pack-raro pack-btn" id="btnRaro" onclick="buyPack('raro')">
+                    🥈 Raro · 150
+                    <div class="pack-tooltip">
+                        <b>Chances de Raridade:</b><br>
+                        • Bronze: 15%<br>
+                        • Prata: 65%<br>
+                        • Ouro: 15%<br>
+                        • Lenda: 5%
+                    </div>
+                </button>
+                <button class="pack-lenda pack-btn" id="btnLenda" onclick="buyPack('lenda')">
+                    🌟 Lenda · 400
+                    <div class="pack-tooltip">
+                        <b>Chances de Raridade:</b><br>
+                        • Prata: 15%<br>
+                        • Ouro: 55%<br>
+                        • Lenda: 29%<br>
+                        • Místico: 1%
+                    </div>
+                </button>
+                <button class="pack-ultra pack-btn" id="btnUltra" onclick="buyPack('ultra')">
+                    💎 Ultra · 2000
+                    <div class="pack-tooltip" id="ultraPackTooltip">
+                        <b>Chances de Raridade:</b><br>
+                        • Ouro: 30%<br>
+                        • Lenda: 65%<br>
+                        • Místico: 5%
+                    </div>
+                </button>
+            </div>
+
+            <div class="action-row">
+                <div class="action-label">Partidas</div>
+                <button class="btn-play" id="btnPlay" onclick="startMatch(false, 'amistoso')">▶️ Amistoso</button>
+                <button class="btn-cup" id="btnCup" onclick="startTournament('normal')" disabled>🏆 Mata-Mata · 500 📣</button>
+                <button class="btn-cup2" id="btnCupElite" onclick="startTournament('elite')" disabled>💎 Taça Elite · 1500 📣</button>
+                <button class="btn-tree" id="btnTree" onclick="showBracket()" style="display:none;">🌳 Chaveamento</button>
+            </div>
         </div>
+
+        <div class="game-tips" id="gameTips">💡 Dica: Duplo clique em um jogador do banco promove o titular mais fraco da mesma posição.</div>
 
         <div id="scoreboardWrapper" style="display: none;">
             <div class="scoreboard">
@@ -402,8 +730,13 @@
             </div>
         </div>
 
-        <canvas id="pitch" width="800" height="400"></canvas>
-        <div class="manager-hint">Visão do Técnico (Aperte K): <span id="managerStatus">OFF</span></div>
+        <div class="pitch-wrap">
+            <canvas id="pitch" width="800" height="400"></canvas>
+        </div>
+        <div class="manager-hint">
+            Visão do Técnico <span class="kbd">K</span>
+            <span id="managerStatus">OFF</span>
+        </div>
         <div id="matchLog">Organize seu time e vá para o jogo!</div>
     </div>
 
@@ -413,7 +746,10 @@
             <span class="warning" id="formWarning"></span>
         </h3>
         <div class="team-grid" id="startingGrid"></div>
-        <h3 class="section-title">🪑 Banco de Reservas</h3>
+        <h3 class="section-title">
+            <span>🪑 Banco de Reservas</span>
+            <span style="font-size:0.75rem;color:#64748b;font-weight:600;">Duplo clique para promover</span>
+        </h3>
         <div class="team-grid" id="benchGrid"></div>
     </div>
 
@@ -452,10 +788,12 @@
 
         // abilityBgImages: map ability name -> background image URL (customize freely)
         const abilityBgImages = {
-            "MANUAL DO MUNDO: ROBÔ JOGADOR!": "",
-            "ZA WARUDO! TEMPO PARADO!": "",
-            "ICEBERG TITÂNICO!": "https://cdn-icons-png.flaticon.com/512/414/414927.png",
-            "REI DO POP!": "https://cdn-icons-png.flaticon.com/512/2995/2995101.png"
+            "Robô de Arduino!": "",
+            "ZA WARUDO!": "",
+            "Iceberg": "https://cdn-icons-png.flaticon.com/512/414/414927.png",
+            "Rei do Pop!": "https://cdn-icons-png.flaticon.com/512/2995/2995101.png",
+            "caça": "https://cdn-icons-png.flaticon.com/512/616/616408.png",
+            "adaptação": "https://cdn-icons-png.flaticon.com/512/616/616490.png"
         };
 
         function activateAbilityCutin(imgUrl, text, color = "#ff0000", bgUrl = null) {
@@ -483,7 +821,7 @@
             }
             
             cutin.classList.add('active');
-            setTimeout(() => { cutin.classList.remove('active'); }, 1800);
+            setTimeout(() => { cutin.classList.remove('active'); }, 900);
         }
         
         function spawnRobot(summoner) {
@@ -510,11 +848,35 @@
         let icebergs = []; // { x, y, isHome, framesLeft, melting }
 
         function spawnIceberg(isHome) {
-            // Middle of the goal of the team that summoned it (defensive)
-            let gx = isHome ? 40 : canvas.width - 40;
-            let gy = canvas.height / 2;
-            icebergs.push({ x: gx, y: gy, isHome: isHome, framesLeft: 15 * 60, melting: false }); // ~15s at 60fps
+            // Posição aleatória na área do gol (defensiva)
+            // ~3x largura de um jogador (raio jogador ~7 → iceberg half-width ~22)
+            let halfW = 22, halfH = 28;
+            let gx = isHome
+                ? (18 + Math.random() * 40)   // área esquerda
+                : (canvas.width - 18 - Math.random() * 40);
+            let gy = canvas.height/2 - 55 + Math.random() * 110;
+            icebergs.push({ x: gx, y: gy, isHome: isHome, framesLeft: 15 * 60, melting: false, halfW, halfH });
             spawnVFX(gx, gy, '#80DEEA', 60);
+        }
+
+        function icebergBlocks(x, y, ib) {
+            if (!ib || ib.framesLeft <= 0) return false;
+            return Math.abs(x - ib.x) < ib.halfW && Math.abs(y - ib.y) < ib.halfH;
+        }
+
+        function pushOutOfIceberg(ent, ib) {
+            // Empurra entidade para fora do iceberg
+            let dx = ent.x - ib.x, dy = ent.y - ib.y;
+            if (Math.abs(dx) < 0.01 && Math.abs(dy) < 0.01) dx = 1;
+            let len = Math.hypot(dx, dy) || 1;
+            let nx = dx / len, ny = dy / len;
+            // Coloca na borda
+            let edgeX = ib.halfW + 2, edgeY = ib.halfH + 2;
+            if (Math.abs(dx / edgeX) > Math.abs(dy / edgeY)) {
+                ent.x = ib.x + Math.sign(dx || 1) * edgeX;
+            } else {
+                ent.y = ib.y + Math.sign(dy || 1) * edgeY;
+            }
         }
 
         let clubData = { name: "Meu Time FC", color: "#2196F3", secondaryColor: "#FFD700", icon: "⭐", stats: { w: 0, d: 0, l: 0 }, fans: 120, trophies: [] };
@@ -668,17 +1030,114 @@
             { id: 235, name: "Faustão no prime", pos: "VOL", ovr: 91, vel: 80, dri: 78, chu: 70, pas: 88, def: 92, fin: 65, photo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQQMk9Sc3O6oX_mVGvuSW3hZdt3twsAK3vV5pFqeK8Hzg&s=10" },
             { id: 236, name: "Jeff", pos: "ATA", ovr: 96, vel: 94, dri: 96, chu: 97, pas: 88, def: 42, fin: 98, photo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ3RA_HZVj8QwCtJlkdw9j-j0Pw-XD--mqZtEOuu1gw9A&s=10" },
             { id: 237, name: "Sim, lucas, assisto", pos: "MEI", ovr: 94, vel: 88, dri: 92, chu: 85, pas: 94, def: 70, fin: 82, photo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQj11iHxIYNCdjJvJBE4n3wd44zUSRXtnms432giZsolg&s=10" },
-            { id: 238, name: "BackRooms", pos: "ZAG", ovr: 93, vel: 75, dri: 65, chu: 55, pas: 72, def: 98, fin: 42, photo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQrIdX01gmGFTAzLNXX0jdK38m0O0LTggAhBXxFB6JRaA&s=10" },
+            { id: 238, name: "Backrooms", pos: "ZAG", ovr: 93, vel: 75, dri: 65, chu: 55, pas: 72, def: 98, fin: 42, photo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQrIdX01gmGFTAzLNXX0jdK38m0O0LTggAhBXxFB6JRaA&s=10" },
             { id: 239, name: "", pos: "LAT", ovr: 92, vel: 96, dri: 90, chu: 78, pas: 88, def: 90, fin: 72, photo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSGsPTioyUNXhKF_HWOWqNhES6rOQb3p2DLzmNPBxfZiw&s=10" },
-            // Místico (100+) — apenas Iberê, The World (acima) e Titanic
-            { id: 250, name: "Titanic", pos: "GOL", ovr: 101, vel: 55, dri: 40, chu: 70, pas: 75, def: 99, fin: 25, photo: "https://cdn-icons-png.flaticon.com/512/2972/2972185.png" }
+            // Místico (100+) — Iberê, The World (acima), Titanic, Leviathan
+            { id: 250, name: "Titanic", pos: "GOL", ovr: 101, vel: 55, dri: 40, chu: 70, pas: 75, def: 99, fin: 25, photo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTV0G_-vTi1XXMsyvgTQFh07sqVjuE9WvPZcl4BoxsJRw&s=10" },
+            { id: 251, name: "Leviathan", pos: "ZAG", ovr: 103, vel: 88, dri: 70, chu: 85, pas: 80, def: 99, fin: 55, photo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTDdZD8RDFySrJkKUEseLPaoKEE01hNve3csKLzpzseGQ&s" },
+            // Ouro especial: Home das invocação (potencial até 100~110)
+            { id: 252, name: "Home das invocação", pos: "MEI", ovr: 84, vel: 78, dri: 82, chu: 75, pas: 88, def: 70, fin: 72, photo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSbr_xQNUmef38QsDzP1ULTSqlDBWsPNg7twZ-SQ0BPpQ&s=10", specialPotential: true },
+            // Divino (somente via Ultra + condição)
+            { id: 253, name: "Mahoraga", pos: "VOL", ovr: 210, vel: 99, dri: 25, chu: 95, pas: 90, def: 99, fin: 90, photo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTTDTFCBZ_QUOzaVZsd2NTrjBrQejkJbmVODD2d0oYrpw&s=10", noTrain: true, isDivine: true }
         ].map(p => {
-            let pot = Math.floor(Math.random() * 20) + 5;
-            return { ...p, potential: pot, maxPotential: pot };
+            // Potencial base só como fallback — o real é rolado em rollPotential() a cada cópia/pack
+            return { ...p, potential: 0, maxPotential: 0 };
         });
+
+        // Rola potencial com alta variabilidade + jackpot raro (mais comum em OVR baixo)
+        function rollPotential(ovr, flags = {}) {
+            if (flags.noTrain) return 0;
+            if (flags.specialPotential) {
+                // Home das invocação: garante chegar a 100, teto ~110-115
+                return Math.max(100 - ovr, 16) + Math.floor(Math.random() * 16);
+            }
+            let pot;
+            if (ovr < 70) {
+                pot = Math.floor(Math.random() * 35) + 12; // 12-46
+            } else if (ovr < 80) {
+                pot = Math.floor(Math.random() * 28) + 10; // 10-37
+            } else if (ovr < 90) {
+                pot = Math.floor(Math.random() * 22) + 8;  // 8-29
+            } else if (ovr < 100) {
+                // Lendas (ex: MJ 97): pode ir de 6 até 28 — permite chegar em 110+
+                pot = Math.floor(Math.random() * 23) + 6;  // 6-28
+            } else {
+                pot = Math.floor(Math.random() * 12) + 3;  // 3-14
+            }
+            // Jackpot: chance menor quanto maior o OVR
+            // bronze ~8%, prata ~5%, ouro ~3%, lenda ~1.5%, místico ~0.5%
+            let jackpotChance = ovr < 70 ? 0.08 : (ovr < 80 ? 0.05 : (ovr < 90 ? 0.03 : (ovr < 100 ? 0.015 : 0.005)));
+            if (Math.random() < jackpotChance) {
+                // Potencial absurdo: 55-90 (ex: 65 → ~120-155)
+                pot = Math.floor(Math.random() * 36) + 55;
+            }
+            return pot;
+        }
+
+        function applyRolledPotential(p) {
+            let pot = rollPotential(p.ovr, { noTrain: p.noTrain, specialPotential: p.specialPotential });
+            p.potential = pot;
+            p.maxPotential = pot;
+            return p;
+        }
 
         let startingXI = [], bench = [], coins = 200, playerIdCounter = 0;
         let selectedPlayerInfo = null, playerPending = null;
+
+        // ===== TOTEM DA UNIÃO =====
+        // Edite esta tabela à vontade. "a" e "b" são nomes EXATOS dos jogadores.
+        // "result" define o jogador gerado (stats base; potencial é rolado do zero na fusão).
+        // completed: true se o jogador já descobriu a receita (persistido no save).
+        let totemUnlocked = false;
+        let completedRecipes = {}; // id -> true
+        let fuseSlotA = null; // { uniqueId, list:'bench', index }
+        let fuseSlotB = null;
+
+        const TOTEM_UNLOCK_COST = 2500;
+        const TOTEM_FUSE_COST = 100;
+
+        /**
+         * LIVRO DE RECEITAS — fácil de editar!
+         * - id: identificador único da receita
+         * - a / b: nomes dos ingredientes (ordem não importa na fusão)
+         * - result: dados do jogador criado (sem potential — é rolado na hora)
+         */
+        const TOTEM_RECIPES = [
+            {
+                id: "r1",
+                a: "Hamburguer básico",
+                b: "Helicóptero de Combate",
+                result: { name: "Helicóptero guloso", pos: "MEI", ovr: 80, vel: 82, dri: 80, chu: 73, pas: 82, def: 62, fin: 70, photo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS908jQkeIRbJ-XRNR-8uwiefyZQfhxCUZJiY0pWPA1rw&s" }
+            },
+            {
+                id: "r2",
+                a: "Michael Jackson",
+                b: "Jeff",
+                result: { name: "Diddy", pos: "ATA", ovr: 99, vel: 97, dri: 99, chu: 96, pas: 88, def: 35, fin: 99, photo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRToj_0JaJB0s8PO5jmX3-XpeifknuPwsrWEwLTV2lvhg&s=10" }
+            },
+            {
+                id: "r3",
+                a: "Vasco",
+                b: "Cadeira Gamer",
+                result: { name: "Cadeira Gamer do Vasco", pos: "ZAG", ovr: 91, vel: 70, dri: 55, chu: 45, pas: 68, def: 96, fin: 35, photo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTRSn4pUVgOq6GUo0qaG669REEFifWq2IzqOGlgrmRZPg&s=10" }
+            },
+            {
+                id: "r4",
+                a: "Venezuela",
+                b: "Café da Tarde",
+                result: { name: "Angola", pos: "MEI", ovr: 95, vel: 82, dri: 90, chu: 87, pas: 97, def: 72, fin: 78, photo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRSQpsb7yOWVwvi_4UL9lccHhy5dXwCMrZieIrW2yFXCg&s" }
+            },
+            {
+                id: "r5",
+                a: "Doutor da Peste Negra",
+                b: "Pastelaria do Rafa",
+                result: { name: "Doutor de Folga", pos: "ZAG", ovr: 88, vel: 52, dri: 40, chu: 35, pas: 50, def: 94, fin: 25, photo: "https://lh3.googleusercontent.com/rd-gg-dl/AAQ_wbEVb2ZEBWmF77DaiWEXYy07JBy-rRkw2azUC6K9bkUGyLGtItVYu13WhDylxhITvIP1Bmdb1nzi47r7lSVVecE-9sHg8Dk-qUifn2XrMcWxkugUhjrztZmxfDFCy0_nojISdMgaqXwHilOX95ZwX38tf2fy7lnoKx3dl9HKRnnOXKTZoygYDcAgtN3jE3vwcZ3QA9eiEeTYjsN80yJMNMgZ_u4jzPPlgKuJEAkUlKdFOKOLdSHD7bHKzeQmMS4IQjfT2M4PDC0RkgmFtwI59ZTII-mn2e-v_0sQS4SuzweHZ7GlrH0KnDTdEvKb1lrKnjwkeNW7QH5BIqp1UrTI6ZcFxJ59uFzQPKzPY3FFmKU-5q2jvdQxd9GuqE5zMpnxOZoRGJBq5uV-JdIf_eVuvke_q6ZpygyW7dlMAdGdbXhYuBMa1BrFSu71pNk0wUu4rONS2L4KjPuAVbogsdLlV8kcni-jdMH6Qji9cRox2rxFkJsQwPNkauDO0MdtmqIAUpAg1en35RMwTk10_K_kCrVxPcb8wAUmiMZ7Ik3ipjwbx0tOSq8lyp4AdCj3wRM7fm37Ao7IVr4YRMR1JILdfzWQgvv9J7M8n2H0MDyEIRfUD5X0ESwzYbIWJXDpcsZ5cfbvQ527ofNEq29keoL9inGxrtAdcCVs0n3n3x_I43wy9XC2B1jP3U9Ecw2b0qZIP2P8QtOjWY24jAdlYPRNxEQoS54f3MKfTRFhfBhfrpKExicl0xdG__X603KZ3g6fiCvU_h0ZEdSVb5VlCfeKC8dtVsUWpi0E8WM3lP7WFdJlPt6Bz4BMCb4Sci0QbJxdH0Ja6yQ1YtgCLEWeZ3xgM0dRJqUrRQ8JtKB-zGYWi-hfhKGBfpgs4PR6SDyLd5pksRzDW2cqknyQ7z8lnB0cBqqsiets4yJ249-4nEqXg564z-LYAT_rxCydnyGj-Y28lbwxaDmu-DQwL4LYriakPU-5CVSOqfSgdZTZmJPknlmJjSbh1yw5bp4SDCK6EoXFjxDQkUAN85zFydrBW38v6nSjBblc0ChzIWW-LoJk5XcdHrn5GJswTTI_RHIUybrU8auu1GazoNL8C5nc121TkfXNP_NGACX_8iROLVGPJP4-oP9KPvsGbWqUD-sFIplXCfFn53IuY2PiLfyg8xJ5j5plzJbMFqT5tSwYtbRl9xvaYlXA2VlA5mAJkJ4P4mlqbcup-p721ui6cHUihoHv5qmpaiDbCjxgBIxB_gOPjdT1WC2x3tkNYdmiuDjpn0iTqxmTgEUQ4_OPwHNjvarx-w6wHmZTGs-1qR0efuY=s1024-rj" }
+            },
+            // Adicione mais receitas abaixo neste formato:
+            // { id: "r6", a: "Nome1", b: "Nome2", result: { name: "...", pos: "ATA", ovr: 85, vel: 80, dri: 80, chu: 80, pas: 80, def: 50, fin: 85, photo: "URL" } },
+        ];
+        // ===== FIM TOTEM (receitas) =====
+
 
         function generateRandomStats(baseOvr) {
             let vary = () => Math.floor(baseOvr + (Math.random() * 10 - 5));
@@ -691,13 +1150,13 @@
             if (isGk) { stats.def = ovr + 10; stats.fin = 20; stats.vel = 50; }
             let pos = isGk ? "GOL" : ["ZAG", "LAT", "VOL", "MEI", "ATA"][Math.floor(Math.random()*5)];
             let nomes = ["Juninho", "Randola", "Carlos", "Six Sevenaldo", "Gordo", "Claúdio", "Sillva", "Tenório", "Fudano de tal"];
-            let pot = Math.floor(Math.random() * 26) + 5;
-            return { 
+            let p = { 
                 name: nomes[Math.floor(Math.random()*nomes.length)], pos: pos, ovr: ovr, ...stats, 
                 offenseBias: (Math.random() - 0.5) * 80, defenseBias: (Math.random() - 0.5) * 60,
-                photo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSGsPTioyUNXhKF_HWOWqNhES6rOQb3p2DLzmNPBxfZiw&s=10",
-                potential: pot, maxPotential: pot
+                photo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSGsPTioyUNXhKF_HWOWqNhES6rOQb3p2DLzmNPBxfZiw&s=10"
             };
+            applyRolledPotential(p);
+            return p;
         }
 
         function trainSelectedPlayer() {
@@ -706,13 +1165,28 @@
             let list = selectedPlayerInfo.listType === 'starting' ? startingXI : bench;
             let p = list[selectedPlayerInfo.index];
             
+            if (p.noTrain || p.name === "Mahoraga") {
+                notify("❌ Mahoraga não pode ser treinado. Ele já é absoluto.", "#ff4444");
+                return;
+            }
+            
             let customCost = getTrainCost(p);
             if (coins < customCost) { notify(`❌ Moedas insuficientes para treinar! (Custa ${customCost}🪙)`, "#ff4444"); return; }
             if (!p.potential || p.potential <= 0) { notify(`❌ ${p.name} já atingiu seu potencial máximo!`, "#ff4444"); return; }
             
             coins -= customCost;
             
-            let pGain = Math.max(1, Math.ceil((p.maxPotential || p.potential) * 0.25));
+            // Cartas fracas crescem mais por treino
+            let baseFrac = 0.25;
+            if (p.ovr < 70) baseFrac = 0.40;
+            else if (p.ovr < 80) baseFrac = 0.32;
+            else if (p.ovr < 90) baseFrac = 0.28;
+            
+            let pGain = Math.max(1, Math.ceil((p.maxPotential || p.potential) * baseFrac));
+            // Bônus extra aleatório para OVR baixo (às vezes "explode")
+            if (p.ovr < 75 && Math.random() < 0.25) {
+                pGain += Math.floor(Math.random() * 3) + 1;
+            }
             if (pGain > p.potential) pGain = p.potential; 
             
             p.potential -= pGain;
@@ -743,8 +1217,12 @@
         function sellSelectedPlayer() {
             if (!selectedPlayerInfo) { notify("⚠️ Selecione um jogador (clique na carta) para vender!", "#ff9800"); return; }
             if (isPlaying) { notify("⚠️ Não é possível vender durante a partida!", "#ff4444"); return; }
+            if (selectedPlayerInfo.listType === 'starting') {
+                notify("❌ Não é possível vender titulares! Tire o jogador para o banco primeiro.", "#ff4444");
+                return;
+            }
             
-            let list = selectedPlayerInfo.listType === 'starting' ? startingXI : bench;
+            let list = bench;
             let p = list[selectedPlayerInfo.index];
             let sellValue = Math.floor(getTrainCost(p) * 0.5);
             
@@ -767,13 +1245,12 @@
             
             let stats = generateRandomStats(ovr);
             if (pos === "GOL") { stats.def = ovr + 10; stats.fin = 20; stats.vel = 50; }
-            let pot = Math.floor(Math.random() * 26) + 5;
-
             let customP = {
                 name: nome, pos: pos, ovr: ovr, ...stats, 
                 offenseBias: (Math.random() - 0.5) * 80, defenseBias: (Math.random() - 0.5) * 60,
-                photo: foto, potential: pot, maxPotential: pot, uniqueId: ++playerIdCounter
+                photo: foto, uniqueId: ++playerIdCounter
             };
+            applyRolledPotential(customP);
 
             bench.push(customP);
             notify(`🎉 ${nome} se juntou ao time e está no banco!`, "#00E676");
@@ -790,7 +1267,8 @@
         const packOdds = {
             'comum': { cost: 50, ranges: [{rarity: 'bronze', chance: 0.75}, {rarity: 'prata', chance: 0.15}, {rarity: 'ouro', chance: 0.09}, {rarity: 'lenda', chance: 0.01}] },
             'raro': { cost: 150, ranges: [{rarity: 'bronze', chance: 0.15}, {rarity: 'prata', chance: 0.65}, {rarity: 'ouro', chance: 0.15}, {rarity: 'lenda', chance: 0.05}] },
-            'lenda': { cost: 400, ranges: [{rarity: 'bronze', chance: 0.0}, {rarity: 'prata', chance: 0.15}, {rarity: 'ouro', chance: 0.55}, {rarity: 'lenda', chance: 0.29}, {rarity: 'mistico', chance: 0.01}] }
+            'lenda': { cost: 400, ranges: [{rarity: 'bronze', chance: 0.0}, {rarity: 'prata', chance: 0.15}, {rarity: 'ouro', chance: 0.55}, {rarity: 'lenda', chance: 0.29}, {rarity: 'mistico', chance: 0.01}] },
+            'ultra': { cost: 2000, ranges: [{rarity: 'ouro', chance: 0.30}, {rarity: 'lenda', chance: 0.65}, {rarity: 'mistico', chance: 0.05}] }
         };
 
         function getOvrRange(rarity) {
@@ -803,26 +1281,61 @@
             }
         }
 
+        function hasMegumiAt100() {
+            let all = startingXI.concat(bench);
+            return all.some(p => p.name === "Home das invocação" && p.ovr >= 100);
+        }
+
+        function playMythicReveal(player, thenFn) {
+            let overlay = document.getElementById('mythicReveal');
+            let img = document.getElementById('mythicRevealImg');
+            let label = document.getElementById('mythicRevealLabel');
+            let isDivine = player.isDivine || player.name === "Mahoraga" || player.ovr >= 200;
+            overlay.classList.toggle('divine-reveal', isDivine);
+            img.src = player.photo || '';
+            label.innerText = isDivine ? "⚜️ DIVINO" : "🔥 MÍSTICO";
+            overlay.classList.add('active');
+            overlay.classList.remove('show-img');
+            // Tela preta ~1.2s, depois imagem
+            setTimeout(() => overlay.classList.add('show-img'), 1100);
+            setTimeout(() => {
+                overlay.classList.remove('active', 'show-img');
+                if (thenFn) thenFn();
+            }, 3200);
+        }
+
         function buyPack(type) {
             if (isPlaying) { notify("⚠️ Você não pode abrir pacotes durante a partida!", "#ff4444"); return; }
             let pData = packOdds[type];
-            if (coins >= pData.cost) {
-                coins -= pData.cost; updateUI();
-                let rand = Math.random(), accumulated = 0, selectedRarity = 'bronze';
-                for (let r of pData.ranges) { accumulated += r.chance; if (rand <= accumulated) { selectedRarity = r.rarity; break; } }
-                
-                let range = getOvrRange(selectedRarity);
-                let possible = starPlayers.filter(p => p.ovr >= range.min && p.ovr <= range.max);
-                
-                if (possible.length > 0 && Math.random() < 0.85) {
-                    playerPending = { ...possible[Math.floor(Math.random() * possible.length)], offenseBias: (Math.random()-0.5)*80, defenseBias: (Math.random()-0.5)*60 };
-                } else {
-                    let targetOvr = Math.floor(Math.random() * (range.max - range.min + 1)) + range.min;
-                    playerPending = createGenericPlayer(Math.random() < 0.1); playerPending.ovr = targetOvr; Object.assign(playerPending, generateRandomStats(targetOvr));
-                }
-                playerPending.uniqueId = ++playerIdCounter;
+            if (coins < pData.cost) { notify("❌ Moedas insuficientes!", "#ff4444"); return; }
+            coins -= pData.cost; updateUI();
+
+            // Ultra: 0.5% Divino (Mahoraga) se tiver Home das invocação OVR 100+
+            if (type === 'ultra' && hasMegumiAt100() && Math.random() < 0.005) {
+                let base = starPlayers.find(sp => sp.name === "Mahoraga");
+                playerPending = { ...base, offenseBias: (Math.random()-0.5)*80, defenseBias: (Math.random()-0.5)*60, uniqueId: ++playerIdCounter, potential: 0, maxPotential: 0, noTrain: true, isDivine: true, baseDri: 25 };
                 showPackAnimation();
+                return;
             }
+
+            let rand = Math.random(), accumulated = 0, selectedRarity = 'bronze';
+            for (let r of pData.ranges) { accumulated += r.chance; if (rand <= accumulated) { selectedRarity = r.rarity; break; } }
+            
+            let range = getOvrRange(selectedRarity);
+            // Não sortear Mahoraga no pool normal de místico
+            let possible = starPlayers.filter(p => p.ovr >= range.min && p.ovr <= range.max && !p.isDivine && p.name !== "Mahoraga");
+            
+            if (possible.length > 0 && Math.random() < 0.85) {
+                let picked = possible[Math.floor(Math.random() * possible.length)];
+                playerPending = { ...picked, offenseBias: (Math.random()-0.5)*80, defenseBias: (Math.random()-0.5)*60 };
+                applyRolledPotential(playerPending);
+            } else {
+                let targetOvr = Math.floor(Math.random() * (range.max - range.min + 1)) + range.min;
+                playerPending = createGenericPlayer(Math.random() < 0.1); playerPending.ovr = targetOvr; Object.assign(playerPending, generateRandomStats(targetOvr));
+                applyRolledPotential(playerPending);
+            }
+            playerPending.uniqueId = ++playerIdCounter;
+            showPackAnimation();
         }
 
         function showPackAnimation() {
@@ -830,24 +1343,316 @@
             modal.style.display = 'flex'; icon.style.display = 'block'; cardView.style.display = 'none'; btn.style.display = 'none';
             
             icon.onclick = () => {
-                icon.style.display = 'none'; 
-                let isPremium = playerPending.ovr >= 80;
-                cardView.innerHTML = renderPlayerCard(playerPending, 'none', 0, isPremium);
-                cardView.style.display = 'block';
-                for(let i=0; i<20; i++){
-                    let spk = document.createElement('div');
-                    spk.style.position = 'absolute'; spk.style.background = '#FFD700'; spk.style.width = '5px'; spk.style.height = '5px';
-                    spk.style.left = (Math.random() * 100) + '%'; spk.style.top = (Math.random() * 100) + '%'; spk.style.borderRadius = '50%';
-                    cardView.appendChild(spk);
-                    setTimeout(() => spk.remove(), 1500);
+                icon.style.display = 'none';
+                let isMythic = playerPending.ovr >= 100 || playerPending.isDivine;
+                let revealCard = () => {
+                    let isPremium = playerPending.ovr >= 80;
+                    cardView.innerHTML = renderPlayerCard(playerPending, 'none', 0, isPremium);
+                    cardView.style.display = 'block';
+                    for(let i=0; i<20; i++){
+                        let spk = document.createElement('div');
+                        spk.style.position = 'absolute'; spk.style.background = playerPending.isDivine ? '#fbbf24' : '#FFD700'; spk.style.width = '5px'; spk.style.height = '5px';
+                        spk.style.left = (Math.random() * 100) + '%'; spk.style.top = (Math.random() * 100) + '%'; spk.style.borderRadius = '50%';
+                        cardView.appendChild(spk);
+                        setTimeout(() => spk.remove(), 1500);
+                    }
+                    setTimeout(() => { btn.style.display = 'block'; }, isPremium ? 2000 : 600);
+                };
+                if (isMythic) {
+                    // Fecha modal temporariamente, faz reveal preto, depois mostra carta
+                    modal.style.display = 'none';
+                    playMythicReveal(playerPending, () => {
+                        modal.style.display = 'flex';
+                        revealCard();
+                    });
+                } else {
+                    revealCard();
                 }
-                setTimeout(() => { btn.style.display = 'block'; }, isPremium ? 2000 : 600);
             };
         }
         function closePackModal() {
             document.getElementById('packModal').style.display = 'none';
             bench.push(playerPending); logEvent(`🎁 Você guardou ${playerPending.name} no banco.`);
             playerPending = null; updateUI();
+        }
+
+        // ===== TOTEM FUNCTIONS =====
+        function renderTotemBench() {
+            let box = document.getElementById('totemBenchList');
+            if (!box) return;
+            if (!bench.length) {
+                box.innerHTML = '<span style="color:#64748b;font-size:0.85rem;">Banco vazio.</span>';
+                return;
+            }
+            box.innerHTML = bench.map((p, i) => {
+                let sel = (fuseSlotA && fuseSlotA.uniqueId === p.uniqueId) || (fuseSlotB && fuseSlotB.uniqueId === p.uniqueId);
+                return `<button type="button" onclick="pickForFusion(${i})" style="padding:6px 10px;font-size:0.78rem;border-radius:8px;${sel ? 'background:#fbbf24;color:#000;box-shadow:0 0 8px #fbbf24;' : 'background:#1e293b;'}">${p.name} <small>(${p.ovr})</small></button>`;
+            }).join('');
+        }
+
+        function pickForFusion(index) {
+            let player = bench[index];
+            if (!player) return;
+            tryAssignFusionSlot(player, index);
+            renderTotemBench();
+        }
+
+        function openTotemModal() {
+            fuseSlotA = null; fuseSlotB = null;
+            document.getElementById('fuseSlotA').className = 'fuse-slot';
+            document.getElementById('fuseSlotA').innerText = 'Slot A';
+            document.getElementById('fuseSlotB').className = 'fuse-slot';
+            document.getElementById('fuseSlotB').innerText = 'Slot B';
+            if (totemUnlocked) {
+                document.getElementById('totemLockedView').style.display = 'none';
+                document.getElementById('totemOpenView').style.display = 'block';
+                renderRecipeBook();
+                renderTotemBench();
+            } else {
+                document.getElementById('totemLockedView').style.display = 'block';
+                document.getElementById('totemOpenView').style.display = 'none';
+            }
+            document.getElementById('totemModal').style.display = 'flex';
+        }
+
+        function unlockTotem() {
+            if (totemUnlocked) return;
+            if (coins < TOTEM_UNLOCK_COST) {
+                notify(`❌ Precisa de ${TOTEM_UNLOCK_COST}🪙 para despertar o Totem!`, "#ff4444");
+                return;
+            }
+            coins -= TOTEM_UNLOCK_COST;
+            totemUnlocked = true;
+            notify("🗿 O Totem da União desperta! O livro de receitas está aberto.", "#fbbf24");
+            updateUI();
+            openTotemModal();
+        }
+
+        function renderRecipeBook() {
+            let box = document.getElementById('recipeBookList');
+            if (!TOTEM_RECIPES.length) {
+                box.innerHTML = '<div class="recipe-item r-unk">Nenhuma receita cadastrada ainda.</div>';
+                return;
+            }
+            box.innerHTML = TOTEM_RECIPES.map(r => {
+                let known = !!completedRecipes[r.id];
+                if (known) {
+                    return `<div class="recipe-item known"><span class="r-result">${r.result.name}</span> ← <b>${r.a}</b> + <b>${r.b}</b></div>`;
+                }
+                // Mostra só UM dos ingredientes (sempre o "a" até descobrir)
+                return `<div class="recipe-item">??? ← <b>${r.a}</b> + <span class="r-unk">???</span></div>`;
+            }).join('');
+        }
+
+        function tryAssignFusionSlot(player, index) {
+            // Só banco
+            if (!player) return;
+            if (fuseSlotA && fuseSlotA.uniqueId === player.uniqueId) { clearFusionSlots(); return; }
+            if (fuseSlotB && fuseSlotB.uniqueId === player.uniqueId) { clearFusionSlots(); return; }
+            let info = { uniqueId: player.uniqueId, index, name: player.name, ovr: player.ovr };
+            if (!fuseSlotA) {
+                fuseSlotA = info;
+                document.getElementById('fuseSlotA').className = 'fuse-slot has';
+                document.getElementById('fuseSlotA').innerText = `${player.name} (${player.ovr})`;
+            } else if (!fuseSlotB) {
+                fuseSlotB = info;
+                document.getElementById('fuseSlotB').className = 'fuse-slot has';
+                document.getElementById('fuseSlotB').innerText = `${player.name} (${player.ovr})`;
+            } else {
+                // substitui B
+                fuseSlotB = info;
+                document.getElementById('fuseSlotB').innerText = `${player.name} (${player.ovr})`;
+            }
+        }
+
+        function clearFusionSlots() {
+            fuseSlotA = null; fuseSlotB = null;
+            let a = document.getElementById('fuseSlotA'), b = document.getElementById('fuseSlotB');
+            if (a) { a.className = 'fuse-slot'; a.innerText = 'Slot A'; }
+            if (b) { b.className = 'fuse-slot'; b.innerText = 'Slot B'; }
+            renderTotemBench();
+        }
+
+        function findRecipe(nameA, nameB) {
+            for (let r of TOTEM_RECIPES) {
+                if ((r.a === nameA && r.b === nameB) || (r.a === nameB && r.b === nameA)) return r;
+            }
+            return null;
+        }
+
+        function confirmFusion() {
+            if (isPlaying) { notify("⚠️ Não dá para fundir durante a partida!", "#ff4444"); return; }
+            if (!totemUnlocked) { notify("⚠️ Totem ainda selado!", "#ff4444"); return; }
+            if (!fuseSlotA || !fuseSlotB) { notify("⚠️ Selecione 2 jogadores do banco!", "#ff9800"); return; }
+            if (coins < TOTEM_FUSE_COST) { notify(`❌ Precisa de ${TOTEM_FUSE_COST}🪙!`, "#ff4444"); return; }
+
+            // Resolve índices atuais no banco (podem ter mudado)
+            let ia = bench.findIndex(p => p.uniqueId === fuseSlotA.uniqueId);
+            let ib = bench.findIndex(p => p.uniqueId === fuseSlotB.uniqueId);
+            if (ia < 0 || ib < 0) { notify("❌ Jogador não está mais no banco!", "#ff4444"); clearFusionSlots(); return; }
+            if (ia === ib) { notify("❌ Selecione dois jogadores diferentes!", "#ff4444"); return; }
+
+            let pA = bench[ia], pB = bench[ib];
+            let recipe = findRecipe(pA.name, pB.name);
+            if (!recipe) {
+                // NÃO gasta moedas em falha
+                notify("❌ Esses dois não formam nenhuma receita conhecida...", "#ff4444");
+                return;
+            }
+
+            coins -= TOTEM_FUSE_COST;
+            // Remove do banco (maior índice primeiro)
+            let idxs = [ia, ib].sort((a,b) => b - a);
+            idxs.forEach(i => bench.splice(i, 1));
+
+            let result = {
+                ...recipe.result,
+                offenseBias: (Math.random() - 0.5) * 80,
+                defenseBias: (Math.random() - 0.5) * 60,
+                uniqueId: ++playerIdCounter
+            };
+            applyRolledPotential(result); // potencial resetado / aleatório
+            bench.push(result);
+            completedRecipes[recipe.id] = true;
+            clearFusionSlots();
+            notify(`✨ Fusão completa! ${pA.name} + ${pB.name} → ${result.name} (OVR ${result.ovr})`, "#fbbf24");
+            updateUI();
+            renderRecipeBook();
+            renderTotemBench();
+        }
+
+        // ===== SAVE / LOAD (código "criptografado") =====
+        // Save code: JSON -> UTF-8 bytes -> XOR -> Base64 (seguro, sem corromper)
+        const SAVE_KEY = "FUTMGR_v2_K9x!";
+
+        function utf8ToBytes(str) {
+            return Array.from(new TextEncoder().encode(str));
+        }
+        function bytesToUtf8(bytes) {
+            return new TextDecoder().decode(new Uint8Array(bytes));
+        }
+        function xorBytes(bytes, key) {
+            let kb = utf8ToBytes(key);
+            return bytes.map((b, i) => b ^ kb[i % kb.length]);
+        }
+        function bytesToBase64(bytes) {
+            let bin = "";
+            for (let i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i]);
+            return btoa(bin);
+        }
+        function base64ToBytes(b64) {
+            let bin = atob(b64);
+            let out = new Array(bin.length);
+            for (let i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);
+            return out;
+        }
+
+        function toSaveCode(obj) {
+            let json = JSON.stringify(obj);
+            let bytes = xorBytes(utf8ToBytes(json), SAVE_KEY);
+            let b64 = bytesToBase64(bytes);
+            // Só separa visualmente com "-" (NÃO é caractere do base64 padrão A-Za-z0-9+/)
+            let pretty = b64.match(/.{1,40}/g).join("-");
+            return "FM2$" + pretty + "$END";
+        }
+
+        function fromSaveCode(code) {
+            code = (code || "").replace(/\s+/g, "").trim();
+            // Aceita formato novo (FM2$) e tenta o antigo se necessário
+            if (code.startsWith("FM2$") && code.endsWith("$END")) {
+                let b64 = code.slice(4, -4).replace(/-/g, "");
+                // base64 pode ter + e / — não remover esses
+                let bytes = xorBytes(base64ToBytes(b64), SAVE_KEY);
+                let json = bytesToUtf8(bytes);
+                return JSON.parse(json);
+            }
+            // Legado FM$ (pode falhar se estava corrompido pelo bug do /)
+            if (code.startsWith("FM$") && code.endsWith("$END")) {
+                throw new Error("Código antigo incompatível — gere um save novo com o botão Salvar");
+            }
+            throw new Error("Formato inválido (precisa começar com FM2$ e terminar com $END)");
+        }
+
+        function serializePlayer(p) {
+            return {
+                name: p.name, pos: p.pos, ovr: p.ovr, vel: p.vel, dri: p.dri, chu: p.chu,
+                pas: p.pas, def: p.def, fin: p.fin, photo: p.photo,
+                potential: p.potential, maxPotential: p.maxPotential,
+                uniqueId: p.uniqueId, noTrain: !!p.noTrain, isDivine: !!p.isDivine,
+                specialPotential: !!p.specialPotential, baseDri: p.baseDri,
+                offenseBias: p.offenseBias, defenseBias: p.defenseBias
+            };
+        }
+
+        function buildSavePayload() {
+            return {
+                v: 1,
+                coins,
+                playerIdCounter,
+                totemUnlocked,
+                completedRecipes: { ...completedRecipes },
+                clubData: JSON.parse(JSON.stringify(clubData)),
+                activeSponsor: JSON.parse(JSON.stringify(activeSponsor)),
+                startingXI: startingXI.map(serializePlayer),
+                bench: bench.map(serializePlayer),
+                strategy: (document.getElementById('teamStrategy') || {}).value || "balanced"
+            };
+        }
+
+        function openSaveModal() {
+            let code = toSaveCode(buildSavePayload());
+            document.getElementById('saveCodeOutput').value = code;
+            document.getElementById('saveModal').style.display = 'flex';
+        }
+
+        function copySaveCode() {
+            let ta = document.getElementById('saveCodeOutput');
+            ta.select();
+            try {
+                navigator.clipboard.writeText(ta.value);
+                notify("📋 Código copiado!", "#4ade80");
+            } catch (e) {
+                notify("Selecione e copie manualmente (Ctrl+C)", "#ff9800");
+            }
+        }
+
+        function openLoadModal() {
+            document.getElementById('loadCodeInput').value = "";
+            document.getElementById('loadModal').style.display = 'flex';
+        }
+
+        function loadFromCode() {
+            let raw = document.getElementById('loadCodeInput').value;
+            try {
+                let data = fromSaveCode(raw);
+                if (!data || data.v !== 1) throw new Error("Versão inválida");
+                coins = data.coins || 0;
+                playerIdCounter = data.playerIdCounter || 1000;
+                totemUnlocked = !!data.totemUnlocked;
+                completedRecipes = data.completedRecipes || {};
+                clubData = data.clubData || clubData;
+                activeSponsor = data.activeSponsor || { name: "", amount: 0, gamesLeft: 0 };
+                startingXI = (data.startingXI || []).map(p => ({ ...p }));
+                bench = (data.bench || []).map(p => ({ ...p }));
+                if (data.strategy && document.getElementById('teamStrategy')) {
+                    document.getElementById('teamStrategy').value = data.strategy;
+                }
+                // sync club UI fields
+                let n = document.getElementById('clubNameInput');
+                if (n) n.value = clubData.name || "";
+                let c1 = document.getElementById('clubColorInput');
+                if (c1) c1.value = clubData.color || "#2196F3";
+                let c2 = document.getElementById('clubSecondaryColorInput');
+                if (c2) c2.value = clubData.secondaryColor || "#FFD700";
+                selectedPlayerInfo = null;
+                document.getElementById('loadModal').style.display = 'none';
+                notify("✅ Progresso carregado com sucesso!", "#4ade80");
+                updateUI();
+            } catch (e) {
+                let msg = (e && e.message) ? e.message : "Código inválido";
+                notify("❌ Não deu pra carregar: " + msg, "#ff4444");
+                console.warn(e);
+            }
         }
 
         function openClubModal() {
@@ -991,7 +1796,15 @@
             simEntities.vfx = [];
             
             // Reseta a marcação de habilidade utilizada para cada partida nova
-            startingXI.forEach(p => { p.abilityUsed = false; p.popActiveFrames = 0; p.popCooldown = 0; });
+            startingXI.forEach(p => {
+                p.abilityUsed = false; p.popActiveFrames = 0; p.popCooldown = 0;
+                p.rageActive = 0; p.adaptTimer = 0; p.showWheel = false;
+                if (p.name === "Mahoraga") {
+                    p.dri = p.baseDri != null ? p.baseDri : 25;
+                    p.pos = "VOL";
+                    p.adaptBase = null;
+                }
+            });
             
             simEntities.homeTeam = setupTeamPositions(startingXI, true);
             
@@ -1007,34 +1820,45 @@
             
             // Chance de personagens custom no elenco inimigo
             // Místicos com habilidades (Iberê, The World, Titanic) = 1% extremamente raro
-            let abilityMythics = starPlayers.filter(sp => sp.ovr >= 100 && (sp.name === "Iberê Thenório" || sp.name === "The World" || sp.name === "Titanic"));
-            let otherStars = starPlayers.filter(sp => sp.ovr < 100);
+            let abilityMythics = starPlayers.filter(sp => sp.ovr >= 100 && !sp.isDivine && (sp.name === "Iberê Thenório" || sp.name === "The World" || sp.name === "Titanic" || sp.name === "Leviathan"));
+            // Nunca inclui divinos (Mahoraga) para evitar spoiler — só se o jogador já desbloqueou
+            let otherStars = starPlayers.filter(sp => sp.ovr < 100 && !sp.isDivine && sp.name !== "Mahoraga");
+            let canSpawnDivine = hasMegumiAt100();
 
+            let enemyDiff = currentEnemyTeam.difficulty || 1;
             let enemyRoster = ["GOL", "ZAG", "ZAG", "LAT", "LAT", "VOL", "VOL", "MEI", "ATA", "ATA", "ATA"].map(role => {
                 let p;
                 let roll = Math.random();
-                // 1% chance de místico com habilidade
-                if (roll < 0.01 && abilityMythics.length > 0) {
+                // Divino inimigo: só se o jogador já tem Home das invocação 100+, e só em diff 4+, chance minúscula
+                if (canSpawnDivine && enemyDiff >= 4 && roll < 0.003 && role === "VOL") {
+                    let base = starPlayers.find(sp => sp.name === "Mahoraga");
+                    if (base) {
+                        p = { ...base, offenseBias: (Math.random()-0.5)*80, defenseBias: (Math.random()-0.5)*60, uniqueId: ++playerIdCounter, abilityUsed: false, baseDri: 25, potential: 0, maxPotential: 0 };
+                    }
+                }
+                // Místicos com habilidade: só em times dificuldade 4+, e 1% de chance
+                if (!p && enemyDiff >= 4 && roll < 0.01 && abilityMythics.length > 0) {
                     let base = abilityMythics[Math.floor(Math.random() * abilityMythics.length)];
-                    // Prefer matching position if possible, else any
                     let samePos = abilityMythics.filter(sp => sp.pos === role);
                     if (samePos.length > 0) base = samePos[Math.floor(Math.random() * samePos.length)];
                     p = { ...base, offenseBias: (Math.random()-0.5)*80, defenseBias: (Math.random()-0.5)*60, uniqueId: ++playerIdCounter, abilityUsed: false };
+                    applyRolledPotential(p);
                 }
-                // ~18% chance de estrela custom (não místico)
-                else if (roll < 0.19 && otherStars.length > 0) {
+                // ~18% chance de estrela custom (não místico / não divino)
+                else if (!p && roll < 0.19 && otherStars.length > 0) {
                     let candidates = otherStars.filter(sp => sp.pos === role);
                     if (candidates.length === 0) candidates = otherStars;
                     let base = candidates[Math.floor(Math.random() * candidates.length)];
                     p = { ...base, offenseBias: (Math.random()-0.5)*80, defenseBias: (Math.random()-0.5)*60, uniqueId: ++playerIdCounter };
-                    // Ajusta OVR levemente para dificuldade
                     p.ovr = Math.max(60, Math.round(p.ovr + enemyBonus * 0.3 + (Math.random()*4 - 2)));
-                } else {
+                    applyRolledPotential(p);
+                } else if (!p) {
                     p = createGenericPlayer(role === "GOL");
                     p.pos = role;
                     p.ovr = Math.max(60, Math.round(myAvgOvr + enemyBonus + (Math.random()*8 - 4)));
                     Object.assign(p, generateRandomStats(p.ovr));
                     p.uniqueId = ++playerIdCounter;
+                    applyRolledPotential(p);
                 }
                 return p;
             });
@@ -1049,7 +1873,8 @@
         function updateSim() {
             if (!isPlaying) return;
             
-            let activeTimeStopper = timeStopFrames > 0 ? timeStopper : null;
+            let activeTimeStopper = (timeStopFrames > 0 && timeStopper) ? timeStopper : null;
+            let timeStopId = activeTimeStopper ? activeTimeStopper.uniqueId : null;
             if (timeStopFrames > 0) timeStopFrames--;
 
             let ball = simEntities.ball;
@@ -1074,20 +1899,20 @@
                     if (ball.x >= canvas.width - 10 && (ball.y < canvas.height/2 - 60 || ball.y > canvas.height/2 + 60)) ball.vx *= -1;
                     
                     if (!ball.isAirborne) {
-                        // Iceberg bloqueia gol
+                        // Iceberg bloqueia bola (colisão com o bloco de gelo)
                         let blockedByIce = false;
                         for (let ib of icebergs) {
                             if (ib.framesLeft <= 0) continue;
-                            // Iceberg do time da casa bloqueia gol no lado esquerdo (x pequeno)
-                            // Iceberg do visitante bloqueia lado direito
-                            let inGoalMouth = false;
-                            if (ib.isHome && ball.x <= 25 && ball.y >= canvas.height/2 - 70 && ball.y <= canvas.height/2 + 70) inGoalMouth = true;
-                            if (!ib.isHome && ball.x >= canvas.width - 25 && ball.y >= canvas.height/2 - 70 && ball.y <= canvas.height/2 + 70) inGoalMouth = true;
-                            if (inGoalMouth) {
-                                // Reflete a bola
-                                ball.vx = -ball.vx * 0.8 || (ib.isHome ? 6 : -6);
-                                ball.vy = (Math.random() - 0.5) * 8;
-                                ball.x = ib.isHome ? 30 : canvas.width - 30;
+                            if (icebergBlocks(ball.x, ball.y, ib)) {
+                                // Reflete
+                                let dx = ball.x - ib.x, dy = ball.y - ib.y;
+                                if (Math.abs(dx) >= Math.abs(dy)) {
+                                    ball.vx = -ball.vx * 0.85 || (dx >= 0 ? 7 : -7);
+                                    ball.x = ib.x + Math.sign(dx || 1) * (ib.halfW + 4);
+                                } else {
+                                    ball.vy = -ball.vy * 0.85 || (dy >= 0 ? 5 : -5);
+                                    ball.y = ib.y + Math.sign(dy || 1) * (ib.halfH + 4);
+                                }
                                 spawnVFX(ball.x, ball.y, '#80DEEA', 25);
                                 blockedByIce = true;
                                 break;
@@ -1100,9 +1925,9 @@
                     }
                 }
             } else {
-                if (ball.owner === activeTimeStopper) {
-                    ball.trail.push({x: ball.x, y: ball.y}); if(ball.trail.length > 10) ball.trail.shift();
-                }
+                // Tempo parado: bola congelada no ar/chão, SEM dono. Só The World se move.
+                ball.owner = null;
+                ball.vx = 0; ball.vy = 0; ball.vz = 0;
             }
 
             let allPlayers = simEntities.homeTeam.concat(simEntities.awayTeam);
@@ -1123,13 +1948,71 @@
             let awayDistances = simEntities.awayTeam.map(p => ({p, d: Math.hypot(p.x - ball.x, p.y - ball.y)})).sort((a,b) => a.d - b.d);
 
             allPlayers.forEach(p => {
-                if (activeTimeStopper && p !== activeTimeStopper) return; // Congelado no tempo
+                if (timeStopId != null && p.uniqueId !== timeStopId) return; // Congelado no tempo
 
                 // Cooldown PRIME Michael Jackson
                 if (p.popCooldown > 0) p.popCooldown--;
                 if (p.popActiveFrames > 0) {
                     p.popActiveFrames--;
                     if (p.popActiveFrames === 0) p.stunText = "";
+                }
+
+                // Leviathan rage
+                if (p.rageActive > 0) {
+                    p.rageActive--;
+                    if (p.rageActive === 0) p.stunText = "";
+                }
+
+                // Mahoraga: Adaptação a cada ~10s + roda visual
+                if (p.name === "Mahoraga" && !activeTimeStopper) {
+                    if (p.adaptTimer === undefined) p.adaptTimer = 0;
+                    if (p.wheelAngle === undefined) p.wheelAngle = 0;
+                    p.adaptTimer++;
+                    p.wheelAngle = (p.wheelAngle + 4) % 360;
+                    p.showWheel = true;
+                    if (p.adaptTimer >= 10 * 60) {
+                        p.adaptTimer = 0;
+                        let homeScore = matchScore.home, awayScore = matchScore.away;
+                        let weLosing = p.isHome ? (homeScore < awayScore) : (awayScore < homeScore);
+                        let weWinning = p.isHome ? (homeScore > awayScore) : (awayScore > homeScore);
+                        // Guarda stats base uma vez
+                        if (!p.adaptBase) {
+                            p.adaptBase = { pos: "VOL", vel: p.vel, fin: p.fin, def: p.def, pas: p.pas };
+                        }
+                        if (weLosing) {
+                            p.pos = "ATA";
+                            p.vel = p.adaptBase.vel + 25;
+                            p.fin = p.adaptBase.fin + 30;
+                            p.def = p.adaptBase.def;
+                            p.pas = p.adaptBase.pas;
+                            p.stunText = "⚔ ATAQUE";
+                        } else if (weWinning) {
+                            p.pos = "ZAG";
+                            p.def = p.adaptBase.def + 30;
+                            p.pas = p.adaptBase.pas + 20;
+                            p.vel = p.adaptBase.vel;
+                            p.fin = p.adaptBase.fin;
+                            p.stunText = "🛡 DEFESA";
+                        } else {
+                            p.pos = "VOL";
+                            p.vel = p.adaptBase.vel;
+                            p.fin = p.adaptBase.fin;
+                            p.def = p.adaptBase.def;
+                            p.pas = p.adaptBase.pas;
+                            p.stunText = "⚖ EQUILÍBRIO";
+                        }
+                        spawnVFX(p.x, p.y, '#fbbf24', 35);
+                    }
+                }
+
+                // Iceberg bloqueia jogadores (exceto Titanic)
+                if (!activeTimeStopper && p.name !== "Titanic") {
+                    for (let ib of icebergs) {
+                        if (ib.framesLeft <= 0) continue;
+                        if (icebergBlocks(p.x, p.y, ib)) {
+                            pushOutOfIceberg(p, ib);
+                        }
+                    }
                 }
 
                 // Lógica de Ativação de Habilidades Especiais Místicas
@@ -1140,33 +2023,56 @@
                         if (p.popCooldown <= 0 && (!p.popActiveFrames || p.popActiveFrames <= 0)) {
                             p.popActiveFrames = 5 * 60; // ~5 segundos
                             p.popCooldown = 20 * 60; // 20s cooldown
-                            activateAbilityCutin(p.photo, "REI DO POP!", "#E91E63");
                             p.stunText = "REI DO POP!";
+                            p.abilityMsgFrames = 150;
                         }
                     }
 
                     if (p.ovr >= 100) {
-                        if (p.abilityCooldown === undefined) p.abilityCooldown = Math.floor(Math.random() * 200) + 100;
+                        if (p.abilityCooldown === undefined) p.abilityCooldown = (p.name === 'The World' ? Math.floor(Math.random() * 60) + 40 : Math.floor(Math.random() * 120) + 60);
                         if (p.abilityCooldown > 0) {
                             p.abilityCooldown--;
                         } else {
                             if (p.name === "Iberê Thenório" && !p.abilityUsed) {
                                 p.abilityUsed = true;
-                                activateAbilityCutin(p.photo, "MANUAL DO MUNDO: ROBÔ JOGADOR!", "#00e676");
+                                p.stunText = "ROBÔ!";
+                                p.abilityMsgFrames = 150;
                                 spawnRobot(p);
                             } else if (p.name === "The World") {
-                                p.abilityCooldown = 1500;
-                                timeStopFrames = 120;
+                                p.abilityCooldown = 600; // ~10s entre usos
+                                timeStopFrames = 180; // ~3s parado
                                 timeStopper = p;
-                                activateAbilityCutin(p.photo, "ZA WARUDO! TEMPO PARADO!", "#ff007f");
+                                p.stunText = "ZA WARUDO!";
+                                // Ninguém fica com a bola — campo congelado, só The World se move
+                                if (ball.owner) {
+                                    ball.owner = null;
+                                }
+                                ball.vx = 0; ball.vy = 0; ball.vz = 0;
+                                p.stunText = "ZA WARUDO!";
+                                p.abilityMsgFrames = 180;
+                                spawnVFX(p.x, p.y, '#ff007f', 50);
+                            } else if (p.name === "Leviathan") {
+                                // Rage / Caça
+                                if (!p.rageActive || p.rageActive <= 0) {
+                                    p.rageActive = 6 * 60; // ~6s
+                                    p.abilityCooldown = 18 * 60;
+                                    p.stunText = "CAÇA!";
+                                    p.abilityMsgFrames = 150;
+                                    spawnVFX(p.x, p.y, '#1e88e5', 40);
+                                }
+                            } else if (p.name === "Mahoraga") {
+                                // Adaptação: roda a cada 10s (visual + swap de posição)
+                                if (p.adaptTimer === undefined) p.adaptTimer = 0;
+                                // Habilidade "ativada" periodicamente via timer abaixo; cooldown curto só pra cutin
+                                p.abilityCooldown = 10 * 60;
                             } else if (p.name === "Titanic") {
                                 // Iceberg: só se não houver iceberg ativo do mesmo time
                                 let hasIce = icebergs.some(ib => ib.isHome === p.isHome && ib.framesLeft > 0);
                                 if (!hasIce) {
                                     p.abilityCooldown = 10 * 60; // 10s cooldown após derreter (aplicado no derretimento também)
                                     spawnIceberg(p.isHome);
-                                    activateAbilityCutin(p.photo, "ICEBERG TITÂNICO!", "#00BCD4");
                                     p.stunText = "ICEBERG!";
+                                    p.abilityMsgFrames = 150;
                                 } else {
                                     p.abilityCooldown = 30; // tenta de novo em breve
                                 }
@@ -1175,7 +2081,11 @@
                     }
                 }
 
-                if (p.cooldown > 0) p.cooldown--; else p.stunText = "";
+                if (p.abilityMsgFrames > 0) p.abilityMsgFrames--;
+                if (p.cooldown > 0) p.cooldown--;
+                else if (!(p.abilityMsgFrames > 0) && !(p.rageActive > 0) && !(p.popActiveFrames > 0) && p.name !== "Mahoraga") {
+                    p.stunText = "";
+                }
                 if (p.receiveCooldown > 0) p.receiveCooldown--;
                 let dxBall = ball.x - p.x, dyBall = ball.y - p.y, distBall = Math.sqrt(dxBall*dxBall + dyBall*dyBall);
                 let goalieImmunity = ball.owner && ball.owner.pos === "GOL";
@@ -1201,7 +2111,8 @@
 
                 if (distBall < 14 && p.cooldown === 0 && (!ball.owner || ball.owner.isHome !== p.isHome) && !goalieImmunity && !ball.isAirborne) {
                     let success = p.pos === "GOL" ? true : (!ball.owner ? true : Math.random() < (0.5 + ((p.def - ball.owner.dri) * 0.008)));
-                    if (activeTimeStopper === p) success = true;
+                    // Durante tempo parado ninguém pega a bola (nem The World)
+                    if (timeStopId != null) success = false;
                     // PRIME Michael Jackson (Rei do Pop): 100% de drible contra não-goleiros
                     if (ball.owner && ball.owner.popActiveFrames > 0 && p.pos !== "GOL") {
                         success = false;
@@ -1210,7 +2121,15 @@
                     if (success) {
                         let wasSteal = ball.owner != null;
                         spawnVFX(p.x, p.y, 'rgba(255, 255, 255, 0.5)', 20);
-                        if (wasSteal) ball.owner.cooldown = 40; 
+                        if (wasSteal) {
+                            // Mahoraga: cada vez que é driblado, +3 dri (reseta no fim da partida)
+                            if (ball.owner.name === "Mahoraga") {
+                                ball.owner.dri = (ball.owner.dri || 25) + 3;
+                                ball.owner.stunText = "ADAPT +3 DRI";
+                                spawnVFX(ball.owner.x, ball.owner.y, '#fbbf24', 20);
+                            }
+                            ball.owner.cooldown = 40;
+                        } 
                         let isNearOwnGoal = p.isHome ? (p.x < 150) : (p.x > canvas.width - 150);
                         if (wasSteal && !isNearOwnGoal && p.pos !== "GOL" && !activeTimeStopper) {
                             ball.owner = null; ball.vx = (p.isHome ? 1 : -1) * (10 + p.def/20); ball.vy = (Math.random() - 0.5) * 6; p.cooldown = 15; p.stunText = "CORTE!";
@@ -1339,12 +2258,29 @@
                                     p.targetX = target.x; p.targetY = target.y;
                                 }
                             } else {
-                                // Drible / avanço (PRIME MJ mais rápido)
+                                // Drible / avanço (PRIME MJ / Leviathan rage)
                                 let driMod = p.dri > 80 ? 1.2 : 0.8;
                                 if (p.popActiveFrames > 0) driMod = 1.8;
+                                if (p.rageActive > 0) driMod = 2.2;
                                 let moveX = (p.isHome ? p.speed : -p.speed) * driMod;
                                 let moveY = p.y < canvas.height/2 ? p.speed*0.15 : -p.speed*0.15;
-                                p.x += moveX; p.y += moveY;
+                                // Leviathan: dashes aleatórios na direção do movimento (contam como chute)
+                                if (p.rageActive > 0 && Math.random() < 0.04) {
+                                    let dash = 28 + Math.random() * 18;
+                                    let dirX = Math.sign(moveX) || (p.isHome ? 1 : -1);
+                                    let dirY = (Math.random() - 0.5) * 0.6;
+                                    p.x += dirX * dash;
+                                    p.y += dirY * dash;
+                                    p.stunText = "DASH!";
+                                    spawnVFX(p.x, p.y, '#1e88e5', 22);
+                                    // Chute: solta a bola na direção do dash
+                                    ball.owner = null;
+                                    ball.vx = dirX * (12 + p.chu / 12);
+                                    ball.vy = dirY * 8 + (Math.random() - 0.5) * 4;
+                                    p.cooldown = 12;
+                                } else {
+                                    p.x += moveX; p.y += moveY;
+                                }
                                 p.targetX = p.x + moveX*10; p.targetY = p.y + moveY*10;
                             }
                         }
@@ -1362,6 +2298,23 @@
                         p.x = Math.max(10, Math.min(canvas.width-10, p.x));
                         p.y = Math.max(10, Math.min(canvas.height-10, p.y));
                         return; // pula IA normal
+                    }
+
+                    // Leviathan em rage sem bola: persegue mais rápido + dash ocasional
+                    if (p.rageActive > 0 && distBall > 2) {
+                        let sp = p.speed * 1.6;
+                        p.x += (dxBall/distBall) * sp;
+                        p.y += (dyBall/distBall) * sp;
+                        if (Math.random() < 0.03) {
+                            p.x += (dxBall/distBall) * 30;
+                            p.y += (dyBall/distBall) * 30;
+                            p.stunText = "DASH!";
+                            spawnVFX(p.x, p.y, '#1e88e5', 18);
+                        }
+                        p.targetX = ball.x; p.targetY = ball.y;
+                        p.x = Math.max(10, Math.min(canvas.width-10, p.x));
+                        p.y = Math.max(10, Math.min(canvas.height-10, p.y));
+                        // Continua IA normal se quiser — ou return. Deixa continuar para posicionamento.
                     }
 
                     let teamDistances = p.isHome ? homeDistances : awayDistances;
@@ -1466,39 +2419,43 @@
         function drawFrame() {
             drawPitch();
 
-            // Desenha icebergs
+            // Desenha icebergs (~3x largura de jogador)
             icebergs.forEach(ib => {
                 if (ib.framesLeft <= 0) return;
+                let hw = ib.halfW || 22, hh = ib.halfH || 28;
                 let alpha = Math.min(1, ib.framesLeft / 60);
                 ctx.save();
-                ctx.globalAlpha = 0.55 + 0.35 * alpha;
-                // Iceberg shape
+                ctx.globalAlpha = 0.6 + 0.35 * alpha;
                 ctx.fillStyle = '#B3E5FC';
                 ctx.beginPath();
-                ctx.moveTo(ib.x - 28, ib.y + 35);
-                ctx.lineTo(ib.x - 18, ib.y - 25);
-                ctx.lineTo(ib.x - 5, ib.y - 40);
-                ctx.lineTo(ib.x + 8, ib.y - 20);
-                ctx.lineTo(ib.x + 22, ib.y - 30);
-                ctx.lineTo(ib.x + 28, ib.y + 35);
+                ctx.moveTo(ib.x - hw, ib.y + hh * 0.85);
+                ctx.lineTo(ib.x - hw * 0.65, ib.y - hh * 0.55);
+                ctx.lineTo(ib.x - hw * 0.15, ib.y - hh);
+                ctx.lineTo(ib.x + hw * 0.25, ib.y - hh * 0.45);
+                ctx.lineTo(ib.x + hw * 0.75, ib.y - hh * 0.7);
+                ctx.lineTo(ib.x + hw, ib.y + hh * 0.85);
                 ctx.closePath();
                 ctx.fill();
                 ctx.strokeStyle = '#E1F5FE';
                 ctx.lineWidth = 2;
                 ctx.stroke();
-                ctx.fillStyle = 'rgba(255,255,255,0.5)';
+                ctx.fillStyle = 'rgba(255,255,255,0.45)';
                 ctx.beginPath();
-                ctx.moveTo(ib.x - 10, ib.y - 10);
-                ctx.lineTo(ib.x - 5, ib.y - 35);
-                ctx.lineTo(ib.x + 5, ib.y - 15);
+                ctx.moveTo(ib.x - hw * 0.3, ib.y - hh * 0.2);
+                ctx.lineTo(ib.x - hw * 0.1, ib.y - hh * 0.85);
+                ctx.lineTo(ib.x + hw * 0.15, ib.y - hh * 0.35);
                 ctx.closePath();
                 ctx.fill();
                 ctx.restore();
             });
 
             if (timeStopFrames > 0) {
-                ctx.fillStyle = "rgba(0, 0, 0, 0.4)";
+                ctx.fillStyle = "rgba(40, 0, 60, 0.55)";
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
+                ctx.fillStyle = "rgba(255, 0, 127, 0.85)";
+                ctx.font = "bold 22px Arial";
+                ctx.textAlign = "center";
+                ctx.fillText("⏱ TEMPO PARADO!", canvas.width / 2, 36);
             }
 
             let allPl = simEntities.homeTeam.concat(simEntities.awayTeam);
@@ -1560,7 +2517,7 @@
 
             const drawPlayer = (p, isHome) => {
                 let baseColor = isHome ? clubData.color : enemyMatchColor;
-                let rarityColor = p.ovr >= 100 ? '#ff0000' : (p.ovr >= 90 ? '#e600ff' : (p.ovr >= 80 ? '#ffd700' : (p.ovr >= 70 ? '#c0c0c0' : '#cd7f32')));
+                let rarityColor = (p.isDivine || p.ovr >= 200) ? '#fbbf24' : (p.ovr >= 100 ? '#ff0000' : (p.ovr >= 90 ? '#e600ff' : (p.ovr >= 80 ? '#ffd700' : (p.ovr >= 70 ? '#c0c0c0' : '#cd7f32'))));
                 
                 ctx.beginPath(); ctx.arc(p.x, p.y, 9, 0, Math.PI*2); 
                 ctx.fillStyle = rarityColor; ctx.fill();
@@ -1583,16 +2540,39 @@
                 }
                 
                 if (simEntities.ball.owner === p) { ctx.strokeStyle = '#fff'; ctx.lineWidth = 2; ctx.stroke(); }
+
+                // Roda do Mahoraga (gira acima da cabeça)
+                if (p.name === "Mahoraga" && p.showWheel) {
+                    let ang = ((p.wheelAngle || 0) * Math.PI) / 180;
+                    ctx.save();
+                    ctx.translate(p.x, p.y - 20);
+                    ctx.rotate(ang);
+                    ctx.strokeStyle = '#fbbf24';
+                    ctx.lineWidth = 2;
+                    ctx.beginPath(); ctx.arc(0, 0, 10, 0, Math.PI * 2); ctx.stroke();
+                    // 8 raios
+                    for (let i = 0; i < 8; i++) {
+                        let a = (i / 8) * Math.PI * 2;
+                        ctx.beginPath();
+                        ctx.moveTo(Math.cos(a) * 4, Math.sin(a) * 4);
+                        ctx.lineTo(Math.cos(a) * 10, Math.sin(a) * 10);
+                        ctx.stroke();
+                    }
+                    ctx.fillStyle = '#fbbf24';
+                    ctx.beginPath(); ctx.arc(0, 0, 2.5, 0, Math.PI * 2); ctx.fill();
+                    ctx.restore();
+                }
+
                 if (p.stunText) {
                     ctx.fillStyle = '#ffeb3b'; 
                     ctx.font = "bold 12px Arial"; ctx.textAlign = "center";
-                    ctx.fillText(p.stunText, p.x, p.y - 12);
+                    ctx.fillText(p.stunText, p.x, p.y - (p.name === "Mahoraga" ? 34 : 12));
                 }
 
                 if (isManagerView) {
                     ctx.fillStyle = "rgba(255,255,255,0.9)"; ctx.font = "10px Arial"; ctx.textAlign = "center";
                     ctx.fillText(p.name, p.x, p.y - 10);
-                    ctx.fillStyle = p.ovr >= 100 ? "#ff4444" : "#FFD700";
+                    ctx.fillStyle = (p.isDivine || p.ovr >= 200) ? "#fbbf24" : (p.ovr >= 100 ? "#ff4444" : "#FFD700");
                     ctx.fillText(`OVR ${(typeof p.ovr === 'number' ? p.ovr.toFixed(2) : p.ovr)}`, p.x, p.y + 15); 
                     if (isHome) { ctx.fillStyle = "#00e676"; ctx.fillText(p.stateInfo, p.x, p.y + 25); }
                 }
@@ -2054,14 +3034,70 @@
             document.getElementById('sponsorModal').style.display = 'none';
         }
 
-        function getCardClass(ovr) { return ovr >= 100 ? 'mystic' : (ovr >= 90 ? 'icon' : (ovr >= 80 ? 'gold' : (ovr >= 70 ? 'silver' : 'bronze'))); }
+        function getCardClass(ovr, p) { if (p && (p.isDivine || p.name === 'Mahoraga' || ovr >= 200)) return 'divine'; return ovr >= 100 ? 'mystic' : (ovr >= 90 ? 'icon' : (ovr >= 80 ? 'gold' : (ovr >= 70 ? 'silver' : 'bronze'))); }
         
+        let lastCardClick = { uniqueId: null, time: 0 };
+
+        function tryPromoteFromBench(benchIndex) {
+            let player = bench[benchIndex];
+            if (!player) return false;
+            // Se há vaga e posição não quebra a regra do goleiro único, só adiciona
+            if (startingXI.length < 11) {
+                if (player.pos === "GOL" && startingXI.some(p => p.pos === "GOL")) {
+                    // precisa trocar com o goleiro mais fraco
+                } else {
+                    startingXI.push(player);
+                    bench.splice(benchIndex, 1);
+                    notify(`⬆️ ${player.name} entrou nos titulares!`, "#00E676");
+                    return true;
+                }
+            }
+            // Troca com o mais fraco da mesma posição
+            let samePos = startingXI
+                .map((p, i) => ({ p, i }))
+                .filter(o => o.p.pos === player.pos);
+            if (samePos.length === 0) {
+                notify(`⚠️ Nenhum titular na posição ${player.pos} para trocar.`, "#ff9800");
+                return false;
+            }
+            samePos.sort((a, b) => a.p.ovr - b.p.ovr);
+            let weakest = samePos[0];
+            if (weakest.p.ovr >= player.ovr) {
+                notify(`⚠️ ${player.name} (OVR ${player.ovr}) não é mais forte que ${weakest.p.name} (OVR ${weakest.p.ovr}).`, "#ff9800");
+                return false;
+            }
+            let replaced = startingXI[weakest.i];
+            startingXI[weakest.i] = player;
+            bench[benchIndex] = replaced;
+            notify(`⬆️ ${player.name} (OVR ${player.ovr}) substituiu ${replaced.name} (OVR ${replaced.ovr})!`, "#00E676");
+            return true;
+        }
+
         function handlePlayerClick(uniqueId, listType, index) {
             if (listType === 'none') return; 
             if (isPlaying) { notify("⚠️ O jogo está rolando! Você não pode alterar o time agora.", "#ff9800"); return; }
             
             let list = listType === 'starting' ? startingXI : bench;
             let player = list[index];
+            const now = Date.now();
+            const isDouble = lastCardClick.uniqueId === uniqueId && (now - lastCardClick.time) < 450;
+            lastCardClick = { uniqueId, time: now };
+
+            // Totem aberto: clique no banco preenche slots de fusão
+            let totemOpen = document.getElementById('totemModal') && document.getElementById('totemModal').style.display === 'flex';
+            if (totemOpen && totemUnlocked && listType === 'bench') {
+                tryAssignFusionSlot(player, index);
+                return;
+            }
+
+            // Duplo clique no banco: tenta promover (troca com mais fraco da mesma posição)
+            if (isDouble && listType === 'bench') {
+                if (tryPromoteFromBench(index)) {
+                    selectedPlayerInfo = null;
+                    updateUI();
+                }
+                return;
+            }
 
             if (selectedPlayerInfo) {
                 if (selectedPlayerInfo.player.uniqueId === uniqueId) { selectedPlayerInfo = null; updateUI(); return; }
@@ -2104,7 +3140,7 @@
             let pCompleted = Math.round(((potMax - potCurrent) / potMax) * 100);
             if(potCurrent <= 0) pCompleted = 100;
 
-            return `<div class="player-card ${getCardClass(p.ovr)} ${isSelected ? 'selected' : ''} ${trainEffectClass}" onclick="handlePlayerClick(${p.uniqueId}, '${listType}', ${index})">
+            return `<div class="player-card ${getCardClass(p.ovr, p)} ${isSelected ? 'selected' : ''} ${trainEffectClass}" onclick="handlePlayerClick(${p.uniqueId}, '${listType}', ${index})">
                         <div class="p-tooltip">
                             <b>Análise do Scout</b><br>
                             Custo de Treino: 🪙 ${tCost}<br>
@@ -2163,7 +3199,37 @@
 
             document.getElementById('btnCup').disabled = clubData.fans < 500;
             document.getElementById('btnCupElite').disabled = clubData.fans < 1500;
+
+            // Tooltip Ultra: só mostra Divino se requisito cumprido
+            let ultraTip = document.getElementById('ultraPackTooltip');
+            if (ultraTip) {
+                let base = `<b>Chances de Raridade:</b><br>• Ouro: 30%<br>• Lenda: 65%<br>• Místico: 5%`;
+                if (hasMegumiAt100()) {
+                    base += `<br>• ⚜️ Divino: 0.5%`;
+                }
+                ultraTip.innerHTML = base;
+            }
         }
+
+        const GAME_TIPS = [
+            "💡 Dica: Duplo clique no banco promove o titular mais fraco da mesma posição.",
+            "💡 Dica: Cartas fracas costumam ter mais potencial de crescimento.",
+            "💡 Dica: Não dá para vender titulares — mande para o banco antes.",
+            "💡 Dica: Aperte K para ativar a Visão do Técnico durante a partida.",
+            "💡 Dica: Pacote Ultra (2000) tem as melhores chances de Lenda e Místico.",
+            "💡 Dica: O Totem da União (2500🪙) funde 2 jogadores do banco em receitas secretas.",
+            "💡 Dica: Use Salvar/Carregar para guardar o progresso em um código criptografado.",
+            "💡 Dica: Se o Home das Invocação chegar em overall 100, você pode roletar um personagem novo",
+            "💡 Dica: Esse jogo é muito melhor que aquela cópia bosta do gustavo",
+            "💡 Dica: Me siga no github: davizacarias-u :D",
+            "💡 Dica: Por favor, jogue esse jogo com cuidado, aprenda bastante e preste atenção na aula."
+        ];
+        let tipIndex = 0;
+        setInterval(() => {
+            tipIndex = (tipIndex + 1) % GAME_TIPS.length;
+            let el = document.getElementById('gameTips');
+            if (el) el.innerText = GAME_TIPS[tipIndex];
+        }, 12000);
 
         generateStarterTeam();
 
