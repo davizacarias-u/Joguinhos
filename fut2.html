@@ -1925,9 +1925,25 @@
                     }
                 }
             } else {
-                // Tempo parado: bola congelada no ar/chão, SEM dono. Só The World se move.
-                ball.owner = null;
-                ball.vx = 0; ball.vy = 0; ball.vz = 0;
+                // Tempo parado: The World age; se ele chutou, a bola ainda voa e pode gol
+                if (ball.owner && timeStopId != null && ball.owner.uniqueId === timeStopId) {
+                    ball.vx = 0; ball.vy = 0; ball.vz = 0;
+                    ball.trail.push({x: ball.x, y: ball.y}); if (ball.trail.length > 10) ball.trail.shift();
+                } else if (!ball.owner && (Math.abs(ball.vx) > 0.2 || Math.abs(ball.vy) > 0.2)) {
+                    // chute do The World durante o stop
+                    ball.vx *= 0.98; ball.vy *= 0.98;
+                    ball.x += ball.vx; ball.y += ball.vy;
+                    ball.trail.push({x: ball.x, y: ball.y}); if (ball.trail.length > 10) ball.trail.shift();
+                    if (ball.y <= 10 || ball.y >= canvas.height - 10) ball.vy *= -1;
+                    if (ball.x <= 10 && (ball.y < canvas.height/2 - 60 || ball.y > canvas.height/2 + 60)) ball.vx *= -1;
+                    if (ball.x >= canvas.width - 10 && (ball.y < canvas.height/2 - 60 || ball.y > canvas.height/2 + 60)) ball.vx *= -1;
+                    if (!ball.isAirborne) {
+                        if (ball.x <= 10 && ball.y >= canvas.height/2 - 60 && ball.y <= canvas.height/2 + 60) { goal(false); return; }
+                        if (ball.x >= canvas.width - 10 && ball.y >= canvas.height/2 - 60 && ball.y <= canvas.height/2 + 60) { goal(true); return; }
+                    }
+                } else {
+                    ball.vx = 0; ball.vy = 0; ball.vz = 0;
+                }
             }
 
             let allPlayers = simEntities.homeTeam.concat(simEntities.awayTeam);
@@ -2109,12 +2125,14 @@
                     p.targetX = p.x + pushX*10; p.targetY = p.y + pushY*10;
                 }
 
-                if (distBall < 14 && p.cooldown === 0 && (!ball.owner || ball.owner.isHome !== p.isHome) && !goalieImmunity && !ball.isAirborne) {
+                // The World no tempo parado pode roubar de QUALQUER um (até aliado)
+                let canTakeDuringStop = timeStopId != null && p.uniqueId === timeStopId;
+                if (distBall < 14 && p.cooldown === 0 && !ball.isAirborne &&
+                    (canTakeDuringStop || ((!ball.owner || ball.owner.isHome !== p.isHome) && !goalieImmunity))) {
                     let success = p.pos === "GOL" ? true : (!ball.owner ? true : Math.random() < (0.5 + ((p.def - ball.owner.dri) * 0.008)));
-                    // Durante tempo parado ninguém pega a bola (nem The World)
-                    if (timeStopId != null) success = false;
-                    // PRIME Michael Jackson (Rei do Pop): 100% de drible contra não-goleiros
-                    if (ball.owner && ball.owner.popActiveFrames > 0 && p.pos !== "GOL") {
+                    if (canTakeDuringStop) success = true; // The World sempre pega no tempo parado
+                    // PRIME Michael Jackson (Rei do Pop): 100% de drible contra não-goleiros (exceto The World parado)
+                    if (!canTakeDuringStop && ball.owner && ball.owner.popActiveFrames > 0 && p.pos !== "GOL") {
                         success = false;
                     }
                     
@@ -2144,7 +2162,29 @@
                 if (ball.owner === p) {
                     p.stateInfo = "Com Bola"; ball.x = p.x + (p.isHome ? 5 : -5); ball.y = p.y;
                     let targetGoalX = p.isHome ? canvas.width : 0; let distToGoal = Math.abs(targetGoalX - p.x);
-                    
+
+                    // === THE WORLD NO TEMPO PARADO: ignora posição, só ataca o gol ===
+                    if (timeStopId != null && p.uniqueId === timeStopId) {
+                        let spd = (p.speed || 3) * 2.2;
+                        let dirX = p.isHome ? 1 : -1;
+                        let aimY = canvas.height / 2;
+                        let dy = aimY - p.y;
+                        p.x += dirX * spd;
+                        p.y += Math.sign(dy || 1) * Math.min(Math.abs(dy), spd * 0.6);
+                        p.x = Math.max(10, Math.min(canvas.width - 10, p.x));
+                        p.y = Math.max(10, Math.min(canvas.height - 10, p.y));
+                        p.targetX = targetGoalX; p.targetY = aimY;
+                        ball.x = p.x + dirX * 5; ball.y = p.y;
+                        distToGoal = Math.abs(targetGoalX - p.x);
+                        if (distToGoal < 180 || Math.random() < 0.05) {
+                            ball.owner = null; p.cooldown = 20; p.receiveCooldown = 0;
+                            ball.vx = dirX * (14 + p.chu / 8);
+                            ball.vy = ((aimY - p.y) / Math.max(distToGoal, 1)) * 8 + (Math.random() - 0.5) * 2;
+                            p.stunText = "ZA WARUDO SHOT!";
+                            p.abilityMsgFrames = 90;
+                            spawnVFX(p.x, p.y, '#ff007f', 35);
+                        }
+                    } else {
                     let isShootingImmediate = distToGoal < (150 + (p.chu * 0.8)) && Math.random() < 0.1;
 
                     // Helper: escolhe melhor alvo de passe (estrito)
@@ -2285,10 +2325,24 @@
                             }
                         }
                     }
+                    } // fim else (não é The World no tempo parado)
                 } 
                 else if (!goalieImmunity) {
+                    // The World no tempo parado SEM bola: só caça a bola, ignora posição
+                    if (timeStopId != null && p.uniqueId === timeStopId) {
+                        p.stateInfo = "ZA WARUDO";
+                        if (distBall > 2) {
+                            let spd = (p.speed || 3) * 2.4;
+                            p.x += (dxBall / distBall) * spd;
+                            p.y += (dyBall / distBall) * spd;
+                            p.targetX = ball.x; p.targetY = ball.y;
+                        }
+                        p.x = Math.max(10, Math.min(canvas.width - 10, p.x));
+                        p.y = Math.max(10, Math.min(canvas.height - 10, p.y));
+                        // não roda IA de posicionamento
+                    }
                     // ROBÔ: sempre persegue a bola
-                    if (p.isRobot) {
+                    else if (p.isRobot) {
                         p.stateInfo = "Caçando Bola";
                         if (distBall > 2) {
                             p.x += (dxBall/distBall) * p.speed * 1.35;
