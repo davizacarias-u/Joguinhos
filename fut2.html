@@ -111,6 +111,8 @@
         .btn-sell:hover { filter: brightness(1.1); }
         .btn-tree { background: linear-gradient(180deg, #64748b, #475569); box-shadow: 0 2px 8px rgba(71,85,105,0.3); }
         .btn-tree:hover { filter: brightness(1.1); }
+        .btn-brasileirinho { background: linear-gradient(180deg, #22c55e, #15803d); box-shadow: 0 2px 10px rgba(21,128,61,0.4); font-size: 1.05rem; }
+        .btn-brasileirinho:hover { filter: brightness(1.1); }
 
         .strat-wrap {
             display: flex; flex-direction: column; align-items: center; gap: 4px;
@@ -160,6 +162,18 @@
             background: rgba(30, 41, 59, 0.55); border: 1px dashed rgba(148, 163, 184, 0.25);
             border-radius: 10px; padding: 8px 14px; margin-bottom: 12px; line-height: 1.4;
         }
+        #managerLogBox {
+            display: none; margin: 8px 0 12px; max-height: 140px; overflow-y: auto;
+            background: rgba(8,12,20,0.85); border: 1px solid rgba(74,222,128,0.25);
+            border-radius: 12px; padding: 10px 12px; text-align: left; font-size: 0.78rem;
+            color: #a7f3d0; line-height: 1.45;
+        }
+        #managerLogBox.on { display: block; }
+        #managerLogBox .ml-title { color: #4ade80; font-weight: 800; margin-bottom: 6px; font-size: 0.75rem; letter-spacing: 0.08em; text-transform: uppercase; }
+        #managerLogBox .ml-line { opacity: 0.9; border-bottom: 1px solid rgba(148,163,184,0.08); padding: 2px 0; }
+        .formation-wrap { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 4px 8px; border-radius: 10px; background: rgba(15,23,42,0.5); }
+        .formation-wrap label { font-size: 0.65rem; color: #64748b; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; }
+        #teamFormation { padding: 8px 12px; border-radius: 8px; font-weight: 600; background: #1e293b; border: 1px solid rgba(148,163,184,0.2); color: #e2e8f0; cursor: pointer; font-size: 0.85rem; }
         .btn-totem { background: linear-gradient(180deg, #f59e0b, #b45309); box-shadow: 0 2px 10px rgba(180,83,9,0.4); }
         .btn-totem:hover { filter: brightness(1.1); }
         .btn-save { background: linear-gradient(180deg, #64748b, #334155); box-shadow: 0 2px 8px rgba(51,65,85,0.35); }
@@ -230,6 +244,18 @@
             background: #0f172a; color: #4ade80; border: 1px solid rgba(74,222,128,0.3);
             border-radius: 10px; padding: 12px; resize: vertical; word-break: break-all;
         }
+        .sell-list { max-height: 320px; overflow-y: auto; text-align: left; margin: 12px 0; }
+        .sell-row {
+            display: flex; align-items: center; gap: 10px; padding: 8px 10px; margin-bottom: 6px;
+            background: rgba(30,41,59,0.7); border: 1px solid rgba(148,163,184,0.15); border-radius: 10px;
+            cursor: pointer; user-select: none;
+        }
+        .sell-row:hover { border-color: rgba(248,113,113,0.45); }
+        .sell-row.picked { border-color: #f87171; background: rgba(127,29,29,0.35); }
+        .sell-row input { width: 16px; height: 16px; accent-color: #f87171; }
+        .sell-meta { flex: 1; font-size: 0.88rem; color: #e2e8f0; }
+        .sell-val { color: #fbbf24; font-weight: 700; font-size: 0.85rem; white-space: nowrap; }
+        #sellTotalLabel { color: #fbbf24; font-weight: 800; margin: 8px 0; }
         .warning { color: #f87171; font-size: 0.85rem; font-weight: 600; }
 
         .section-title {
@@ -346,12 +372,21 @@
         .shield-shape-3 { border-radius: 10px; clip-path: polygon(50% 100%, 100% 75%, 100% 0, 0 0, 0 75%); }
         .shield-shape-4 { clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%); }
         .shield-shape-5 { clip-path: polygon(50% 0%, 100% 38%, 82% 100%, 18% 100%, 0% 38%); }
+        .shield-shape-6 { clip-path: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%); }
+        .shield-shape-7 { border-radius: 12px 12px 40% 40%; }
+        .shield-shape-8 { clip-path: polygon(50% 0%, 90% 20%, 100% 60%, 75% 100%, 25% 100%, 0% 60%, 10% 20%); }
 
+        /* Estampas usam --sec (cor secundária) */
         .shield-pattern-solid { background-image: none; }
-        .shield-pattern-stripes { background-image: repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(0,0,0,0.3) 10px, rgba(0,0,0,0.3) 20px); }
-        .shield-pattern-half { background-image: linear-gradient(90deg, rgba(0,0,0,0.3) 50%, transparent 50%); }
-        .shield-pattern-cross { background-image: linear-gradient(0deg, transparent 40%, rgba(0,0,0,0.4) 40%, rgba(0,0,0,0.4) 60%, transparent 60%), linear-gradient(90deg, transparent 40%, rgba(0,0,0,0.4) 40%, rgba(0,0,0,0.4) 60%, transparent 60%); }
-        .shield-pattern-dots { background-image: radial-gradient(rgba(0,0,0,0.4) 20%, transparent 20%); background-size: 15px 15px; }
+        .shield-pattern-stripes { background-image: repeating-linear-gradient(45deg, transparent, transparent 10px, var(--sec, #000) 10px, var(--sec, #000) 20px); }
+        .shield-pattern-half { background-image: linear-gradient(90deg, var(--sec, #000) 50%, transparent 50%); }
+        .shield-pattern-cross { background-image: linear-gradient(0deg, transparent 40%, var(--sec, #000) 40%, var(--sec, #000) 60%, transparent 60%), linear-gradient(90deg, transparent 40%, var(--sec, #000) 40%, var(--sec, #000) 60%, transparent 60%); }
+        .shield-pattern-dots { background-image: radial-gradient(var(--sec, #000) 22%, transparent 22%); background-size: 14px 14px; }
+        .shield-pattern-horizontal { background-image: repeating-linear-gradient(0deg, transparent, transparent 8px, var(--sec, #000) 8px, var(--sec, #000) 16px); }
+        .shield-pattern-vertical { background-image: repeating-linear-gradient(90deg, transparent, transparent 8px, var(--sec, #000) 8px, var(--sec, #000) 16px); }
+        .shield-pattern-diagonal { background-image: repeating-linear-gradient(-45deg, transparent, transparent 12px, var(--sec, #000) 12px, var(--sec, #000) 24px); }
+        .shield-pattern-check { background-image: repeating-conic-gradient(var(--sec, #000) 0% 25%, transparent 0% 50%); background-size: 20px 20px; }
+        .shield-pattern-ring { background-image: radial-gradient(circle, transparent 35%, var(--sec, #000) 36%, var(--sec, #000) 48%, transparent 49%); }
 
         .stats-box { background: rgba(15,23,42,0.8); padding: 16px; border-radius: 14px; display: flex; justify-content: space-around; margin-top: 15px; border: 1px solid rgba(148,163,184,0.12); }
         .stat-t { font-size: 0.8rem; color: #aaa; } .stat-v { font-size: 1.5rem; font-weight: bold; }
@@ -494,6 +529,24 @@
         </div>
     </div>
 
+    <!-- Sell Modal -->
+    <div id="sellModal" class="modal-overlay">
+        <div class="modal-content" style="max-width: 520px;">
+            <h2 style="color:#f87171;">💰 Vender Jogadores</h2>
+            <p style="color:#94a3b8; font-size:0.9rem;">Só o <b>banco</b> aparece aqui. Titulares não podem ser vendidos. Selecione quantos quiser.</p>
+            <div style="display:flex; gap:8px; justify-content:center; flex-wrap:wrap; margin-bottom:8px;">
+                <button type="button" onclick="sellSelectAll(true)" style="background:#334155; padding:6px 12px; font-size:0.8rem;">Selecionar todos</button>
+                <button type="button" onclick="sellSelectAll(false)" style="background:#334155; padding:6px 12px; font-size:0.8rem;">Limpar</button>
+            </div>
+            <div class="sell-list" id="sellList"></div>
+            <div id="sellTotalLabel">Total: 0 🪙</div>
+            <div style="display:flex; gap:8px; justify-content:center; flex-wrap:wrap;">
+                <button onclick="confirmMultiSell()" style="background:linear-gradient(180deg,#f87171,#dc2626);">💰 Confirmar venda</button>
+                <button class="close-btn" style="margin-top:0; width:auto;" onclick="document.getElementById('sellModal').style.display='none'">Cancelar</button>
+            </div>
+        </div>
+    </div>
+
 
     <div id="packModal" class="modal-overlay" style="flex-direction: column;">
         <div id="packIcon" style="font-size: 6rem; cursor: pointer;">🎁</div>
@@ -583,6 +636,9 @@
                         <option value="shield-shape-3">Moderno</option>
                         <option value="shield-shape-4">Diamante</option>
                         <option value="shield-shape-5">Penta Crest</option>
+                        <option value="shield-shape-6">Hexágono</option>
+                        <option value="shield-shape-7">Gota</option>
+                        <option value="shield-shape-8">Florão</option>
                     </select>
                 </div>
                 <div><label>Estampa</label><br>
@@ -592,6 +648,11 @@
                         <option value="shield-pattern-half">Meio a Meio</option>
                         <option value="shield-pattern-cross">Cruz</option>
                         <option value="shield-pattern-dots">Pontilhado</option>
+                        <option value="shield-pattern-horizontal">Faixas Horizontais</option>
+                        <option value="shield-pattern-vertical">Faixas Verticais</option>
+                        <option value="shield-pattern-diagonal">Diagonal</option>
+                        <option value="shield-pattern-check">Xadrez</option>
+                        <option value="shield-pattern-ring">Anel</option>
                     </select>
                 </div>
                 <div><label>Símbolo Central</label><br>
@@ -605,6 +666,15 @@
                         <option value="🔥">Fogo (🔥)</option>
                         <option value="⚡">Raio (⚡)</option>
                         <option value="🛡️">Escudo (🛡️)</option>
+                        <option value="🐺">Lobo (🐺)</option>
+                        <option value="🐉">Dragão (🐉)</option>
+                        <option value="🐯">Tigre (🐯)</option>
+                        <option value="🌊">Onda (🌊)</option>
+                        <option value="🌙">Lua (🌙)</option>
+                        <option value="☄️">Cometa (☄️)</option>
+                        <option value="🏆">Troféu (🏆)</option>
+                        <option value="💎">Diamante (💎)</option>
+                        <option value="🎯">Alvo (🎯)</option>
                     </select>
                 </div>
             </div>
@@ -665,6 +735,7 @@
                         <option value="very_offensive">Muito Ofensivo</option>
                     </select>
                 </div>
+
             </div>
 
             <div class="action-row">
@@ -715,6 +786,7 @@
                 <button class="btn-play" id="btnPlay" onclick="startMatch(false, 'amistoso')">▶️ Amistoso</button>
                 <button class="btn-cup" id="btnCup" onclick="startTournament('normal')" disabled>🏆 Mata-Mata · 500 📣</button>
                 <button class="btn-cup2" id="btnCupElite" onclick="startTournament('elite')" disabled>💎 Taça Elite · 1500 📣</button>
+                <button class="btn-brasileirinho" id="btnBrasileirinho" onclick="startTournament('brasileirinho')" disabled>🇧🇷 Brasileirinho · 5000 📣</button>
                 <button class="btn-tree" id="btnTree" onclick="showBracket()" style="display:none;">🌳 Chaveamento</button>
             </div>
         </div>
@@ -736,6 +808,10 @@
         <div class="manager-hint">
             Visão do Técnico <span class="kbd">K</span>
             <span id="managerStatus">OFF</span>
+        </div>
+        <div id="managerLogBox">
+            <div class="ml-title">📋 Log do Técnico</div>
+            <div id="managerLogLines"><div class="ml-line" style="color:#64748b">Ative a visão (K) para ver eventos da partida.</div></div>
         </div>
         <div id="matchLog">Organize seu time e vá para o jogo!</div>
     </div>
@@ -828,7 +904,7 @@
             let robot = createGenericPlayer(false);
             robot.name = "Robô Simulado";
             robot.ovr = 80;
-            robot.vel = 80; robot.dri = 80; robot.chu = 80; robot.pas = 80; robot.def = 80; robot.fin = 80;
+            robot.vel = 80; robot.dri = 80; robot.chu = 80; robot.pas = 100; robot.def = 80; robot.fin = 80;
             robot.photo = "https://cdn-icons-png.flaticon.com/512/4712/4712139.png";
             robot.pos = "MEI";
             robot.offenseBias = 0;
@@ -846,17 +922,46 @@
 
         // Iceberg state (Titanic ability)
         let icebergs = []; // { x, y, isHome, framesLeft, melting }
+        let bullets = []; // Pistoleiro: { x, y, tx, ty, frames, targetId }
 
         function spawnIceberg(isHome) {
-            // Posição aleatória na área do gol (defensiva)
-            // ~3x largura de um jogador (raio jogador ~7 → iceberg half-width ~22)
-            let halfW = 22, halfH = 28;
+            // Buff: iceberg maior, dura mais, cobre melhor a área do gol
+            let halfW = 34, halfH = 42;
             let gx = isHome
-                ? (18 + Math.random() * 40)   // área esquerda
-                : (canvas.width - 18 - Math.random() * 40);
-            let gy = canvas.height/2 - 55 + Math.random() * 110;
-            icebergs.push({ x: gx, y: gy, isHome: isHome, framesLeft: 15 * 60, melting: false, halfW, halfH });
-            spawnVFX(gx, gy, '#80DEEA', 60);
+                ? (22 + Math.random() * 55)
+                : (canvas.width - 22 - Math.random() * 55);
+            let gy = canvas.height/2 - 70 + Math.random() * 140;
+            icebergs.push({ x: gx, y: gy, isHome: isHome, framesLeft: 22 * 60, melting: false, halfW, halfH });
+            spawnVFX(gx, gy, '#80DEEA', 80);
+            spawnVFX(gx, gy, '#E0F7FA', 50);
+        }
+
+        // Aplica stun duro com adaptação do Mahoraga
+        function applyHardStun(target, frames, label) {
+            if (!target || target.pos === "GOL") return false;
+            if (target.name === "Mahoraga") {
+                target.stunAdapt = (target.stunAdapt || 0) + 1;
+                if (target.stunAdapt >= 5) {
+                    target.stunText = "IMUNE!";
+                    target.abilityMsgFrames = 90;
+                    return false;
+                }
+                // cada adaptação: 20% menos duração
+                frames = Math.max(10, Math.floor(frames * (1 - 0.2 * target.stunAdapt)));
+                target.stunText = "ADAPT STUN x" + target.stunAdapt;
+                target.abilityMsgFrames = 90;
+            } else {
+                target.stunText = label || "STUN!";
+            }
+            target.hardStun = Math.max(target.hardStun || 0, frames);
+            if (ball.owner === target) {
+                ball.owner = null;
+                ball.vx = (Math.random() - 0.5) * 3;
+                ball.vy = (Math.random() - 0.5) * 3;
+            }
+            // trava habilidades por um tempo
+            target.abilityLocked = Math.max(target.abilityLocked || 0, frames);
+            return true;
         }
 
         function icebergBlocks(x, y, ib) {
@@ -880,6 +985,7 @@
         }
 
         let clubData = { name: "Meu Time FC", color: "#2196F3", secondaryColor: "#FFD700", icon: "⭐", stats: { w: 0, d: 0, l: 0 }, fans: 120, trophies: [] };
+        // safeFans sincroniza depois que a economia é inicializada (abaixo)
         let activeSponsor = { name: "", amount: 0, gamesLeft: 0 };
         let pendingSponsor = null;
 
@@ -895,8 +1001,10 @@
             { name: "Academia Força Total", minAmount: 35, maxAmount: 55, minGames: 3, maxGames: 6, rarity: "Prata" },
             { name: "TechBolsa Apps", minAmount: 55, maxAmount: 90, minGames: 4, maxGames: 7, rarity: "Ouro" },
             { name: "Rede SuperMercado", minAmount: 60, maxAmount: 95, minGames: 4, maxGames: 7, rarity: "Ouro" },
+            { name: "Raid Shadow Legends", minAmount: 60, maxAmount: 95, minGames: 4, maxGames: 7, rarity: "Ouro" },
             { name: "Energia Solar FC", minAmount: 90, maxAmount: 140, minGames: 5, maxGames: 9, rarity: "Lenda" },
             { name: "Criptomoedas Apex", minAmount: 100, maxAmount: 160, minGames: 5, maxGames: 8, rarity: "Lenda" },
+            { name: "Block Blast", minAmount: 100, maxAmount: 175, minGames: 3, maxGames: 10, rarity: "Lenda" },
             { name: "Império dos Games", minAmount: 150, maxAmount: 250, minGames: 7, maxGames: 12, rarity: "Místico" },
             { name: "Galáxia Motors", minAmount: 130, maxAmount: 220, minGames: 6, maxGames: 11, rarity: "Místico" }
         ];
@@ -923,7 +1031,20 @@
             { name: "Eclipse Total", color: "#000000", secondaryColor: "#9C27B0", icon: "🌑", difficulty: 4 },
             { name: "Lendas Vivas", color: "#FFD700", secondaryColor: "#4A148C", icon: "✨", difficulty: 4 },
             { name: "Domínio Supremo", color: "#B71C1C", secondaryColor: "#FFD700", icon: "🏆", difficulty: 4 },
-            { name: "Nexus Elite", color: "#00BCD4", secondaryColor: "#FFFFFF", icon: "💎", difficulty: 4 }
+            { name: "Nexus Elite", color: "#00BCD4", secondaryColor: "#FFFFFF", icon: "💎", difficulty: 4 },
+            // Brasileirinho — dificuldade 5 e 6
+            { name: "Flamingo", color: "#C62828", secondaryColor: "#000000", icon: "🔴", difficulty: 5 },
+            { name: "Cortinas", color: "#FFFFFF", secondaryColor: "#000000", icon: "⚫", difficulty: 5 },
+            { name: "Palemiras", color: "#1B5E20", secondaryColor: "#FFFFFF", icon: "🟢", difficulty: 5 },
+            { name: "Son Paulo", color: "#FFFFFF", secondaryColor: "#C62828", icon: "⚪", difficulty: 5 },
+            { name: "Grêmiong", color: "#1565C0", secondaryColor: "#000000", icon: "🔵", difficulty: 5 },
+            { name: "Nacional", color: "#B71C1C", secondaryColor: "#FFFFFF", icon: "❤️", difficulty: 5 },
+            { name: "Maléficos", color: "#FFFFFF", secondaryColor: "#000000", icon: "👑", difficulty: 6 },
+            { name: "Atlético Dinheiro", color: "#000000", secondaryColor: "#FFFFFF", icon: "🐓", difficulty: 6 },
+            { name: "Xzeiro", color: "#0D47A1", secondaryColor: "#FFFFFF", icon: "🔷", difficulty: 6 },
+            { name: "Botaágua", color: "#000000", secondaryColor: "#FFFFFF", icon: "⭐", difficulty: 6 },
+            { name: "Seleção do Uruguai", color: "#F9A825", secondaryColor: "#1565C0", icon: "🇧🇷", difficulty: 6 },
+            { name: "Copabacana", color: "#2E7D32", secondaryColor: "#FFD600", icon: "✨", difficulty: 6 }
         ];
 
         let currentEnemyTeam = null, enemyMatchColor = "#F44336";
@@ -937,6 +1058,7 @@
                 isManagerView = !isManagerView;
                 document.getElementById('managerStatus').innerText = isManagerView ? "ON" : "OFF";
                 document.getElementById('managerStatus').className = isManagerView ? "manager-on" : "";
+                renderManagerLog();
                 if (!isPlaying && currentEnemyTeam) drawFrame();
             }
         });
@@ -983,7 +1105,7 @@
             // Bronzes (60-69)
             { id: 106, name: "Petista", pos: "ATA", ovr: 62, vel: 55, dri: 60, chu: 65, pas: 50, def: 40, fin: 62, photo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRwsZkuYq8D6W_0KzA0kEXBlv54EixoJlC2BzNsdrK60Q&s=10" },
             { id: 107, name: "Tim", pos: "MEI", ovr: 65, vel: 75, dri: 70, chu: 50, pas: 60, def: 55, fin: 45, photo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRe-nVb6XmyONk94wAz9ghm_uQj6f_H2aRDKAwx03ASyQ&s=10" },
-            { id: 108, name: "Poste de Energia", pos: "ZAG", ovr: 61, vel: 80, dri: 55, chu: 40, pas: 50, def: 65, fin: 30, photo: "https://encrypted-tbn0.GcSXrnMq2oiFIFEd0QQFnzIQr4l4MD4d3D92yjonIn_uaw&s=10" },
+            { id: 108, name: "Poste de Energia", pos: "ZAG", ovr: 61, vel: 80, dri: 55, chu: 40, pas: 50, def: 65, fin: 30, photo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQtYbqf78EOMIeY_Nulju6-UkSLmSrDquB_zr3AXSoA9A&s=10" },
             { id: 109, name: "Caneta Bic", pos: "LAT", ovr: 68, vel: 65, dri: 65, chu: 55, pas: 70, def: 62, fin: 50, photo: "https://encrypted-tbn1.gstatic.com/shopping?q=tbn:ANd9GcRtByiludnkNR7BfBdK3QpwScywSpDjYCmWVUsg3_fPz18GLoiB-MYcGeBK6okXOPyCxGWjcEVLD4yeJLXHowWDfNWec0aeD3T7d3GRtlbqyDFBi_c0hu3kt49wHLvFUBRsp0eBdw&usqp=CAc" },
             { id: 110, name: "Hamburguer básico", pos: "VOL", ovr: 67, vel: 82, dri: 60, chu: 50, pas: 65, def: 70, fin: 45, photo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQwDjKhHNsui8Gkwow-hgYTU41i279ytTXlbBW_6SdVnA&s=10" },
 
@@ -1032,13 +1154,15 @@
             { id: 237, name: "Sim, lucas, assisto", pos: "MEI", ovr: 94, vel: 88, dri: 92, chu: 85, pas: 94, def: 70, fin: 82, photo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQj11iHxIYNCdjJvJBE4n3wd44zUSRXtnms432giZsolg&s=10" },
             { id: 238, name: "Backrooms", pos: "ZAG", ovr: 93, vel: 75, dri: 65, chu: 55, pas: 72, def: 98, fin: 42, photo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQrIdX01gmGFTAzLNXX0jdK38m0O0LTggAhBXxFB6JRaA&s=10" },
             { id: 239, name: "", pos: "LAT", ovr: 92, vel: 96, dri: 90, chu: 78, pas: 88, def: 90, fin: 72, photo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSGsPTioyUNXhKF_HWOWqNhES6rOQb3p2DLzmNPBxfZiw&s=10" },
-            // Místico (100+) — Iberê, The World (acima), Titanic, Leviathan
+            // Místico (100+) — só pool de packs (craft exclusivos ficam só no Totem)
             { id: 250, name: "Titanic", pos: "GOL", ovr: 101, vel: 55, dri: 40, chu: 70, pas: 75, def: 99, fin: 25, photo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTV0G_-vTi1XXMsyvgTQFh07sqVjuE9WvPZcl4BoxsJRw&s=10" },
             { id: 251, name: "Leviathan", pos: "ZAG", ovr: 103, vel: 88, dri: 70, chu: 85, pas: 80, def: 99, fin: 55, photo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTDdZD8RDFySrJkKUEseLPaoKEE01hNve3csKLzpzseGQ&s" },
+            { id: 253, name: "Megafone", pos: "VOL", ovr: 101, vel: 82, dri: 78, chu: 75, pas: 90, def: 92, fin: 70, photo: "https://cdn-icons-png.flaticon.com/512/727/727245.png" },
+            { id: 254, name: "Pistoleiro", pos: "LAT", ovr: 102, vel: 94, dri: 88, chu: 90, pas: 82, def: 86, fin: 78, photo: "https://cdn-icons-png.flaticon.com/512/860/860225.png" },
             // Ouro especial: Home das invocação (potencial até 100~110)
             { id: 252, name: "Home das invocação", pos: "MEI", ovr: 84, vel: 78, dri: 82, chu: 75, pas: 88, def: 70, fin: 72, photo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSbr_xQNUmef38QsDzP1ULTSqlDBWsPNg7twZ-SQ0BPpQ&s=10", specialPotential: true },
             // Divino (somente via Ultra + condição)
-            { id: 253, name: "Mahoraga", pos: "VOL", ovr: 210, vel: 99, dri: 25, chu: 95, pas: 90, def: 99, fin: 90, photo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTTDTFCBZ_QUOzaVZsd2NTrjBrQejkJbmVODD2d0oYrpw&s=10", noTrain: true, isDivine: true }
+            { id: 253, name: "Mahoraga", pos: "VOL", ovr: 210, vel: 199, dri: 25, chu: 225, pas: 190, def: 199, fin: 190, photo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTTDTFCBZ_QUOzaVZsd2NTrjBrQejkJbmVODD2d0oYrpw&s=10", noTrain: true, isDivine: true }
         ].map(p => {
             // Potencial base só como fallback — o real é rolado em rollPotential() a cada cópia/pack
             return { ...p, potential: 0, maxPotential: 0 };
@@ -1082,6 +1206,50 @@
         }
 
         let startingXI = [], bench = [], coins = 200, playerIdCounter = 0;
+        // Anti-cheat: valores "legítimos" — se alguém mudar coins/fans no console, volta ao esperado
+        let safeCoins = 200;
+        let safeFans = 120;
+
+        function addCoins(delta) {
+            safeCoins = Math.max(0, Math.floor(safeCoins + delta));
+            coins = safeCoins;
+        }
+        function setCoinsAbs(v) {
+            safeCoins = Math.max(0, Math.floor(v));
+            coins = safeCoins;
+        }
+        function addFans(delta) {
+            safeFans = Math.max(0, Math.floor(safeFans + delta));
+            clubData.fans = safeFans;
+        }
+        function setFansAbs(v) {
+            safeFans = Math.max(0, Math.floor(v));
+            clubData.fans = safeFans;
+        }
+        function guardEconomy() {
+            // Só impede aumento ilegal; queda manual no console é "sincronizada" para baixo
+            if (typeof coins === 'number' && coins > safeCoins) coins = safeCoins;
+            if (typeof coins === 'number' && coins < safeCoins) safeCoins = Math.max(0, Math.floor(coins));
+            if (clubData && typeof clubData.fans === 'number') {
+                if (clubData.fans > safeFans) clubData.fans = safeFans;
+                if (clubData.fans < safeFans) safeFans = Math.max(0, Math.floor(clubData.fans));
+            }
+            coins = safeCoins;
+            clubData.fans = safeFans;
+        }
+
+        function getPackCostForOvr(ovr) {
+            if (ovr >= 100) return 2000;
+            if (ovr >= 90) return 400;
+            if (ovr >= 80) return 150;
+            if (ovr >= 70) return 150;
+            return 50;
+        }
+        function getSellValue(p) {
+            let cost = (p && p.packCost != null) ? p.packCost : getPackCostForOvr(p ? p.ovr : 60);
+            return Math.floor(cost * 0.5);
+        }
+
         let selectedPlayerInfo = null, playerPending = null;
 
         // ===== TOTEM DA UNIÃO =====
@@ -1090,8 +1258,11 @@
         // completed: true se o jogador já descobriu a receita (persistido no save).
         let totemUnlocked = false;
         let completedRecipes = {}; // id -> true
+        let claimedRecipeBonuses = {}; // id -> true (bônus de fãs já recebido)
         let fuseSlotA = null; // { uniqueId, list:'bench', index }
         let fuseSlotB = null;
+        let managerLogLines = [];
+        const RECIPE_FAN_BONUS = 80;
 
         const TOTEM_UNLOCK_COST = 2500;
         const TOTEM_FUSE_COST = 100;
@@ -1133,10 +1304,61 @@
                 b: "Pastelaria do Rafa",
                 result: { name: "Doutor de Folga", pos: "ZAG", ovr: 88, vel: 52, dri: 40, chu: 35, pas: 50, def: 94, fin: 25, photo: "https://lh3.googleusercontent.com/rd-gg-dl/AAQ_wbEVb2ZEBWmF77DaiWEXYy07JBy-rRkw2azUC6K9bkUGyLGtItVYu13WhDylxhITvIP1Bmdb1nzi47r7lSVVecE-9sHg8Dk-qUifn2XrMcWxkugUhjrztZmxfDFCy0_nojISdMgaqXwHilOX95ZwX38tf2fy7lnoKx3dl9HKRnnOXKTZoygYDcAgtN3jE3vwcZ3QA9eiEeTYjsN80yJMNMgZ_u4jzPPlgKuJEAkUlKdFOKOLdSHD7bHKzeQmMS4IQjfT2M4PDC0RkgmFtwI59ZTII-mn2e-v_0sQS4SuzweHZ7GlrH0KnDTdEvKb1lrKnjwkeNW7QH5BIqp1UrTI6ZcFxJ59uFzQPKzPY3FFmKU-5q2jvdQxd9GuqE5zMpnxOZoRGJBq5uV-JdIf_eVuvke_q6ZpygyW7dlMAdGdbXhYuBMa1BrFSu71pNk0wUu4rONS2L4KjPuAVbogsdLlV8kcni-jdMH6Qji9cRox2rxFkJsQwPNkauDO0MdtmqIAUpAg1en35RMwTk10_K_kCrVxPcb8wAUmiMZ7Ik3ipjwbx0tOSq8lyp4AdCj3wRM7fm37Ao7IVr4YRMR1JILdfzWQgvv9J7M8n2H0MDyEIRfUD5X0ESwzYbIWJXDpcsZ5cfbvQ527ofNEq29keoL9inGxrtAdcCVs0n3n3x_I43wy9XC2B1jP3U9Ecw2b0qZIP2P8QtOjWY24jAdlYPRNxEQoS54f3MKfTRFhfBhfrpKExicl0xdG__X603KZ3g6fiCvU_h0ZEdSVb5VlCfeKC8dtVsUWpi0E8WM3lP7WFdJlPt6Bz4BMCb4Sci0QbJxdH0Ja6yQ1YtgCLEWeZ3xgM0dRJqUrRQ8JtKB-zGYWi-hfhKGBfpgs4PR6SDyLd5pksRzDW2cqknyQ7z8lnB0cBqqsiets4yJ249-4nEqXg564z-LYAT_rxCydnyGj-Y28lbwxaDmu-DQwL4LYriakPU-5CVSOqfSgdZTZmJPknlmJjSbh1yw5bp4SDCK6EoXFjxDQkUAN85zFydrBW38v6nSjBblc0ChzIWW-LoJk5XcdHrn5GJswTTI_RHIUybrU8auu1GazoNL8C5nc121TkfXNP_NGACX_8iROLVGPJP4-oP9KPvsGbWqUD-sFIplXCfFn53IuY2PiLfyg8xJ5j5plzJbMFqT5tSwYtbRl9xvaYlXA2VlA5mAJkJ4P4mlqbcup-p721ui6cHUihoHv5qmpaiDbCjxgBIxB_gOPjdT1WC2x3tkNYdmiuDjpn0iTqxmTgEUQ4_OPwHNjvarx-w6wHmZTGs-1qR0efuY=s1024-rj" }
             },
+            {
+                id: "r6",
+                a: "Ameba",
+                b: "Backrooms",
+                result: { name: "Bixo Maléfico Perigoso do Mal (ele come cimento)", pos: "ATA", ovr: 98, vel: 90, dri: 90, chu: 87, pas: 97, def: 74, fin: 78, photo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcReRmBe_iYsWicStxqACx-Ar1sjHDUO6u8wvO7-yMhXVw&s=10" }
+            },
+            {
+                id: "r7",
+                a: "Lebron James",
+                b: "Samurai",
+                result: { name: "Lebron James Samurai", pos: "MEI", ovr: 102, vel: 95, dri: 90, chu: 92, pas: 97, def: 77, fin: 81, photo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSniSkURmwHxfiswinizjZcXS87CzGJrfoUNzsf49PvSA&s=10" }
+            },
+            {
+                id: "r8",
+                a: "Macaco Sniper",
+                b: "Poste de Energia",
+                result: { name: "Macaco Queimado no Poste", pos: "VOL", ovr: 88, vel: 89, dri: 89, chu: 92, pas: 77, def: 90, fin: 81, photo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS5KH8Ub5VQpLRcCdbxAjJq6klhJlT4GOTg4UF13zZI3Q&s=10" }
+            },
             // Adicione mais receitas abaixo neste formato:
             // { id: "r6", a: "Nome1", b: "Nome2", result: { name: "...", pos: "ATA", ovr: 85, vel: 80, dri: 80, chu: 80, pas: 80, def: 50, fin: 85, photo: "URL" } },
         ];
         // ===== FIM TOTEM (receitas) =====
+
+        function mlog(msg) {
+            let t = Math.floor(matchTimer);
+            let line = `[${String(t).padStart(2,'0')}'] ${msg}`;
+            managerLogLines.unshift(line);
+            if (managerLogLines.length > 20) managerLogLines.pop();
+            renderManagerLog();
+        }
+
+        function renderManagerLog() {
+            let box = document.getElementById('managerLogBox');
+            let lines = document.getElementById('managerLogLines');
+            if (!box || !lines) return;
+            if (isManagerView) {
+                box.classList.add('on');
+                if (managerLogLines.length === 0) {
+                    lines.innerHTML = '<div class="ml-line" style="color:#64748b">Aguardando eventos da partida...</div>';
+                } else {
+                    lines.innerHTML = managerLogLines.map(l => `<div class="ml-line">${l}</div>`).join('');
+                }
+            } else {
+                box.classList.remove('on');
+            }
+        }
+
+        // Variação de ângulo do chute (máx ~6–7°) conforme finalização
+        function applyShotAngleVariance(vx, vy, fin) {
+            let maxDeg = 6.5 * (1 - Math.min(100, Math.max(0, fin)) / 100); // 0° se fin=100, ~6.5° se fin=0
+            maxDeg = Math.max(1.2, Math.min(7, maxDeg));
+            let rad = (Math.random() * 2 - 1) * (maxDeg * Math.PI / 180);
+            let cos = Math.cos(rad), sin = Math.sin(rad);
+            return { vx: vx * cos - vy * sin, vy: vx * sin + vy * cos };
+        }
 
 
         function generateRandomStats(baseOvr) {
@@ -1156,6 +1378,7 @@
                 photo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSGsPTioyUNXhKF_HWOWqNhES6rOQb3p2DLzmNPBxfZiw&s=10"
             };
             applyRolledPotential(p);
+            if (p.packCost == null) p.packCost = getPackCostForOvr(p.ovr);
             return p;
         }
 
@@ -1174,7 +1397,7 @@
             if (coins < customCost) { notify(`❌ Moedas insuficientes para treinar! (Custa ${customCost}🪙)`, "#ff4444"); return; }
             if (!p.potential || p.potential <= 0) { notify(`❌ ${p.name} já atingiu seu potencial máximo!`, "#ff4444"); return; }
             
-            coins -= customCost;
+            addCoins(-customCost);
             
             // Cartas fracas crescem mais por treino
             let baseFrac = 0.25;
@@ -1214,22 +1437,80 @@
             return 100 + (Math.max(0, p.ovr - 60) * 10);
         }
 
+        let sellSelectedIds = new Set();
+
         function sellSelectedPlayer() {
-            if (!selectedPlayerInfo) { notify("⚠️ Selecione um jogador (clique na carta) para vender!", "#ff9800"); return; }
             if (isPlaying) { notify("⚠️ Não é possível vender durante a partida!", "#ff4444"); return; }
-            if (selectedPlayerInfo.listType === 'starting') {
-                notify("❌ Não é possível vender titulares! Tire o jogador para o banco primeiro.", "#ff4444");
+            openSellModal();
+        }
+
+        function openSellModal() {
+            sellSelectedIds = new Set();
+            renderSellList();
+            document.getElementById('sellModal').style.display = 'flex';
+        }
+
+        function renderSellList() {
+            let box = document.getElementById('sellList');
+            if (!bench.length) {
+                box.innerHTML = '<p style="color:#64748b;text-align:center;">Banco vazio — nada para vender.</p>';
+                document.getElementById('sellTotalLabel').innerText = 'Total: 0 🪙';
                 return;
             }
-            
-            let list = bench;
-            let p = list[selectedPlayerInfo.index];
-            let sellValue = Math.floor(getTrainCost(p) * 0.5);
-            
-            coins += sellValue;
-            list.splice(selectedPlayerInfo.index, 1);
-            selectedPlayerInfo = null;
-            notify(`💰 ${p.name} vendido por ${sellValue}🪙 (50% do valor de treino)!`, "#00E676");
+            box.innerHTML = bench.map((p, i) => {
+                let val = getSellValue(p);
+                let on = sellSelectedIds.has(p.uniqueId);
+                return `<div class="sell-row ${on ? 'picked' : ''}" onclick="toggleSellPick(${p.uniqueId})">
+                    <input type="checkbox" ${on ? 'checked' : ''} onclick="event.stopPropagation(); toggleSellPick(${p.uniqueId})">
+                    <div class="sell-meta"><b>${p.name}</b> · ${p.pos} · OVR ${p.ovr}</div>
+                    <div class="sell-val">+${val} 🪙</div>
+                </div>`;
+            }).join('');
+            updateSellTotal();
+        }
+
+        function toggleSellPick(uid) {
+            if (sellSelectedIds.has(uid)) sellSelectedIds.delete(uid);
+            else sellSelectedIds.add(uid);
+            renderSellList();
+        }
+
+        function sellSelectAll(on) {
+            sellSelectedIds = new Set();
+            if (on) bench.forEach(p => sellSelectedIds.add(p.uniqueId));
+            renderSellList();
+        }
+
+        function updateSellTotal() {
+            let total = 0, n = 0;
+            bench.forEach(p => {
+                if (sellSelectedIds.has(p.uniqueId)) {
+                    total += getSellValue(p);
+                    n++;
+                }
+            });
+            document.getElementById('sellTotalLabel').innerText = n ? `Total: ${total} 🪙 (${n} jogador${n>1?'es':''})` : 'Total: 0 🪙';
+        }
+
+        function confirmMultiSell() {
+            if (isPlaying) { notify("⚠️ Não é possível vender durante a partida!", "#ff4444"); return; }
+            if (!sellSelectedIds.size) { notify("⚠️ Selecione pelo menos um jogador do banco.", "#ff9800"); return; }
+            let total = 0, names = [];
+            // remove from end to keep indices stable by uniqueId
+            for (let i = bench.length - 1; i >= 0; i--) {
+                let p = bench[i];
+                if (sellSelectedIds.has(p.uniqueId)) {
+                    let v = getSellValue(p);
+                    total += v;
+                    names.push(p.name);
+                    bench.splice(i, 1);
+                }
+            }
+            addCoins(total);
+            if (selectedPlayerInfo && selectedPlayerInfo.listType === 'bench') selectedPlayerInfo = null;
+            sellSelectedIds = new Set();
+            document.getElementById('sellModal').style.display = 'none';
+            notify(`💰 Vendeu ${names.length} jogador(es) por ${total}🪙!`, "#00E676");
             updateUI();
         }
 
@@ -1252,6 +1533,7 @@
             };
             applyRolledPotential(customP);
 
+            if (customP.packCost == null) customP.packCost = getPackCostForOvr(customP.ovr);
             bench.push(customP);
             notify(`🎉 ${nome} se juntou ao time e está no banco!`, "#00E676");
             document.getElementById('createPlayerModal').style.display = 'none';
@@ -1260,7 +1542,7 @@
 
         function generateStarterTeam() {
             startingXI.push({ ...createGenericPlayer(true), uniqueId: ++playerIdCounter });
-            for(let i=0; i<10; i++) startingXI.push({ ...createGenericPlayer(false), uniqueId: ++playerIdCounter });
+            for (let i = 0; i < 10; i++) startingXI.push({ ...createGenericPlayer(false), uniqueId: ++playerIdCounter });
             updateUI();
         }
 
@@ -1308,12 +1590,12 @@
             if (isPlaying) { notify("⚠️ Você não pode abrir pacotes durante a partida!", "#ff4444"); return; }
             let pData = packOdds[type];
             if (coins < pData.cost) { notify("❌ Moedas insuficientes!", "#ff4444"); return; }
-            coins -= pData.cost; updateUI();
+            addCoins(-pData.cost); updateUI();
 
             // Ultra: 0.5% Divino (Mahoraga) se tiver Home das invocação OVR 100+
             if (type === 'ultra' && hasMegumiAt100() && Math.random() < 0.005) {
                 let base = starPlayers.find(sp => sp.name === "Mahoraga");
-                playerPending = { ...base, offenseBias: (Math.random()-0.5)*80, defenseBias: (Math.random()-0.5)*60, uniqueId: ++playerIdCounter, potential: 0, maxPotential: 0, noTrain: true, isDivine: true, baseDri: 25 };
+                playerPending = { ...base, offenseBias: (Math.random()-0.5)*80, defenseBias: (Math.random()-0.5)*60, uniqueId: ++playerIdCounter, potential: 0, maxPotential: 0, noTrain: true, isDivine: true, baseDri: 25, packCost: pData.cost };
                 showPackAnimation();
                 return;
             }
@@ -1322,8 +1604,12 @@
             for (let r of pData.ranges) { accumulated += r.chance; if (rand <= accumulated) { selectedRarity = r.rarity; break; } }
             
             let range = getOvrRange(selectedRarity);
-            // Não sortear Mahoraga no pool normal de místico
-            let possible = starPlayers.filter(p => p.ovr >= range.min && p.ovr <= range.max && !p.isDivine && p.name !== "Mahoraga");
+            // Não sortear Mahoraga nem resultados exclusivos do Totem (r1-r8)
+            const CRAFT_ONLY = new Set([
+                "Helicóptero guloso", "Diddy", "Cadeira Gamer do Vasco", "Angola", "Doutor de Folga",
+                "Bixo Maléfico Perigoso do Mal (ele come cimento)", "Lebron James Samurai", "Macaco Queimado no Poste"
+            ]);
+            let possible = starPlayers.filter(p => p.ovr >= range.min && p.ovr <= range.max && !p.isDivine && p.name !== "Mahoraga" && !CRAFT_ONLY.has(p.name));
             
             if (possible.length > 0 && Math.random() < 0.85) {
                 let picked = possible[Math.floor(Math.random() * possible.length)];
@@ -1335,6 +1621,7 @@
                 applyRolledPotential(playerPending);
             }
             playerPending.uniqueId = ++playerIdCounter;
+            playerPending.packCost = pData.cost;
             showPackAnimation();
         }
 
@@ -1421,7 +1708,7 @@
                 notify(`❌ Precisa de ${TOTEM_UNLOCK_COST}🪙 para despertar o Totem!`, "#ff4444");
                 return;
             }
-            coins -= TOTEM_UNLOCK_COST;
+            addCoins(-TOTEM_UNLOCK_COST);
             totemUnlocked = true;
             notify("🗿 O Totem da União desperta! O livro de receitas está aberto.", "#fbbf24");
             updateUI();
@@ -1500,7 +1787,7 @@
                 return;
             }
 
-            coins -= TOTEM_FUSE_COST;
+            addCoins(-TOTEM_FUSE_COST);
             // Remove do banco (maior índice primeiro)
             let idxs = [ia, ib].sort((a,b) => b - a);
             idxs.forEach(i => bench.splice(i, 1));
@@ -1509,11 +1796,18 @@
                 ...recipe.result,
                 offenseBias: (Math.random() - 0.5) * 80,
                 defenseBias: (Math.random() - 0.5) * 60,
-                uniqueId: ++playerIdCounter
+                uniqueId: ++playerIdCounter,
+                packCost: TOTEM_FUSE_COST
             };
             applyRolledPotential(result); // potencial resetado / aleatório
             bench.push(result);
+            let firstTime = !completedRecipes[recipe.id];
             completedRecipes[recipe.id] = true;
+            if (firstTime && !claimedRecipeBonuses[recipe.id]) {
+                claimedRecipeBonuses[recipe.id] = true;
+                addFans(RECIPE_FAN_BONUS);
+                notify(`📖 Nova receita descoberta! +${RECIPE_FAN_BONUS} fãs`, "#4ade80");
+            }
             clearFusionSlots();
             notify(`✨ Fusão completa! ${pA.name} + ${pB.name} → ${result.name} (OVR ${result.ovr})`, "#fbbf24");
             updateUI();
@@ -1580,7 +1874,8 @@
                 potential: p.potential, maxPotential: p.maxPotential,
                 uniqueId: p.uniqueId, noTrain: !!p.noTrain, isDivine: !!p.isDivine,
                 specialPotential: !!p.specialPotential, baseDri: p.baseDri,
-                offenseBias: p.offenseBias, defenseBias: p.defenseBias
+                offenseBias: p.offenseBias, defenseBias: p.defenseBias,
+                packCost: p.packCost != null ? p.packCost : getPackCostForOvr(p.ovr)
             };
         }
 
@@ -1591,6 +1886,7 @@
                 playerIdCounter,
                 totemUnlocked,
                 completedRecipes: { ...completedRecipes },
+                claimedRecipeBonuses: { ...claimedRecipeBonuses },
                 clubData: JSON.parse(JSON.stringify(clubData)),
                 activeSponsor: JSON.parse(JSON.stringify(activeSponsor)),
                 startingXI: startingXI.map(serializePlayer),
@@ -1626,11 +1922,14 @@
             try {
                 let data = fromSaveCode(raw);
                 if (!data || data.v !== 1) throw new Error("Versão inválida");
-                coins = data.coins || 0;
+                setCoinsAbs(data.coins || 0);
+                setFansAbs((data.clubData && data.clubData.fans != null) ? data.clubData.fans : (clubData.fans || 0));
                 playerIdCounter = data.playerIdCounter || 1000;
                 totemUnlocked = !!data.totemUnlocked;
                 completedRecipes = data.completedRecipes || {};
+                claimedRecipeBonuses = data.claimedRecipeBonuses || {};
                 clubData = data.clubData || clubData;
+                setFansAbs(clubData.fans || 0);
                 activeSponsor = data.activeSponsor || { name: "", amount: 0, gamesLeft: 0 };
                 startingXI = (data.startingXI || []).map(p => ({ ...p }));
                 bench = (data.bench || []).map(p => ({ ...p }));
@@ -1678,7 +1977,9 @@
             let shape = document.getElementById('shieldShape').value, pattern = document.getElementById('shieldPattern').value;
             let preview = document.getElementById('shieldPreview');
             preview.className = `shield-preview ${shape} ${pattern}`;
-            preview.style.backgroundColor = clubData.color; preview.innerText = clubData.icon;
+            preview.style.backgroundColor = clubData.color;
+            preview.style.setProperty('--sec', clubData.secondaryColor || '#000000');
+            preview.innerText = clubData.icon;
             document.getElementById('displayTeamName').innerText = clubData.name;
         }
 
@@ -1690,7 +1991,8 @@
         const stadiumColors = {
             amistoso: '#2e7d32',
             normal: '#1a3a5c',
-            elite: '#4a148c'
+            elite: '#4a148c',
+            brasileirinho: '#1b5e20'
         };
 
         function setStadiumColor(mode) {
@@ -1700,7 +2002,8 @@
 
         function pickEnemyTeam(mode) {
             let targetDiff;
-            if (mode === 'elite') targetDiff = 4;
+            if (mode === 'brasileirinho') targetDiff = Math.random() < 0.45 ? 6 : 5;
+            else if (mode === 'elite') targetDiff = 4;
             else if (mode === 'normal') targetDiff = 2 + Math.floor(Math.random() * 2);
             else targetDiff = 1 + (Math.random() < 0.3 ? 1 : 0);
 
@@ -1711,9 +2014,10 @@
         }
 
         function getEnemyOvrBonus(difficulty, mode) {
-            const baseByDiff = { 1: -8, 2: 0, 3: 6, 4: 12 };
+            const baseByDiff = { 1: -8, 2: 0, 3: 6, 4: 12, 5: 18, 6: 24 };
             let bonus = baseByDiff[difficulty] || 0;
-            if (mode === 'elite') bonus += 4;
+            if (mode === 'brasileirinho') bonus += 6;
+            else if (mode === 'elite') bonus += 4;
             else if (mode === 'normal') bonus += 1;
             return bonus;
         }
@@ -1782,6 +2086,7 @@
             timeStopFrames = 0;
             timeStopper = null;
             // Icebergs persistem entre gols até derreterem (não limpar aqui)
+            bullets = [];
             simEntities.ball = { x: canvas.width/2, y: canvas.height/2, z: 0, vz: 0, isAirborne: false, vx: 0, vy: 0, trail: [], owner: null };
             simEntities.vfx = [];
             simEntities.homeTeam.forEach(p => { p.baseX = getBasePositionX(p.pos, true) + (p.offenseBias || 0); p.x = p.baseX; p.y = p.baseY; p.cooldown = 0; p.receiveCooldown = 0; p.stateInfo = "Posicionando"; p.targetX = p.baseX; p.targetY = p.baseY; p.trail = [];});
@@ -1792,6 +2097,7 @@
             timeStopFrames = 0;
             timeStopper = null;
             icebergs = [];
+            bullets = [];
             simEntities.ball = { x: canvas.width/2, y: canvas.height/2, z: 0, vz: 0, isAirborne: false, vx: 0, vy: 0, trail: [], owner: null };
             simEntities.vfx = [];
             
@@ -1799,6 +2105,8 @@
             startingXI.forEach(p => {
                 p.abilityUsed = false; p.popActiveFrames = 0; p.popCooldown = 0;
                 p.rageActive = 0; p.adaptTimer = 0; p.showWheel = false;
+                p.hardStun = 0; p.abilityLocked = 0; p.noDribble = 0; p.stunAdapt = 0;
+                p.pistolUsed = false; p.ballinCooldown = 0;
                 if (p.name === "Mahoraga") {
                     p.dri = p.baseDri != null ? p.baseDri : 25;
                     p.pos = "VOL";
@@ -1820,29 +2128,51 @@
             
             // Chance de personagens custom no elenco inimigo
             // Místicos com habilidades (Iberê, The World, Titanic) = 1% extremamente raro
-            let abilityMythics = starPlayers.filter(sp => sp.ovr >= 100 && !sp.isDivine && (sp.name === "Iberê Thenório" || sp.name === "The World" || sp.name === "Titanic" || sp.name === "Leviathan"));
+            let abilityMythics = starPlayers.filter(sp => sp.ovr >= 100 && !sp.isDivine && (sp.name === "Iberê Thenório" || sp.name === "The World" || sp.name === "Titanic" || sp.name === "Leviathan" || sp.name === "Megafone" || sp.name === "Pistoleiro"));
             // Nunca inclui divinos (Mahoraga) para evitar spoiler — só se o jogador já desbloqueou
             let otherStars = starPlayers.filter(sp => sp.ovr < 100 && !sp.isDivine && sp.name !== "Mahoraga");
             let canSpawnDivine = hasMegumiAt100();
 
             let enemyDiff = currentEnemyTeam.difficulty || 1;
+            // Diff 5-6: apenas lenda+ (90+)
+            let highTierStars = starPlayers.filter(sp => sp.ovr >= 90 && !sp.isDivine && sp.name !== "Mahoraga");
+            let legendStars = starPlayers.filter(sp => sp.ovr >= 90 && sp.ovr < 100);
             let enemyRoster = ["GOL", "ZAG", "ZAG", "LAT", "LAT", "VOL", "VOL", "MEI", "ATA", "ATA", "ATA"].map(role => {
                 let p;
                 let roll = Math.random();
-                // Divino inimigo: só se o jogador já tem Home das invocação 100+, e só em diff 4+, chance minúscula
-                if (canSpawnDivine && enemyDiff >= 4 && roll < 0.003 && role === "VOL") {
+                // Divino inimigo: só se desbloqueado + diff alta
+                if (canSpawnDivine && enemyDiff >= 5 && roll < 0.008 && role === "VOL") {
                     let base = starPlayers.find(sp => sp.name === "Mahoraga");
                     if (base) {
                         p = { ...base, offenseBias: (Math.random()-0.5)*80, defenseBias: (Math.random()-0.5)*60, uniqueId: ++playerIdCounter, abilityUsed: false, baseDri: 25, potential: 0, maxPotential: 0 };
                     }
                 }
-                // Místicos com habilidade: só em times dificuldade 4+, e 1% de chance
-                if (!p && enemyDiff >= 4 && roll < 0.01 && abilityMythics.length > 0) {
+                // Místicos: diff 4+ (1%), diff 5-6 bem mais comum (~12%)
+                let mythicChance = enemyDiff >= 5 ? 0.12 : (enemyDiff >= 4 ? 0.01 : 0);
+                if (!p && enemyDiff >= 4 && roll < mythicChance && abilityMythics.length > 0) {
                     let base = abilityMythics[Math.floor(Math.random() * abilityMythics.length)];
                     let samePos = abilityMythics.filter(sp => sp.pos === role);
                     if (samePos.length > 0) base = samePos[Math.floor(Math.random() * samePos.length)];
                     p = { ...base, offenseBias: (Math.random()-0.5)*80, defenseBias: (Math.random()-0.5)*60, uniqueId: ++playerIdCounter, abilityUsed: false };
                     applyRolledPotential(p);
+                }
+                // Diff 5-6: preenche com lendas/altos OVRs
+                else if (!p && enemyDiff >= 5) {
+                    let pool = highTierStars.filter(sp => sp.pos === role);
+                    if (pool.length === 0) pool = highTierStars.length ? highTierStars : legendStars;
+                    if (pool.length > 0 && Math.random() < 0.85) {
+                        let base = pool[Math.floor(Math.random() * pool.length)];
+                        p = { ...base, offenseBias: (Math.random()-0.5)*80, defenseBias: (Math.random()-0.5)*60, uniqueId: ++playerIdCounter };
+                        p.ovr = Math.max(90, Math.round(p.ovr + enemyBonus * 0.25 + (Math.random()*4 - 1)));
+                        applyRolledPotential(p);
+                    } else {
+                        p = createGenericPlayer(role === "GOL");
+                        p.pos = role;
+                        p.ovr = Math.max(90, Math.round(92 + enemyBonus * 0.4 + (Math.random()*8 - 2)));
+                        Object.assign(p, generateRandomStats(p.ovr));
+                        p.uniqueId = ++playerIdCounter;
+                        applyRolledPotential(p);
+                    }
                 }
                 // ~18% chance de estrela custom (não místico / não divino)
                 else if (!p && roll < 0.19 && otherStars.length > 0) {
@@ -1934,6 +2264,21 @@
                     ball.vx *= 0.98; ball.vy *= 0.98;
                     ball.x += ball.vx; ball.y += ball.vy;
                     ball.trail.push({x: ball.x, y: ball.y}); if (ball.trail.length > 10) ball.trail.shift();
+                    // Quicada se bater em jogador congelado (ex: goleiro)
+                    let frozen = simEntities.homeTeam.concat(simEntities.awayTeam).filter(pl => !timeStopId || pl.uniqueId !== timeStopId);
+                    for (let pl of frozen) {
+                        let d = Math.hypot(ball.x - pl.x, ball.y - pl.y);
+                        if (d < 14) {
+                            let dx = ball.x - pl.x, dy = ball.y - pl.y;
+                            let len = Math.hypot(dx, dy) || 1;
+                            ball.vx = (dx / len) * Math.max(6, Math.abs(ball.vx) * 0.85) + (Math.random() - 0.5) * 2;
+                            ball.vy = (dy / len) * Math.max(4, Math.abs(ball.vy) * 0.85) + (Math.random() - 0.5) * 3;
+                            ball.x = pl.x + (dx / len) * 16;
+                            ball.y = pl.y + (dy / len) * 16;
+                            spawnVFX(ball.x, ball.y, 'rgba(255,255,255,0.7)', 18);
+                            break;
+                        }
+                    }
                     if (ball.y <= 10 || ball.y >= canvas.height - 10) ball.vy *= -1;
                     if (ball.x <= 10 && (ball.y < canvas.height/2 - 60 || ball.y > canvas.height/2 + 60)) ball.vx *= -1;
                     if (ball.x >= canvas.width - 10 && (ball.y < canvas.height/2 - 60 || ball.y > canvas.height/2 + 60)) ball.vx *= -1;
@@ -1965,6 +2310,35 @@
 
             allPlayers.forEach(p => {
                 if (timeStopId != null && p.uniqueId !== timeStopId) return; // Congelado no tempo
+
+                // Ticks de status
+                if (p.hardStun > 0) p.hardStun--;
+                if (p.abilityLocked > 0) p.abilityLocked--;
+                if (p.noDribble > 0) p.noDribble--;
+                if (p.ballinCooldown > 0) p.ballinCooldown--;
+                // Tiro do Pistoleiro chegou
+                if (p._pendingShot) {
+                    p._pendingShot.frames--;
+                    if (p._pendingShot.frames <= 0) {
+                        applyHardStun(p, p._pendingShot.stun, "BALA!");
+                        p.noDribble = Math.max(p.noDribble || 0, p._pendingShot.noDri);
+                        spawnVFX(p.x, p.y, '#ff5252', 35);
+                        p._pendingShot = null;
+                    }
+                }
+                // Stun duro: parado, sem bola, sem IA
+                if (p.hardStun > 0) {
+                    p.stateInfo = "Atordoado";
+                    if (ball.owner === p) { ball.owner = null; }
+                    // Mahoraga com stacks ainda se move um pouco mais rápido a cada adaptação
+                    if (p.name === "Mahoraga" && (p.stunAdapt || 0) > 0 && p.stunAdapt < 5) {
+                        let slow = 1 - 0.2 * p.stunAdapt; // quanto ainda sofre
+                        // quase parado, mas não 100% se adaptado
+                        p.x += (Math.random()-0.5) * 0.3 * (1-slow);
+                        p.y += (Math.random()-0.5) * 0.3 * (1-slow);
+                    }
+                    return;
+                }
 
                 // Cooldown PRIME Michael Jackson
                 if (p.popCooldown > 0) p.popCooldown--;
@@ -2032,19 +2406,25 @@
                 }
 
                 // Lógica de Ativação de Habilidades Especiais Místicas
-                if (!activeTimeStopper) {
-                    // PRIME Michael Jackson (ovr >= 110 e nome PRIME...)
-                    if ((p.name === "PRIME Michael Jackson" || (p.name === "Michael Jackson" && p.ovr >= 110)) && ball.owner === p) {
+                if (!activeTimeStopper && !(p.abilityLocked > 0) && !(p.hardStun > 0)) {
+                    // PRIME Michael Jackson — Rei do Pop (não depende de ovr>=100 block)
+                    let isPrimeMJ = p.name === "PRIME Michael Jackson" || (p.name === "Michael Jackson" && p.ovr >= 110);
+                    if (isPrimeMJ) {
                         if (p.popCooldown === undefined) p.popCooldown = 0;
-                        if (p.popCooldown <= 0 && (!p.popActiveFrames || p.popActiveFrames <= 0)) {
-                            p.popActiveFrames = 5 * 60; // ~5 segundos
-                            p.popCooldown = 20 * 60; // 20s cooldown
+                        if (p.popActiveFrames === undefined) p.popActiveFrames = 0;
+                        // Auto-rename se ainda for MJ com 110+
+                        if (p.name === "Michael Jackson" && p.ovr >= 110) p.name = "PRIME Michael Jackson";
+                        if (ball.owner === p && p.popCooldown <= 0 && p.popActiveFrames <= 0) {
+                            p.popActiveFrames = 5 * 60; // ~5s
+                            p.popCooldown = 18 * 60; // ~18s CD
                             p.stunText = "REI DO POP!";
-                            p.abilityMsgFrames = 150;
+                            p.abilityMsgFrames = 120;
+                            spawnVFX(p.x, p.y, '#E91E63', 40);
+                            mlog(`🕺 ${p.name} ativa REI DO POP!`);
                         }
                     }
 
-                    if (p.ovr >= 100) {
+                    if (p.ovr >= 100 || isPrimeMJ) {
                         if (p.abilityCooldown === undefined) p.abilityCooldown = (p.name === 'The World' ? Math.floor(Math.random() * 60) + 40 : Math.floor(Math.random() * 120) + 60);
                         if (p.abilityCooldown > 0) {
                             p.abilityCooldown--;
@@ -2054,9 +2434,10 @@
                                 p.stunText = "ROBÔ!";
                                 p.abilityMsgFrames = 150;
                                 spawnRobot(p);
+                                mlog(`🤖 ${p.name} invoca um robô!`);
                             } else if (p.name === "The World") {
                                 p.abilityCooldown = 600; // ~10s entre usos
-                                timeStopFrames = 180; // ~3s parado
+                                timeStopFrames = 30; // ~0.5s parado
                                 timeStopper = p;
                                 p.stunText = "ZA WARUDO!";
                                 // Ninguém fica com a bola — campo congelado, só The World se move
@@ -2067,6 +2448,7 @@
                                 p.stunText = "ZA WARUDO!";
                                 p.abilityMsgFrames = 180;
                                 spawnVFX(p.x, p.y, '#ff007f', 50);
+                                mlog(`⏱ ${p.name} PARA O TEMPO!`);
                             } else if (p.name === "Leviathan") {
                                 // Rage / Caça
                                 if (!p.rageActive || p.rageActive <= 0) {
@@ -2075,6 +2457,7 @@
                                     p.stunText = "CAÇA!";
                                     p.abilityMsgFrames = 150;
                                     spawnVFX(p.x, p.y, '#1e88e5', 40);
+                                    mlog(`🌊 ${p.name} entra em modo CAÇA!`);
                                 }
                             } else if (p.name === "Mahoraga") {
                                 // Adaptação: roda a cada 10s (visual + swap de posição)
@@ -2082,15 +2465,77 @@
                                 // Habilidade "ativada" periodicamente via timer abaixo; cooldown curto só pra cutin
                                 p.abilityCooldown = 10 * 60;
                             } else if (p.name === "Titanic") {
-                                // Iceberg: só se não houver iceberg ativo do mesmo time
+                                // Iceberg buff: pode ter 1 ativo; CD menor
                                 let hasIce = icebergs.some(ib => ib.isHome === p.isHome && ib.framesLeft > 0);
                                 if (!hasIce) {
-                                    p.abilityCooldown = 10 * 60; // 10s cooldown após derreter (aplicado no derretimento também)
+                                    p.abilityCooldown = 7 * 60;
                                     spawnIceberg(p.isHome);
                                     p.stunText = "ICEBERG!";
                                     p.abilityMsgFrames = 150;
+                                    mlog(`🧊 ${p.name} invoca um iceberg!`);
                                 } else {
-                                    p.abilityCooldown = 30; // tenta de novo em breve
+                                    p.abilityCooldown = 20;
+                                }
+                            } else if (p.name === "Megafone") {
+                                // fushoushhw: stun em área (não afeta GOL)
+                                p.abilityCooldown = 14 * 60;
+                                p.stunText = "fushoushhw!";
+                                p.abilityMsgFrames = 120;
+                                spawnVFX(p.x, p.y, '#ffeb3b', 70);
+                                let allP = simEntities.homeTeam.concat(simEntities.awayTeam);
+                                allP.forEach(t => {
+                                    if (t === p || t.pos === "GOL") return;
+                                    if (Math.hypot(t.x - p.x, t.y - p.y) < 95) {
+                                        applyHardStun(t, Math.floor(2.5 * 60), "SONORO!");
+                                    }
+                                });
+                                mlog(`📢 ${p.name} grita fushoushhw!`);
+                            } else if (p.name === "Pistoleiro") {
+                                // Um tiro por partida
+                                if (p.pistolUsed) { p.abilityCooldown = 9999; }
+                                else {
+                                    let foes = (p.isHome ? simEntities.awayTeam : simEntities.homeTeam).filter(t => t.pos !== "GOL");
+                                    if (foes.length) {
+                                        foes.sort((a,b) => Math.hypot(a.x-p.x,a.y-p.y) - Math.hypot(b.x-p.x,b.y-p.y));
+                                        let tgt = foes[0];
+                                        p.pistolUsed = true;
+                                        p.abilityCooldown = 9999;
+                                        p.stunText = "BANG!";
+                                        p.abilityMsgFrames = 120;
+                                        bullets.push({ x: p.x, y: p.y, tx: tgt.x, ty: tgt.y, frames: 18, targetId: tgt.uniqueId, hit: false });
+                                        // impacto garantido no fim da animação
+                                        tgt._pendingShot = { frames: 18, stun: 5*60, noDri: 25*60 };
+                                        mlog(`🔫 ${p.name} atira em ${tgt.name}!`);
+                                    } else {
+                                        p.abilityCooldown = 60;
+                                    }
+                                }
+                            } else if (p.name === "Lebron James Samurai") {
+                                // Ballin' só com a bola e espaço pra frente
+                                if (ball.owner === p) {
+                                    let dirX = p.isHome ? 1 : -1;
+                                    let spaceAhead = p.isHome ? (canvas.width - p.x) : p.x;
+                                    if (spaceAhead > 90) {
+                                        p.abilityCooldown = 16 * 60;
+                                        p.stunText = "BALLIN'!";
+                                        p.abilityMsgFrames = 120;
+                                        // Pulo com bola (tipo bicuda)
+                                        ball.owner = null;
+                                        ball.isAirborne = true;
+                                        ball.vz = 11 + Math.random() * 2;
+                                        ball.vx = dirX * (16 + p.chu / 12);
+                                        ball.vy = (canvas.height/2 - p.y) * 0.02 + (Math.random()-0.5)*2;
+                                        p.cooldown = 25;
+                                        p.receiveCooldown = 0;
+                                        // visual "pulo"
+                                        p.y = Math.max(15, Math.min(canvas.height-15, p.y + (Math.random()-0.5)*8));
+                                        spawnVFX(p.x, p.y, '#FFD700', 45);
+                                        mlog(`🏀 ${p.name} faz BALLIN'!`);
+                                    } else {
+                                        p.abilityCooldown = 40; // sem espaço, tenta depois
+                                    }
+                                } else {
+                                    p.abilityCooldown = 30;
                                 }
                             }
                         }
@@ -2129,7 +2574,9 @@
                 let canTakeDuringStop = timeStopId != null && p.uniqueId === timeStopId;
                 if (distBall < 14 && p.cooldown === 0 && !ball.isAirborne &&
                     (canTakeDuringStop || ((!ball.owner || ball.owner.isHome !== p.isHome) && !goalieImmunity))) {
-                    let success = p.pos === "GOL" ? true : (!ball.owner ? true : Math.random() < (0.5 + ((p.def - ball.owner.dri) * 0.008)));
+                    let ownerDri = ball.owner ? ball.owner.dri : 0;
+                    if (ball.owner && ball.owner.noDribble > 0) ownerDri = Math.min(ownerDri, 15);
+                    let success = p.pos === "GOL" ? true : (!ball.owner ? true : Math.random() < (0.5 + ((p.def - ownerDri) * 0.008)));
                     if (canTakeDuringStop) success = true; // The World sempre pega no tempo parado
                     // PRIME Michael Jackson (Rei do Pop): 100% de drible contra não-goleiros (exceto The World parado)
                     if (!canTakeDuringStop && ball.owner && ball.owner.popActiveFrames > 0 && p.pos !== "GOL") {
@@ -2178,11 +2625,14 @@
                         distToGoal = Math.abs(targetGoalX - p.x);
                         if (distToGoal < 180 || Math.random() < 0.05) {
                             ball.owner = null; p.cooldown = 20; p.receiveCooldown = 0;
-                            ball.vx = dirX * (14 + p.chu / 8);
-                            ball.vy = ((aimY - p.y) / Math.max(distToGoal, 1)) * 8 + (Math.random() - 0.5) * 2;
+                            let svx = dirX * (14 + p.chu / 8);
+                            let svy = ((aimY - p.y) / Math.max(distToGoal, 1)) * 8 + (Math.random() - 0.5) * 2;
+                            let angled = applyShotAngleVariance(svx, svy, p.fin);
+                            ball.vx = angled.vx; ball.vy = angled.vy;
                             p.stunText = "ZA WARUDO SHOT!";
                             p.abilityMsgFrames = 90;
                             spawnVFX(p.x, p.y, '#ff007f', 35);
+                            mlog(`⏱ ${p.name} chuta no tempo parado!`);
                         }
                     } else {
                     let isShootingImmediate = distToGoal < (150 + (p.chu * 0.8)) && Math.random() < 0.1;
@@ -2275,15 +2725,18 @@
                         else if (isShootingImmediate) { 
                             spawnVFX(ball.x, ball.y, 'rgba(255, 255, 255, 0.9)', 35);
                             ball.owner = null; p.cooldown = 30; p.receiveCooldown = 0; 
-                            ball.vx = (p.isHome ? 1 : -1) * (8 + (p.chu/10)); 
+                            let svx = (p.isHome ? 1 : -1) * (8 + (p.chu/10)); 
                             
                             let targetCornerY = Math.random() < 0.5 ? (canvas.height/2 - 50) : (canvas.height/2 + 50);
                             let blendFactor = p.fin / 100;
                             let aimY = (canvas.height/2 * (1 - blendFactor)) + (targetCornerY * blendFactor);
                             let goalYDir = (aimY - p.y) / distToGoal;
                             
-                            ball.vy = goalYDir * (6 + Math.random()*2) + (Math.random() - 0.5) * ((100 - p.fin) / 10); 
+                            let svy = goalYDir * (6 + Math.random()*2) + (Math.random() - 0.5) * ((100 - p.fin) / 10); 
+                            let angled = applyShotAngleVariance(svx, svy, p.fin);
+                            ball.vx = angled.vx; ball.vy = angled.vy;
                             p.targetX = targetGoalX; p.targetY = aimY;
+                            mlog(`🎯 ${p.name} finaliza!`);
                         } 
                         else {
                             // Pressão: se muitos inimigos perto, SEMPRE passa pro mais isolado
@@ -2301,27 +2754,53 @@
                                 // Drible / avanço (PRIME MJ / Leviathan rage)
                                 let driMod = p.dri > 80 ? 1.2 : 0.8;
                                 if (p.popActiveFrames > 0) driMod = 1.8;
-                                if (p.rageActive > 0) driMod = 2.2;
-                                let moveX = (p.isHome ? p.speed : -p.speed) * driMod;
-                                let moveY = p.y < canvas.height/2 ? p.speed*0.15 : -p.speed*0.15;
-                                // Leviathan: dashes aleatórios na direção do movimento (contam como chute)
-                                if (p.rageActive > 0 && Math.random() < 0.04) {
-                                    let dash = 28 + Math.random() * 18;
-                                    let dirX = Math.sign(moveX) || (p.isHome ? 1 : -1);
-                                    let dirY = (Math.random() - 0.5) * 0.6;
-                                    p.x += dirX * dash;
-                                    p.y += dirY * dash;
-                                    p.stunText = "DASH!";
-                                    spawnVFX(p.x, p.y, '#1e88e5', 22);
-                                    // Chute: solta a bola na direção do dash
-                                    ball.owner = null;
-                                    ball.vx = dirX * (12 + p.chu / 12);
-                                    ball.vy = dirY * 8 + (Math.random() - 0.5) * 4;
-                                    p.cooldown = 12;
+                                if (p.rageActive > 0) driMod = 2.4;
+                                let dirX = p.isHome ? 1 : -1;
+                                let aimY = canvas.height / 2;
+                                // Leviathan em rage: foca gol — avança e finaliza
+                                if (p.rageActive > 0) {
+                                    let spd = (p.speed || 3) * driMod;
+                                    let dy = aimY - p.y;
+                                    p.x += dirX * spd;
+                                    p.y += Math.sign(dy || 1) * Math.min(Math.abs(dy), spd * 0.55);
+                                    p.x = Math.max(10, Math.min(canvas.width - 10, p.x));
+                                    p.y = Math.max(10, Math.min(canvas.height - 10, p.y));
+                                    ball.x = p.x + dirX * 5; ball.y = p.y;
+                                    p.targetX = p.isHome ? canvas.width : 0; p.targetY = aimY;
+                                    let dGoal = Math.abs((p.isHome ? canvas.width : 0) - p.x);
+                                    // Dash ofensivo em direção ao gol (pode soltar chute)
+                                    if (Math.random() < 0.06) {
+                                        let dash = 30 + Math.random() * 20;
+                                        p.x += dirX * dash;
+                                        p.y += (Math.random() - 0.5) * 12;
+                                        p.stunText = "DASH!";
+                                        spawnVFX(p.x, p.y, '#1e88e5', 22);
+                                        if (dGoal < 260 || Math.random() < 0.45) {
+                                            ball.owner = null; p.cooldown = 14; p.receiveCooldown = 0;
+                                            let a = applyShotAngleVariance(dirX * (13 + p.chu / 10), ((aimY - p.y) / Math.max(dGoal, 1)) * 7 + (Math.random() - 0.5) * 3, p.fin);
+                                            ball.vx = a.vx; ball.vy = a.vy;
+                                            p.stunText = "CAÇA SHOT!";
+                                            spawnVFX(p.x, p.y, '#1565C0', 30);
+                                            mlog(`🌊 ${p.name} finaliza em CAÇA!`);
+                                        }
+                                    } else if (dGoal < 170 || Math.random() < 0.08) {
+                                        ball.owner = null; p.cooldown = 18; p.receiveCooldown = 0;
+                                        let a = applyShotAngleVariance(dirX * (12 + p.chu / 9), ((aimY - p.y) / Math.max(dGoal, 1)) * 7 + (Math.random() - 0.5) * 2.5, p.fin);
+                                        ball.vx = a.vx; ball.vy = a.vy;
+                                        p.stunText = "CAÇA SHOT!";
+                                        spawnVFX(p.x, p.y, '#1565C0', 28);
+                                        mlog(`🌊 ${p.name} finaliza em CAÇA!`);
+                                    }
                                 } else {
+                                    let moveX = dirX * (p.speed || 3) * driMod;
+                                    let moveY = p.y < canvas.height/2 ? p.speed*0.15 : -p.speed*0.15;
+                                    if (p.popActiveFrames > 0) {
+                                        // PRIME MJ: avança mais agressivo
+                                        moveX *= 1.15;
+                                    }
                                     p.x += moveX; p.y += moveY;
+                                    p.targetX = p.x + moveX*10; p.targetY = p.y + moveY*10;
                                 }
-                                p.targetX = p.x + moveX*10; p.targetY = p.y + moveY*10;
                             }
                         }
                     }
@@ -2448,14 +2927,23 @@
                     icebergs[i].framesLeft--;
                     if (icebergs[i].framesLeft <= 0) {
                         spawnVFX(icebergs[i].x, icebergs[i].y, '#E0F7FA', 40);
-                        // Aplica cooldown de 10s no Titanic do mesmo time
                         let team = icebergs[i].isHome ? simEntities.homeTeam : simEntities.awayTeam;
                         team.forEach(pl => {
-                            if (pl.name === "Titanic") pl.abilityCooldown = Math.max(pl.abilityCooldown || 0, 10 * 60);
+                            if (pl.name === "Titanic") pl.abilityCooldown = Math.max(pl.abilityCooldown || 0, 7 * 60);
                         });
                         icebergs.splice(i, 1);
                     }
                 }
+            }
+
+            // Tick balas do Pistoleiro
+            for (let i = bullets.length - 1; i >= 0; i--) {
+                let b = bullets[i];
+                let t = 1 - (b.frames / 18);
+                b.x = b.x + (b.tx - b.x) * 0.35;
+                b.y = b.y + (b.ty - b.y) * 0.35;
+                b.frames--;
+                if (b.frames <= 0) bullets.splice(i, 1);
             }
 
             drawFrame();
@@ -2557,6 +3045,19 @@
                 }
             });
 
+            // Balas do Pistoleiro
+            bullets.forEach(b => {
+                ctx.beginPath();
+                ctx.moveTo(b.x, b.y);
+                let ang = Math.atan2(b.ty - b.y, b.tx - b.x);
+                ctx.lineTo(b.x - Math.cos(ang) * 14, b.y - Math.sin(ang) * 14);
+                ctx.strokeStyle = '#FFD54F'; ctx.lineWidth = 3; ctx.stroke();
+                ctx.beginPath(); ctx.arc(b.x, b.y, 3.5, 0, Math.PI*2);
+                ctx.fillStyle = '#FF6F00'; ctx.fill();
+                ctx.beginPath(); ctx.arc(b.x, b.y, 6, 0, Math.PI*2);
+                ctx.strokeStyle = 'rgba(255, 82, 82, 0.5)'; ctx.lineWidth = 2; ctx.stroke();
+            });
+
             if (simEntities.ball.z > 0) {
                 ctx.beginPath(); ctx.ellipse(simEntities.ball.x, simEntities.ball.y, 4, 2, 0, 0, Math.PI*2);
                 ctx.fillStyle = 'rgba(0,0,0,0.4)'; ctx.fill();
@@ -2644,6 +3145,7 @@
         function goal(isHomeTeam) {
             if (isHomeTeam) matchScore.home++; else matchScore.away++;
             document.getElementById('scoreHome').innerText = matchScore.home; document.getElementById('scoreAway').innerText = matchScore.away;
+            mlog(isHomeTeam ? `⚽ GOL DO ${clubData.name}!` : `⚽ GOL de ${currentEnemyTeam ? currentEnemyTeam.name : 'adversário'}!`);
             logEvent(isHomeTeam ? `GOLAÇO DO ${clubData.name.toUpperCase()}! ⚽` : `GOL DO ${currentEnemyTeam.name.toUpperCase()}! ❌`);
             isPlaying = false; simEntities.ball.trail = []; 
             createGoalExplosion(isHomeTeam);
@@ -2803,8 +3305,12 @@
         }
 
         function startTournament(mode) {
-            let req = mode === 'elite' ? 1500 : 500;
-            if (clubData.fans < req) return;
+            if (isPlaying) { notify("⚠️ Já tem uma partida em andamento!", "#ff9800"); return; }
+            let req = mode === 'brasileirinho' ? 5000 : (mode === 'elite' ? 1500 : 500);
+            if (clubData.fans < req) {
+                notify(`❌ Precisa de ${req} fãs para este campeonato!`, "#ff4444");
+                return;
+            }
             tournamentMode = mode; tournamentStage = 1;
             buildTournamentBracket(mode);
             document.getElementById('btnTree').style.display = 'inline-block';
@@ -2812,16 +3318,29 @@
             startMatch(true);
         }
 
+        function setMatchButtonsDisabled(disabled) {
+            let play = document.getElementById('btnPlay');
+            let cup = document.getElementById('btnCup');
+            let elite = document.getElementById('btnCupElite');
+            let br = document.getElementById('btnBrasileirinho');
+            if (play) play.disabled = disabled || false;
+            // torneios: disabled se partida rolando OU requisitos de fãs
+            if (cup) cup.disabled = disabled || clubData.fans < 500;
+            if (elite) elite.disabled = disabled || clubData.fans < 1500;
+            if (br) br.disabled = disabled || clubData.fans < 5000;
+        }
+
         function startMatch(isTournament) {
+            if (isPlaying) { notify("⚠️ Já tem uma partida em andamento!", "#ff9800"); return; }
             if (startingXI.length !== 11 || startingXI.filter(p => p.pos === "GOL").length !== 1) { 
                 notify("❌ Requer 11 jogadores e 1 Goleiro exato!", "#ff4444"); return; 
             }
-            document.getElementById('btnPlay').disabled = true; document.getElementById('btnCup').disabled = true; document.getElementById('btnCupElite').disabled = true;
+            setMatchButtonsDisabled(true);
             document.getElementById('scoreboardWrapper').style.display = 'block';
             document.getElementById('homeNameTag').innerText = clubData.name; 
             
             if (isTournament) {
-                let compName = tournamentMode === 'elite' ? "TAÇA ELITE" : "MATA-MATA";
+                let compName = tournamentMode === 'brasileirinho' ? "BRASILEIRINHO" : (tournamentMode === 'elite' ? "TAÇA ELITE" : "MATA-MATA");
                 logEvent(`🏆 ${compName} (${stageNames[tournamentStage]}): Apita o árbitro!`);
                 setStadiumColor(tournamentMode);
             }
@@ -2836,6 +3355,8 @@
 
             matchTimer = 0; matchScore = { home: 0, away: 0 };
             document.getElementById('scoreHome').innerText = "0"; document.getElementById('scoreAway').innerText = "0";
+            managerLogLines = [];
+            renderManagerLog();
             initSim(); isPlaying = true; updateSim(); updateUI();
         }
 
@@ -2941,8 +3462,8 @@
             }
 
             if (win) { 
-                let baseC = tournamentMode === 'elite' ? 800 : (tournamentMode === 'normal' ? 500 : 300);
-                let baseF = tournamentMode === 'elite' ? 100 : (tournamentMode === 'normal' ? 50 : 20);
+                let baseC = tournamentMode === 'brasileirinho' ? 1200 : (tournamentMode === 'elite' ? 800 : (tournamentMode === 'normal' ? 500 : 300));
+                let baseF = tournamentMode === 'brasileirinho' ? 150 : (tournamentMode === 'elite' ? 100 : (tournamentMode === 'normal' ? 50 : 20));
                 ganhoCoins = baseC + sponsorBonus; 
                 ganhoFans = Math.floor(clubData.fans * 0.10) + baseF;
                 clubData.stats.w++; 
@@ -2952,13 +3473,13 @@
                 clubData.stats.d++; 
             } else { 
                 ganhoCoins = 40 + sponsorBonus; 
-                let perdaMult = tournamentMode === 'elite' ? 0.15 : 0.05;
+                let perdaMult = tournamentMode === 'brasileirinho' ? 0.18 : (tournamentMode === 'elite' ? 0.15 : 0.05);
                 ganhoFans = -(Math.floor(clubData.fans * perdaMult) + 10);
                 clubData.stats.l++; 
             }
 
-            coins += ganhoCoins;
-            clubData.fans = Math.max(0, clubData.fans + ganhoFans);
+            addCoins(ganhoCoins);
+            addFans(ganhoFans);
 
             let sponsorTxt = sponsorBonus > 0 ? ` (Patrocínio: +${sponsorBonus})` : '';
             let resultTxt = `Fim de Jogo! ${matchScore.home} x ${matchScore.away}. (+${ganhoCoins}🪙${sponsorTxt} | ${ganhoFans >= 0 ? '+' : ''}${ganhoFans}📣)`;
@@ -2970,13 +3491,14 @@
                         tournamentStage++; notify(`🎉 VITÓRIA! Você avançou para a ${stageNames[tournamentStage]}!`, "#00E676"); 
                         setTimeout(() => startMatch(true), 1500); return;
                     } else {
+                        let isBr = tournamentMode === 'brasileirinho';
                         let isElite = tournamentMode === 'elite';
-                        let prize = isElite ? 2500 : 1000;
-                        let fanBoost = isElite ? 0.30 : 0.20;
-                        let trophyName = isElite ? "Taça Elite" : "Copa Padrão";
+                        let prize = isBr ? 4000 : (isElite ? 2500 : 1000);
+                        let fanBoost = isBr ? 0.35 : (isElite ? 0.30 : 0.20);
+                        let trophyName = isBr ? "Brasileirinho" : (isElite ? "Taça Elite" : "Copa Padrão");
                         
                         notify(`🏆 CAMPEÃO! Você venceu a ${trophyName} e ganhou ${prize} moedas e mais fãs!`, "#FFD700");
-                        coins += prize; clubData.fans += Math.floor(clubData.fans * fanBoost); 
+                        addCoins(prize); addFans(Math.floor(safeFans * fanBoost)); 
                         clubData.trophies.push(trophyName);
                         tournamentMode = 'none';
                         tournamentBracket = null;
@@ -2990,7 +3512,10 @@
                     setStadiumColor('amistoso');
                 }
             }
-            logEvent(resultTxt); document.getElementById('btnPlay').disabled = false; updateUI();
+            logEvent(resultTxt);
+            isPlaying = false;
+            setMatchButtonsDisabled(false);
+            updateUI();
             
             triggerInterview(win, draw);
         }
@@ -3033,8 +3558,8 @@
                 btn.className = "interview-btn";
                 btn.innerText = opt.text;
                 btn.onclick = () => {
-                    let impact = Math.round(clubData.fans * opt.fansMod);
-                    clubData.fans = Math.max(0, clubData.fans + impact);
+                    let impact = Math.round(safeFans * opt.fansMod);
+                    addFans(impact);
                     let impactTxt = impact > 0 ? `+${impact}` : `${impact}`;
                     notify(`Sua resposta repercutiu nos jornais! (${impactTxt} Fãs)`, impact >= 0 ? "#00E676" : "#ff4444");
                     document.getElementById('interviewModal').style.display = 'none';
@@ -3188,7 +3713,7 @@
             }
 
             let tCost = getTrainCost(p);
-            let sellVal = Math.floor(tCost * 0.5);
+            let sellVal = getSellValue(p);
             let potMax = p.maxPotential || 1;
             let potCurrent = p.potential || 0;
             let pCompleted = Math.round(((potMax - potCurrent) / potMax) * 100);
@@ -3221,6 +3746,7 @@
         }
 
         function updateUI() {
+            guardEconomy();
             document.getElementById('coinCount').innerText = coins;
             document.getElementById('fanCount').innerText = clubData.fans;
             document.getElementById('displayTeamName').innerText = clubData.name;
@@ -3251,8 +3777,9 @@
             }
             document.getElementById('formWarning').innerText = warningText;
 
-            document.getElementById('btnCup').disabled = clubData.fans < 500;
-            document.getElementById('btnCupElite').disabled = clubData.fans < 1500;
+            setMatchButtonsDisabled(isPlaying);
+            let playBtn = document.getElementById('btnPlay');
+            if (playBtn) playBtn.disabled = !!isPlaying;
 
             // Tooltip Ultra: só mostra Divino se requisito cumprido
             let ultraTip = document.getElementById('ultraPackTooltip');
@@ -3286,6 +3813,8 @@
         }, 12000);
 
         generateStarterTeam();
+        // Verificação periódica leve anti-console
+        setInterval(() => { if (typeof guardEconomy === 'function') guardEconomy(); }, 1500);
 
     </script>
 </body>
