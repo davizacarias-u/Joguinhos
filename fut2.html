@@ -697,6 +697,7 @@
                     <div class="fuse-plus">+</div>
                     <div class="fuse-slot" id="fuseSlotB">Slot B</div>
                 </div>
+                <input type="text" id="totemSearch" placeholder="🔍 Buscar no banco..." oninput="renderTotemBench()" style="margin-bottom:8px;">
                 <div id="totemBenchList" style="display:flex; flex-wrap:wrap; gap:6px; justify-content:center; max-height:140px; overflow-y:auto; margin-bottom:10px;"></div>
                 <div style="display:flex; gap:8px; justify-content:center; flex-wrap:wrap;">
                     <button onclick="confirmFusion()" style="background:linear-gradient(180deg,#fbbf24,#b45309); color:#000;">✨ Fundir (100)</button>
@@ -726,6 +727,7 @@
                 Bronze 10 · Prata 50 · Ouro 250 · Lenda 1000 · Mítico 10000 · Divino 150000<br>
                 <span style="color:#f87171;">Nível máximo: 10</span>
             </p>
+            <input type="text" id="sacSearch" placeholder="🔍 Buscar no banco..." oninput="renderSacrificeUI()" style="margin-bottom:8px;">
             <div id="sacrificeBenchList" style="display:flex; flex-wrap:wrap; gap:6px; justify-content:center; max-height:160px; overflow-y:auto; margin-bottom:12px;"></div>
             <div id="memoryWipeSection" style="display:none; margin-top:8px; padding-top:12px; border-top:1px solid rgba(248,113,113,0.35);">
                 <h3 style="margin:0 0 6px; color:#fecaca; font-size:0.95rem; text-align:center;">🧠 Apagar Memória</h3>
@@ -859,18 +861,35 @@
 
     <!-- Sell Modal -->
     <div id="sellModal" class="modal-overlay">
-        <div class="modal-content" style="max-width: 520px;">
+        <div class="modal-content" style="max-width: 560px;">
             <h2 style="color:#f87171;">💰 Vender Jogadores</h2>
             <p style="color:#94a3b8; font-size:0.9rem;">Só o <b>banco</b> aparece aqui. Titulares não podem ser vendidos. Selecione quantos quiser.</p>
+            <input type="text" id="sellSearch" placeholder="🔍 Buscar no banco..." oninput="renderSellList()" style="margin-bottom:8px;">
             <div style="display:flex; gap:8px; justify-content:center; flex-wrap:wrap; margin-bottom:8px;">
                 <button type="button" onclick="sellSelectAll(true)" style="background:#334155; padding:6px 12px; font-size:0.8rem;">Selecionar todos</button>
                 <button type="button" onclick="sellSelectAll(false)" style="background:#334155; padding:6px 12px; font-size:0.8rem;">Limpar</button>
             </div>
             <div class="sell-list" id="sellList"></div>
             <div id="sellTotalLabel">Total: 0 🪙</div>
-            <div style="display:flex; gap:8px; justify-content:center; flex-wrap:wrap;">
+            <div style="display:flex; gap:8px; justify-content:center; flex-wrap:wrap; margin-bottom:10px;">
                 <button onclick="confirmMultiSell()" style="background:linear-gradient(180deg,#f87171,#dc2626);">💰 Confirmar venda</button>
                 <button class="close-btn" style="margin-top:0; width:auto;" onclick="document.getElementById('sellModal').style.display='none'">Cancelar</button>
+            </div>
+            <div style="border-top:1px solid rgba(148,163,184,0.2); padding-top:12px; text-align:left;">
+                <div style="font-weight:800; color:#e2e8f0; margin-bottom:6px; font-size:0.9rem;">⚙️ Venda automática</div>
+                <label style="display:flex; align-items:center; gap:8px; font-size:0.85rem; color:#cbd5e1; margin-bottom:8px;">
+                    <input type="checkbox" id="autoSellEnabled" onchange="saveAutoSellPrefsFromUI()"> Ativar após abrir pacotes
+                </label>
+                <div style="display:flex; flex-wrap:wrap; gap:8px 12px; font-size:0.78rem; color:#94a3b8; margin-bottom:8px;">
+                    <label><input type="checkbox" id="autoSell_bronze" onchange="saveAutoSellPrefsFromUI()"> Bronze</label>
+                    <label><input type="checkbox" id="autoSell_silver" onchange="saveAutoSellPrefsFromUI()"> Prata</label>
+                    <label><input type="checkbox" id="autoSell_gold" onchange="saveAutoSellPrefsFromUI()"> Ouro</label>
+                    <label><input type="checkbox" id="autoSell_icon" onchange="saveAutoSellPrefsFromUI()"> Lenda</label>
+                    <label><input type="checkbox" id="autoSell_mystic" onchange="saveAutoSellPrefsFromUI()"> Mítico</label>
+                    <label><input type="checkbox" id="autoSell_divine" onchange="saveAutoSellPrefsFromUI()"> Divino</label>
+                </div>
+                <div style="font-size:0.78rem; color:#94a3b8; margin-bottom:4px;">Nunca vender automaticamente (nomes, vírgula):</div>
+                <input type="text" id="autoSellKeep" placeholder="Ex: Michael Jackson, Titanic" onchange="saveAutoSellPrefsFromUI()" onblur="saveAutoSellPrefsFromUI()">
             </div>
         </div>
     </div>
@@ -1076,7 +1095,7 @@
                 <button class="btn-index" onclick="openIndexModal()">📖 Índice</button>
                 <button class="btn-save" id="btnSave" onclick="openSaveModal()">💾 Salvar</button>
                 <button class="btn-load" id="btnLoad" onclick="openLoadModal()">📂 Carregar</button>
-                <button class="btn-sandbox" id="btnSandbox" onclick="openSandboxModal()">🧪 Sandbox</button>
+                <button class="btn-sandbox" id="btnSandbox" onclick="openSandboxModal()" style="display:none !important;" hidden>🧪 Sandbox</button>
                 <div class="strat-wrap">
                     <label>Estratégia</label>
                     <select id="teamStrategy">
@@ -1092,6 +1111,11 @@
 
             <div class="action-row">
                 <div class="action-label">Loja de Pacotes</div>
+                <div style="width:100%; display:flex; align-items:center; justify-content:center; gap:8px; flex-wrap:wrap; margin-bottom:4px;">
+                    <label style="font-size:0.75rem; color:#94a3b8; font-weight:700;">Qtd:</label>
+                    <input type="number" id="packQty" min="1" max="25" value="1" style="width:64px; padding:6px 8px; text-align:center;">
+                    <span style="font-size:0.72rem; color:#64748b;">(até 25 de uma vez)</span>
+                </div>
                 <button class="pack-comum pack-btn" id="btnComum" onclick="buyPack('comum')">
                     🥉 Comum · 50
                     <div class="pack-tooltip">
@@ -1391,25 +1415,26 @@
         }
 
         // ===== SANDBOX / DEBUG =====
-        // Mude SANDBOX_ENABLED para true só quando for testar.
-        // Com sandbox ligado, Salvar/Carregar NÃO funcionam.
+        // ATENÇÃO: deixe FALSE em versão pública. true só no seu teste local.
         const SANDBOX_ENABLED = false;
         var SANDBOX_FULL = false;
         window.__SB_UNLOCK = "";
-        // Para full sandbox (só se SANDBOX_ENABLED = true), descomente:
+        // Full (só com SANDBOX_ENABLED true):
         // SANDBOX_FULL = true;
         // window.__SB_UNLOCK = "ORBIT-DELTA-7";
 
         function isSandboxFull() {
             try {
-                return !!(SANDBOX_ENABLED && SANDBOX_FULL === true && window.__SB_UNLOCK === "ORBIT-DELTA-7");
+                if (SANDBOX_ENABLED !== true) return false;
+                return !!(SANDBOX_FULL === true && window.__SB_UNLOCK === "ORBIT-DELTA-7");
             } catch (e) { return false; }
         }
         function isSandboxActive() {
-            return !!SANDBOX_ENABLED;
+            // Comparação estrita — impede true acidental por coerção
+            return SANDBOX_ENABLED === true;
         }
         function isSaveBlocked() {
-            return !!SANDBOX_ENABLED;
+            return SANDBOX_ENABLED === true;
         }
         // ==============================
 
@@ -1817,6 +1842,7 @@
         }
 
         let selectedPlayerInfo = null, playerPending = null;
+        let packRevealQueue = []; // cutscenes/revelações pendentes (multi-pack)
         let sandboxSpawnPreview = false;
 
         // ===== TOTEM DA UNIÃO =====
@@ -2408,6 +2434,100 @@
         }
 
         let sellSelectedIds = new Set();
+        // Venda automática (salva no código)
+        let autoSellPrefs = {
+            enabled: false,
+            rarities: { bronze: false, silver: false, gold: false, icon: false, mystic: false, divine: false },
+            keepNames: []
+        };
+
+        function getRarityKeyForAuto(p) {
+            if (!p) return 'bronze';
+            try {
+                let c = getCardClass(p.ovr, p);
+                if (c === 'divine') return 'divine';
+                if (c === 'mystic') return 'mystic';
+                if (c === 'icon') return 'icon';
+                if (c === 'gold') return 'gold';
+                if (c === 'silver') return 'silver';
+                return 'bronze';
+            } catch (e) {
+                let o = p.ovr || 0;
+                if (p.isDivine || o >= 200) return 'divine';
+                if (o >= 100) return 'mystic';
+                if (o >= 90) return 'icon';
+                if (o >= 80) return 'gold';
+                if (o >= 70) return 'silver';
+                return 'bronze';
+            }
+        }
+        function isProtectedFromAutoSell(p) {
+            if (!p) return true;
+            if (p.name === "Smiler Gostosa") return true;
+            let keeps = (autoSellPrefs.keepNames || []).map(n => String(n).trim().toLowerCase()).filter(Boolean);
+            return keeps.includes(String(p.name || '').toLowerCase());
+        }
+        function shouldAutoSellPlayer(p) {
+            if (!autoSellPrefs || !autoSellPrefs.enabled) return false;
+            if (!p || isProtectedFromAutoSell(p)) return false;
+            let key = getRarityKeyForAuto(p);
+            return !!(autoSellPrefs.rarities && autoSellPrefs.rarities[key]);
+        }
+        function runAutoSellOnBench() {
+            if (!autoSellPrefs.enabled || isPlaying) return 0;
+            let total = 0, n = 0, names = [];
+            let soldBoykisser = false;
+            for (let i = bench.length - 1; i >= 0; i--) {
+                let p = bench[i];
+                if (!shouldAutoSellPlayer(p)) continue;
+                if (p.name === "Boykisser") soldBoykisser = true;
+                total += getSellValue(p);
+                names.push(p.name);
+                bench.splice(i, 1);
+                n++;
+            }
+            if (n > 0) {
+                addCoins(total);
+                notify(`🤖 Auto-venda: ${n} jogador(es) · +${total}🪙`, "#94a3b8");
+            }
+            if (soldBoykisser && !boykisserSoldOnce) {
+                boykisserSoldOnce = true;
+                try {
+                    playBoykisserSellCutscene(() => {
+                        sacrificeTotem.unlocked = true;
+                        try { updateSacrificeButton(); } catch (e) {}
+                        notify("☠ Totem do Sacrifício desbloqueado...", "#ef4444");
+                    });
+                } catch (e) {
+                    sacrificeTotem.unlocked = true;
+                }
+            }
+            return n;
+        }
+        function saveAutoSellPrefsFromUI() {
+            autoSellPrefs.enabled = !!(document.getElementById('autoSellEnabled') || {}).checked;
+            autoSellPrefs.rarities = {
+                bronze: !!(document.getElementById('autoSell_bronze') || {}).checked,
+                silver: !!(document.getElementById('autoSell_silver') || {}).checked,
+                gold: !!(document.getElementById('autoSell_gold') || {}).checked,
+                icon: !!(document.getElementById('autoSell_icon') || {}).checked,
+                mystic: !!(document.getElementById('autoSell_mystic') || {}).checked,
+                divine: !!(document.getElementById('autoSell_divine') || {}).checked
+            };
+            let raw = ((document.getElementById('autoSellKeep') || {}).value || '');
+            autoSellPrefs.keepNames = raw.split(',').map(s => s.trim()).filter(Boolean);
+        }
+        function loadAutoSellPrefsToUI() {
+            let en = document.getElementById('autoSellEnabled');
+            if (en) en.checked = !!autoSellPrefs.enabled;
+            let r = autoSellPrefs.rarities || {};
+            [['bronze','autoSell_bronze'],['silver','autoSell_silver'],['gold','autoSell_gold'],['icon','autoSell_icon'],['mystic','autoSell_mystic'],['divine','autoSell_divine']].forEach(([k,id]) => {
+                let el = document.getElementById(id);
+                if (el) el.checked = !!r[k];
+            });
+            let keep = document.getElementById('autoSellKeep');
+            if (keep) keep.value = (autoSellPrefs.keepNames || []).join(', ');
+        }
 
         function sellSelectedPlayer() {
             if (isPlaying) { notify("⚠️ Não é possível vender durante a partida!", "#ff4444"); return; }
@@ -2416,6 +2536,9 @@
 
         function openSellModal() {
             sellSelectedIds = new Set();
+            let s = document.getElementById('sellSearch');
+            if (s) s.value = '';
+            loadAutoSellPrefsToUI();
             renderSellList();
             document.getElementById('sellModal').style.display = 'flex';
         }
@@ -2427,7 +2550,15 @@
                 document.getElementById('sellTotalLabel').innerText = 'Total: 0 🪙';
                 return;
             }
-            box.innerHTML = bench.map((p, i) => {
+            let q = ((document.getElementById('sellSearch') || {}).value || '').toLowerCase().trim();
+            let list = bench.map((p, i) => ({ p, i }));
+            if (q) list = list.filter(o => (o.p.name || '').toLowerCase().includes(q) || (o.p.pos || '').toLowerCase().includes(q) || String(o.p.ovr).includes(q));
+            if (!list.length) {
+                box.innerHTML = '<p style="color:#64748b;text-align:center;">Nenhum jogador com essa busca.</p>';
+                updateSellTotal();
+                return;
+            }
+            box.innerHTML = list.map(({ p }) => {
                 let val = getSellValue(p);
                 let on = sellSelectedIds.has(p.uniqueId);
                 return `<div class="sell-row ${on ? 'picked' : ''}" onclick="toggleSellPick(${p.uniqueId})">
@@ -2447,7 +2578,13 @@
 
         function sellSelectAll(on) {
             sellSelectedIds = new Set();
-            if (on) bench.forEach(p => sellSelectedIds.add(p.uniqueId));
+            if (on) {
+                let q = ((document.getElementById('sellSearch') || {}).value || '').toLowerCase().trim();
+                bench.forEach(p => {
+                    if (!q || (p.name || '').toLowerCase().includes(q) || (p.pos || '').toLowerCase().includes(q) || String(p.ovr).includes(q))
+                        sellSelectedIds.add(p.uniqueId);
+                });
+            }
             renderSellList();
         }
 
@@ -2775,31 +2912,22 @@
             setTimeout(finish, 3200);
         }
 
-        function buyPack(type) {
-            if (isPlaying) { notify("⚠️ Você não pode abrir pacotes durante a partida!", "#ff4444"); return; }
+        function rollOnePackPlayer(type) {
             let pData = packOdds[type];
-            if (coins < pData.cost) { notify("❌ Moedas insuficientes!", "#ff4444"); return; }
-            addCoins(-pData.cost); updateUI();
-
             // Ultra: 0.5% Divino (Mahoraga) se tiver Home das invocação OVR 100+
             if (type === 'ultra' && hasMegumiAt100() && Math.random() < 0.005) {
                 let base = starPlayers.find(sp => sp.name === "Mahoraga");
-                playerPending = { ...base, offenseBias: (Math.random()-0.5)*80, defenseBias: (Math.random()-0.5)*60, uniqueId: ++playerIdCounter, potential: 0, maxPotential: 0, noTrain: true, isDivine: true, baseDri: 25, packCost: pData.cost };
-                let secretM = trySecretDrop(playerPending);
+                let pl = { ...base, offenseBias: (Math.random()-0.5)*80, defenseBias: (Math.random()-0.5)*60, uniqueId: ++playerIdCounter, potential: 0, maxPotential: 0, noTrain: true, isDivine: true, baseDri: 25, packCost: pData.cost };
+                let secretM = trySecretDrop(pl);
                 if (secretM) {
                     secretM.packCost = pData.cost;
-                    playerPending = secretM;
-                    notify("✨ Drop secreto: Mahoraga:Totalidade", "#fbbf24");
+                    return secretM;
                 }
-                showPackAnimation();
-                return;
+                return pl;
             }
-
             let rand = Math.random(), accumulated = 0, selectedRarity = 'bronze';
             for (let r of pData.ranges) { accumulated += r.chance; if (rand <= accumulated) { selectedRarity = r.rarity; break; } }
-            
             let range = getOvrRange(selectedRarity);
-            // Não sortear Mahoraga nem resultados exclusivos do Totem (r1-r8)
             const CRAFT_ONLY = new Set([
                 "Helicóptero guloso", "Diddy", "Cadeira Gamer do Vasco", "Angola", "Doutor de Folga",
                 "Bixo Maléfico Perigoso do Mal (ele come cimento)", "Lebron James Samurai", "Macaco Queimado no Poste",
@@ -2807,26 +2935,72 @@
                 "Boykisser"
             ]);
             let possible = starPlayers.filter(p => p.ovr >= range.min && p.ovr <= range.max && !p.isDivine && p.name !== "Mahoraga" && !CRAFT_ONLY.has(p.name));
-            
+            let pl;
             if (possible.length > 0 && Math.random() < 0.85) {
                 let picked = possible[Math.floor(Math.random() * possible.length)];
-                playerPending = { ...picked, offenseBias: (Math.random()-0.5)*80, defenseBias: (Math.random()-0.5)*60 };
-                applyRolledPotential(playerPending);
+                pl = { ...picked, offenseBias: (Math.random()-0.5)*80, defenseBias: (Math.random()-0.5)*60 };
+                applyRolledPotential(pl);
             } else {
                 let targetOvr = Math.floor(Math.random() * (range.max - range.min + 1)) + range.min;
-                playerPending = createGenericPlayer(Math.random() < 0.1); playerPending.ovr = targetOvr; Object.assign(playerPending, generateRandomStats(targetOvr));
-                applyRolledPotential(playerPending);
+                pl = createGenericPlayer(Math.random() < 0.1); pl.ovr = targetOvr; Object.assign(pl, generateRandomStats(targetOvr));
+                applyRolledPotential(pl);
             }
-            playerPending.uniqueId = ++playerIdCounter;
-            playerPending.packCost = pData.cost;
-            // Chance minúscula de dropar versão secreta
-            let secret = trySecretDrop(playerPending);
+            pl.uniqueId = ++playerIdCounter;
+            pl.packCost = pData.cost;
+            let secret = trySecretDrop(pl);
             if (secret) {
                 secret.packCost = pData.cost;
-                playerPending = secret;
-                notify(`✨ DROP SECRETO: ${secret.name}!`, secret.isDivine ? "#fbbf24" : "#e600ff");
+                return secret;
             }
-            showPackAnimation();
+            return pl;
+        }
+
+        function buyPack(type) {
+            if (isPlaying) { notify("⚠️ Você não pode abrir pacotes durante a partida!", "#ff4444"); return; }
+            let pData = packOdds[type];
+            let qtyEl = document.getElementById('packQty');
+            let qty = parseInt(qtyEl && qtyEl.value, 10);
+            if (!isFinite(qty) || qty < 1) qty = 1;
+            if (qty > 25) qty = 25;
+            let totalCost = pData.cost * qty;
+            if (coins < totalCost) { notify(`❌ Moedas insuficientes! Precisa de ${totalCost}🪙`, "#ff4444"); return; }
+            addCoins(-totalCost); updateUI();
+
+            if (qty === 1) {
+                packRevealQueue = [];
+                playerPending = rollOnePackPlayer(type);
+                showPackAnimation();
+                return;
+            }
+
+            // Multi-pack: comuns vão direto ao banco; especiais entram na fila de cutscene (em sequência)
+            let results = [];
+            for (let i = 0; i < qty; i++) results.push(rollOnePackPlayer(type));
+            function isPackSpecial(p) {
+                if (!p) return false;
+                if (p.isDivine || (p.ovr || 0) >= 100) return true;
+                if (typeof isTotalidade === 'function' && isTotalidade(p)) return true;
+                if (typeof isOverHeaven === 'function' && isOverHeaven(p)) return true;
+                if (typeof isDozer === 'function' && isDozer(p)) return true;
+                if (typeof isBemSahur === 'function' && isBemSahur(p)) return true;
+                return false;
+            }
+            let normals = [], specials = [];
+            results.forEach(p => (isPackSpecial(p) ? specials : normals).push(p));
+            normals.forEach(p => {
+                markCardUnlocked(p.name);
+                bench.push(p);
+            });
+            try { runAutoSellOnBench(); } catch (e) {}
+            let summary = results.map(p => p.name).join(', ');
+            notify(`🎁 ${qty} pacotes · ${results.length} cartas` + (specials.length ? ` · ✨ ${specials.length} cutscene(s)` : ''), "#4ade80");
+            logEvent(`🎁 Multi-pack (${type} x${qty}): ${summary}`);
+            updateUI();
+            packRevealQueue = specials.slice();
+            if (packRevealQueue.length) {
+                playerPending = packRevealQueue.shift();
+                showPackAnimation();
+            }
         }
 
         function showPackAnimation() {
@@ -2876,13 +3050,28 @@
             if (sandboxSpawnPreview) {
                 sandboxSpawnPreview = false;
                 playerPending = null;
+                packRevealQueue = [];
                 notify("Preview de spawn encerrado (nao foi pro banco).", "#a78bfa");
                 return;
             }
-            if (!playerPending) return;
-            markCardUnlocked(playerPending.name);
-            bench.push(playerPending); logEvent(`🎁 Você guardou ${playerPending.name} no banco.`);
-            playerPending = null; updateUI();
+            if (playerPending) {
+                markCardUnlocked(playerPending.name);
+                bench.push(playerPending);
+                logEvent(`🎁 Você guardou ${playerPending.name} no banco.`);
+                playerPending = null;
+                try { runAutoSellOnBench(); } catch (e) {}
+            }
+            // Próxima cutscene da fila (multi-pack)
+            if (packRevealQueue && packRevealQueue.length) {
+                playerPending = packRevealQueue.shift();
+                updateUI();
+                showPackAnimation();
+                if (packRevealQueue.length) {
+                    notify(`✨ Ainda ${packRevealQueue.length + 1} revelação(ões) na fila...`, "#e600ff");
+                }
+                return;
+            }
+            updateUI();
         }
 
         // ===== TOTEM FUNCTIONS =====
@@ -2893,7 +3082,14 @@
                 box.innerHTML = '<span style="color:#64748b;font-size:0.85rem;">Banco vazio.</span>';
                 return;
             }
-            box.innerHTML = bench.map((p, i) => {
+            let q = ((document.getElementById('totemSearch') || {}).value || '').toLowerCase().trim();
+            let list = bench.map((p, i) => ({ p, i }));
+            if (q) list = list.filter(o => (o.p.name || '').toLowerCase().includes(q) || (o.p.pos || '').toLowerCase().includes(q) || String(o.p.ovr).includes(q));
+            if (!list.length) {
+                box.innerHTML = '<span style="color:#64748b;font-size:0.85rem;">Nada encontrado.</span>';
+                return;
+            }
+            box.innerHTML = list.map(({ p, i }) => {
                 let sel = (fuseSlotA && fuseSlotA.uniqueId === p.uniqueId) || (fuseSlotB && fuseSlotB.uniqueId === p.uniqueId);
                 return `<button type="button" onclick="pickForFusion(${i})" style="padding:6px 10px;font-size:0.78rem;border-radius:8px;${sel ? 'background:#fbbf24;color:#000;box-shadow:0 0 8px #fbbf24;' : 'background:#1e293b;'}">${p.name} <small>(${p.ovr})</small></button>`;
             }).join('');
@@ -2955,11 +3151,18 @@
                 if (!bench.length) {
                     box.innerHTML = '<p style="color:#64748b;text-align:center;">Banco vazio.</p>';
                 } else {
-                    box.innerHTML = bench.map((p) => {
-                        let xpGain = sacrificeXpForPlayer(p);
-                        return `<button type="button" style="padding:6px 10px;font-size:0.78rem;background:linear-gradient(180deg,#7f1d1d,#450a0a);"
-                            onclick="sacrificePlayerFromBench(${p.uniqueId})">${p.name} · ${p.pos} · ${p.ovr}<br><span style="color:#fca5a5">+${xpGain} XP</span></button>`;
-                    }).join('');
+                    let q = ((document.getElementById('sacSearch') || {}).value || '').toLowerCase().trim();
+                    let list = bench.slice();
+                    if (q) list = list.filter(p => (p.name || '').toLowerCase().includes(q) || (p.pos || '').toLowerCase().includes(q) || String(p.ovr).includes(q));
+                    if (!list.length) {
+                        box.innerHTML = '<p style="color:#64748b;text-align:center;">Nada encontrado.</p>';
+                    } else {
+                        box.innerHTML = list.map((p) => {
+                            let xpGain = sacrificeXpForPlayer(p);
+                            return `<button type="button" style="padding:6px 10px;font-size:0.78rem;background:linear-gradient(180deg,#7f1d1d,#450a0a);"
+                                onclick="sacrificePlayerFromBench(${p.uniqueId})">${p.name} · ${p.pos} · ${p.ovr}<br><span style="color:#fca5a5">+${xpGain} XP</span></button>`;
+                        }).join('');
+                    }
                 }
             }
 
@@ -3104,6 +3307,8 @@
 
         function openTotemModal() {
             fuseSlotA = null; fuseSlotB = null;
+            let ts = document.getElementById('totemSearch');
+            if (ts) ts.value = '';
             document.getElementById('fuseSlotA').className = 'fuse-slot';
             document.getElementById('fuseSlotA').innerText = 'Slot A';
             document.getElementById('fuseSlotB').className = 'fuse-slot';
@@ -3345,7 +3550,12 @@
                 activeSponsors: JSON.parse(JSON.stringify(activeSponsors || [])),
                 startingXI: startingXI.map(serializePlayer),
                 bench: bench.map(serializePlayer),
-                strategy: (document.getElementById('teamStrategy') || {}).value || "balanced"
+                strategy: (document.getElementById('teamStrategy') || {}).value || "balanced",
+                autoSellPrefs: {
+                    enabled: !!autoSellPrefs.enabled,
+                    rarities: { ...(autoSellPrefs.rarities || {}) },
+                    keepNames: [...(autoSellPrefs.keepNames || [])]
+                }
             };
         }
 
@@ -3353,17 +3563,30 @@
             let sb = document.getElementById('btnSandbox');
             let save = document.getElementById('btnSave');
             let load = document.getElementById('btnLoad');
-            if (sb) sb.style.display = isSandboxActive() ? 'inline-block' : 'none';
+            let active = (SANDBOX_ENABLED === true);
+            if (sb) {
+                if (active) {
+                    sb.hidden = false;
+                    sb.style.setProperty('display', 'inline-block', 'important');
+                } else {
+                    sb.hidden = true;
+                    sb.style.setProperty('display', 'none', 'important');
+                    try { document.getElementById('sandboxModal').style.display = 'none'; } catch (e) {}
+                }
+            }
             let pvpBtn = document.getElementById('btnPvp');
-            if (pvpBtn) pvpBtn.style.display = isSandboxActive() ? 'none' : '';
-            if (isSandboxActive()) {
+            if (pvpBtn) pvpBtn.style.display = active ? 'none' : '';
+            if (active) {
                 if (save) { save.disabled = true; save.title = 'Desativado no Sandbox'; }
                 if (load) { load.disabled = true; load.title = 'Desativado no Sandbox'; }
+            } else {
+                if (save) { save.disabled = false; save.title = ''; }
+                if (load) { load.disabled = false; load.title = ''; }
             }
         }
 
         function openSandboxModal() {
-            if (!SANDBOX_ENABLED) { notify("❌ Sandbox desativado no código.", "#ff4444"); return; }
+            if (SANDBOX_ENABLED !== true) { notify("❌ Sandbox desativado no código.", "#ff4444"); return; }
             try { fillSandboxSpawnSelect(); } catch (e) {}
             renderSandboxList();
             let ban = document.querySelector('#sandboxModal .sandbox-banner');
@@ -3722,6 +3945,12 @@
                 bench = (data.bench || []).map(p => ({ ...p }));
                 if (data.strategy && document.getElementById('teamStrategy')) {
                     document.getElementById('teamStrategy').value = data.strategy;
+                }
+                if (data.autoSellPrefs && typeof data.autoSellPrefs === 'object') {
+                    autoSellPrefs.enabled = !!data.autoSellPrefs.enabled;
+                    autoSellPrefs.rarities = Object.assign({ bronze:false, silver:false, gold:false, icon:false, mystic:false, divine:false }, data.autoSellPrefs.rarities || {});
+                    autoSellPrefs.keepNames = Array.isArray(data.autoSellPrefs.keepNames) ? data.autoSellPrefs.keepNames.slice() : [];
+                    try { loadAutoSellPrefsToUI(); } catch (e) {}
                 }
                 // sync club UI fields
                 let n = document.getElementById('clubNameInput');
