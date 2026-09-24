@@ -1738,8 +1738,9 @@
             // Bronzes (60-69)
             { id: 106, name: "Petista", pos: "ATA", ovr: 62, vel: 55, dri: 60, chu: 65, pas: 50, def: 40, fin: 62, photo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRwsZkuYq8D6W_0KzA0kEXBlv54EixoJlC2BzNsdrK60Q&s=10" },
             { id: 401, name: "Bolsominion", pos: "VOL", ovr: 62, vel: 58, dri: 55, chu: 60, pas: 52, def: 58, fin: 55, photo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSVvRVfNiQ40LD7OfQ9bqoa8YU5LH5fu-kePuzXZNupQw&s=10" },
-            //{ id: 402, name: "Lula", pos: "ATA", ovr: 95, vel: 90, dri: 88, chu: 92, pas: 85, def: 45, fin: 96, photo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSjAzQFBxIBiM6aGJ05tp_m7xt8V_x2-7K93l7KpyUaig&s=10" },
-            //{ id: 403, name: "Bolsonaro", pos: "ATA", ovr: 98, vel: 94, dri: 90, chu: 95, pas: 82, def: 48, fin: 97, photo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRIWZzh6Cd9THrlCbdKslWlD5VvDe-yI9zM50xr02Mmjg&s" },
+            // Lula / Bolsonaro: APENAS via drop (Petista / Bolsominion) — não entram no pool de packs
+            // { id: 402, name: "Lula", ... }
+            // { id: 403, name: "Bolsonaro", ... }
             { id: 404, name: "Silicone", pos: "MEI", ovr: 74, vel: 72, dri: 78, chu: 65, pas: 76, def: 55, fin: 68, photo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTMNEsdqmCRGaHa0-Z3DetBmWqVzh5eB_2HTrjtEvK_AA&s=10" },
             { id: 410, name: "Vara de Pesca", pos: "MEI", ovr: 63, vel: 60, dri: 58, chu: 50, pas: 65, def: 48, fin: 52, photo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRg6-ODR0sxByA53UggcmrOnASSrHxevsBg9qCFLc6ayg&s=10" },
             { id: 411, name: "Caixa de Isopor", pos: "LAT", ovr: 65, vel: 70, dri: 55, chu: 48, pas: 58, def: 62, fin: 40, photo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTLPlRix41R9NPBEmEgles89hjX_Lx8a7t3D3VDT9nCRA&s=10" },
@@ -1973,7 +1974,7 @@
                 "Helicóptero guloso", "Diddy", "Cadeira Gamer do Vasco", "Angola", "Doutor de Folga",
                 "Bixo Maléfico Perigoso do Mal (ele come cimento)", "Lebron James Samurai", "Macaco Queimado no Poste",
                 "Abraço Fatal", "Guardião do Abismo", "Za Warudo Platinum", "Café da Madrugada", "Sahur Sonoro",
-                "Boykisser", "Fraude das Eleições", "Enéias", "Dozer Peituda"
+                "Boykisser", "Fraude das Eleições", "Enéias", "Dozer Peituda", "Lula", "Bolsonaro"
             ]);
             let possible = starPlayers.filter(p =>
                 p.ovr >= range.min && p.ovr <= range.max && !p.isDivine && p.name !== "Mahoraga" &&
@@ -2260,11 +2261,11 @@
                 b: "Furry",
                 result: { name: "Boykisser", pos: "MEI", ovr: 101, vel: 96, dri: 98, chu: 88, pas: 94, def: 70, fin: 90, photo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRamdif8yskSSw1v6wF_5LtlWSgoC5ho3TMUVVjLJ2wDw&s=10" }
             },
-            // Fraude: receita NORMAL (visível no livro com os 2 ingredientes; resultado ??? até craftar)
+            // Fraude: receita NORMAL — Lula + Bolsonaro (visível no livro; resultado ??? até craftar)
             {
                 id: "r_fraude",
-                a: "Petista",
-                b: "Bolsominion",
+                a: "Lula",
+                b: "Bolsonaro",
                 result: { name: "Fraude das Eleições", pos: "MEI", ovr: 210, vel: 160, dri: 150, chu: 155, pas: 170, def: 140, fin: 150, photo: "https://i.postimg.cc/G2R6s6Dw/image.png", isDivine: true, noTrain: true }
             },
             // Dozer Peituda: ÚNICA secreta entre essas (só aparece no livro depois de craftar)
@@ -2334,10 +2335,10 @@
                 { chance: 0.03, player: { name: "Tung Tung Sahur do Bem", pos: "ATA", ovr: 170, vel: 150, dri: 140, chu: 155, pas: 130, def: 110, fin: 160, photo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS78JuEpLfeGRQyDIKoGM7N0n-TsW9mnZuBEhvMlXDR5A&s=10", isDivine: true, noTrain: true, isBemSahur: true } }
             ],
             "Petista": [
-                { chance: 0.0020, player: { name: "Lula", pos: "ATA", ovr: 95, vel: 90, dri: 88, chu: 92, pas: 85, def: 45, fin: 96, photo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSjAzQFBxIBiM6aGJ05tp_m7xt8V_x2-7K93l7KpyUaig&s=10" } }
+                { chance: 0.0005, player: { name: "Lula", pos: "ATA", ovr: 95, vel: 90, dri: 88, chu: 92, pas: 85, def: 45, fin: 96, photo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSjAzQFBxIBiM6aGJ05tp_m7xt8V_x2-7K93l7KpyUaig&s=10" } }
             ],
             "Bolsominion": [
-                { chance: 0.0020, player: { name: "Bolsonaro", pos: "ATA", ovr: 98, vel: 94, dri: 90, chu: 95, pas: 82, def: 48, fin: 97, photo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRIWZzh6Cd9THrlCbdKslWlD5VvDe-yI9zM50xr02Mmjg&s" } }
+                { chance: 0.0005, player: { name: "Bolsonaro", pos: "ATA", ovr: 98, vel: 94, dri: 90, chu: 95, pas: 82, def: 48, fin: 97, photo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRIWZzh6Cd9THrlCbdKslWlD5VvDe-yI9zM50xr02Mmjg&s" } }
             ]
         };
 
@@ -3364,7 +3365,7 @@
                 "Helicóptero guloso", "Diddy", "Cadeira Gamer do Vasco", "Angola", "Doutor de Folga",
                 "Bixo Maléfico Perigoso do Mal (ele come cimento)", "Lebron James Samurai", "Macaco Queimado no Poste",
                 "Abraço Fatal", "Guardião do Abismo", "Za Warudo Platinum", "Café da Madrugada", "Sahur Sonoro",
-                "Boykisser", "Fraude das Eleições", "Enéias", "Dozer Peituda", "Painho", "Inbroxável"
+                "Boykisser", "Fraude das Eleições", "Enéias", "Dozer Peituda", "Painho", "Inbroxável", "Lula", "Bolsonaro"
             ]);
             let possible = starPlayers.filter(p => p.ovr >= range.min && p.ovr <= range.max && !p.isDivine && p.name !== "Mahoraga" && !CRAFT_ONLY.has(p.name));
             let pl;
