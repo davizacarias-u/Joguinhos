@@ -1192,7 +1192,7 @@
                 <button class="btn-options" id="btnOptions" onclick="openOptionsModal()">⚙️ Opções</button>
                 <button class="btn-save" id="btnSave" onclick="openSaveModal()">💾 Salvar</button>
                 <button class="btn-load" id="btnLoad" onclick="openLoadModal()">📂 Carregar</button>
-                <button class="btn-sandbox" id="btnSandbox" onclick="openSandboxModal()">🧪 Sandbox</button>
+                <button class="btn-sandbox" id="btnSandbox" onclick="openSandboxModal()" style="display:none !important;" hidden>🧪 Sandbox</button>
                 <div class="strat-wrap">
                     <label>Estratégia</label>
                     <select id="teamStrategy">
@@ -1512,10 +1512,14 @@
         }
 
         // ===== SANDBOX / DEBUG =====
-        // ATENÇÃO: desligue (false) antes de publicar pros amigos.
+        // Versão pública: sandbox OFF
         const SANDBOX_ENABLED = false;
         var SANDBOX_FULL = false;
-        
+        window.__SB_UNLOCK = "";
+        // Para reativar full localmente:
+        // const SANDBOX_ENABLED = true;
+        // SANDBOX_FULL = true;
+        // window.__SB_UNLOCK = "ORBIT-DELTA-7";
 
         function isSandboxFull() {
             try {
@@ -2256,12 +2260,14 @@
                 b: "Furry",
                 result: { name: "Boykisser", pos: "MEI", ovr: 101, vel: 96, dri: 98, chu: 88, pas: 94, def: 70, fin: 90, photo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRamdif8yskSSw1v6wF_5LtlWSgoC5ho3TMUVVjLJ2wDw&s=10" }
             },
+            // Fraude: receita NORMAL (visível no livro com os 2 ingredientes; resultado ??? até craftar)
             {
                 id: "r_fraude",
                 a: "Petista",
                 b: "Bolsominion",
                 result: { name: "Fraude das Eleições", pos: "MEI", ovr: 210, vel: 160, dri: 150, chu: 155, pas: 170, def: 140, fin: 150, photo: "https://i.postimg.cc/G2R6s6Dw/image.png", isDivine: true, noTrain: true }
             },
+            // Dozer Peituda: ÚNICA secreta entre essas (só aparece no livro depois de craftar)
             {
                 id: "r_dozer_peituda",
                 a: "Silicone",
