@@ -1,0 +1,1987 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Simulador Sandbox de Portas Lógicas</title>
+  <style>
+    :root {
+      --bg: #0f1419;
+      --panel: #1a2332;
+      --panel-border: #2d3a4f;
+      --accent: #3b82f6;
+      --accent-hover: #2563eb;
+      --success: #22c55e;
+      --danger: #ef4444;
+      --warning: #f59e0b;
+      --text: #e2e8f0;
+      --text-muted: #94a3b8;
+      --wire: #60a5fa;
+      --wire-active: #22c55e;
+      --port: #64748b;
+      --port-hover: #3b82f6;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    header {
+      background: var(--panel);
+      border-bottom: 1px solid var(--panel-border);
+      padding: 0.75rem 1.25rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      flex-shrink: 0;
+    }
+
+    header h1 {
+      font-size: 1.15rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    header h1 span {
+      color: var(--accent);
+    }
+
+    .header-actions {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+
+    button, .btn {
+      background: var(--panel-border);
+      color: var(--text);
+      border: 1px solid transparent;
+      padding: 0.45rem 0.9rem;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.85rem;
+      font-weight: 500;
+      transition: all 0.15s;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+    }
+
+    button:hover, .btn:hover {
+      background: #3d4f6a;
+    }
+
+    button.primary {
+      background: var(--accent);
+      color: white;
+    }
+
+    button.primary:hover {
+      background: var(--accent-hover);
+    }
+
+    button.danger {
+      background: transparent;
+      border-color: var(--danger);
+      color: var(--danger);
+    }
+
+    button.danger:hover {
+      background: var(--danger);
+      color: white;
+    }
+
+    button.success {
+      background: var(--success);
+      color: white;
+    }
+
+    .main {
+      display: flex;
+      flex: 1;
+      overflow: hidden;
+    }
+
+    /* Sidebar */
+    .sidebar {
+      width: 220px;
+      background: var(--panel);
+      border-right: 1px solid var(--panel-border);
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+      overflow: hidden;
+    }
+
+    .sidebar-section {
+      padding: 0.85rem;
+      border-bottom: 1px solid var(--panel-border);
+    }
+
+    .sidebar-section h3 {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--text-muted);
+      margin-bottom: 0.6rem;
+    }
+
+    .comp-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.45rem;
+    }
+
+    .comp-item {
+      background: #243044;
+      border: 1px solid var(--panel-border);
+      border-radius: 6px;
+      padding: 0.5rem 0.35rem;
+      text-align: center;
+      cursor: grab;
+      font-size: 0.75rem;
+      transition: all 0.15s;
+      user-select: none;
+    }
+
+    .comp-item:hover {
+      border-color: var(--accent);
+      background: #2a3a55;
+      transform: translateY(-1px);
+    }
+
+    .comp-item:active {
+      cursor: grabbing;
+    }
+
+    .comp-item .icon {
+      font-size: 1.1rem;
+      margin-bottom: 0.15rem;
+      display: block;
+    }
+
+    .comp-item.wide {
+      grid-column: span 2;
+    }
+
+    /* Workspace */
+    .workspace-wrap {
+      flex: 1;
+      position: relative;
+      overflow: hidden;
+      background:
+        radial-gradient(circle at 1px 1px, #1e293b 1px, transparent 0);
+      background-size: 24px 24px;
+    }
+
+    #workspace {
+      width: 100%;
+      height: 100%;
+      position: relative;
+      overflow: auto;
+    }
+
+    #canvas-area {
+      position: relative;
+      width: 3000px;
+      height: 2000px;
+      transform-origin: 0 0;
+    }
+
+    /* SVG wires */
+    #wires-svg {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    #wires-svg path {
+      fill: none;
+      stroke: var(--wire);
+      stroke-width: 2.5;
+      stroke-linecap: round;
+      pointer-events: stroke;
+      cursor: pointer;
+    }
+
+    #wires-svg path.active {
+      stroke: var(--wire-active);
+      stroke-width: 3;
+      filter: drop-shadow(0 0 4px rgba(34, 197, 94, 0.5));
+    }
+
+    #wires-svg path.selected {
+      stroke: var(--warning);
+      stroke-width: 3.5;
+    }
+
+    #wires-svg path.temp {
+      stroke: var(--accent);
+      stroke-dasharray: 6 4;
+      pointer-events: none;
+    }
+
+    /* Components */
+    .component {
+      position: absolute;
+      background: #1e293b;
+      border: 2px solid #334155;
+      border-radius: 8px;
+      min-width: 90px;
+      z-index: 10;
+      user-select: none;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+
+    .component.selected {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.35), 0 4px 12px rgba(0,0,0,0.4);
+    }
+
+    .component .header {
+      background: #334155;
+      padding: 0.35rem 0.6rem;
+      font-size: 0.75rem;
+      font-weight: 600;
+      border-radius: 6px 6px 0 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: move;
+      gap: 0.4rem;
+    }
+
+    .component .header .label {
+      flex: 1;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .component .header .delete-btn {
+      background: transparent;
+      border: none;
+      color: #94a3b8;
+      cursor: pointer;
+      font-size: 0.9rem;
+      padding: 0 0.15rem;
+      line-height: 1;
+    }
+
+    .component .header .delete-btn:hover {
+      color: var(--danger);
+    }
+
+    .component .body {
+      padding: 0.5rem 0.6rem 0.6rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+      position: relative;
+    }
+
+    .ports {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      min-height: 28px;
+    }
+
+    .ports-left, .ports-right {
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+    }
+
+    .port {
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: var(--port);
+      border: 2px solid #475569;
+      cursor: crosshair;
+      position: relative;
+      transition: all 0.15s;
+      flex-shrink: 0;
+    }
+
+    .port:hover, .port.connecting {
+      background: var(--port-hover);
+      border-color: var(--accent);
+      transform: scale(1.25);
+      box-shadow: 0 0 8px rgba(59, 130, 246, 0.6);
+    }
+
+    .port.active {
+      background: var(--success);
+      border-color: #16a34a;
+      box-shadow: 0 0 6px rgba(34, 197, 94, 0.6);
+    }
+
+    .port-label {
+      font-size: 0.65rem;
+      color: var(--text-muted);
+      position: absolute;
+      white-space: nowrap;
+      pointer-events: none;
+    }
+
+    .ports-left .port-label {
+      left: 18px;
+      top: 50%;
+      transform: translateY(-50%);
+    }
+
+    .ports-right .port-label {
+      right: 18px;
+      top: 50%;
+      transform: translateY(-50%);
+    }
+
+    .gate-symbol {
+      text-align: center;
+      font-family: 'Courier New', monospace;
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: #94a3b8;
+      padding: 0.15rem 0;
+    }
+
+    /* Switch / LED special */
+    .component.switch .toggle {
+      width: 42px;
+      height: 24px;
+      background: #334155;
+      border-radius: 12px;
+      position: relative;
+      cursor: pointer;
+      margin: 0.2rem auto;
+      border: 1px solid #475569;
+      transition: background 0.2s;
+    }
+
+    .component.switch .toggle.on {
+      background: var(--success);
+    }
+
+    .component.switch .toggle::after {
+      content: '';
+      position: absolute;
+      width: 18px;
+      height: 18px;
+      background: white;
+      border-radius: 50%;
+      top: 2px;
+      left: 3px;
+      transition: transform 0.2s;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+    }
+
+    .component.switch .toggle.on::after {
+      transform: translateX(18px);
+    }
+
+    .component.led .led-bulb {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: #1e293b;
+      border: 2px solid #475569;
+      margin: 0.15rem auto;
+      transition: all 0.15s;
+    }
+
+    .component.led .led-bulb.on {
+      background: var(--success);
+      border-color: #16a34a;
+      box-shadow: 0 0 16px rgba(34, 197, 94, 0.7), inset 0 0 8px rgba(255,255,255,0.3);
+    }
+
+    .component.clock .clock-display {
+      text-align: center;
+      font-family: monospace;
+      font-size: 0.85rem;
+      color: var(--warning);
+      padding: 0.2rem;
+    }
+
+    .component.probe .probe-value {
+      text-align: center;
+      font-family: monospace;
+      font-size: 1.1rem;
+      font-weight: 700;
+      padding: 0.25rem;
+      min-width: 36px;
+    }
+
+    .component.probe .probe-value.high {
+      color: var(--success);
+    }
+
+    .component.probe .probe-value.low {
+      color: var(--text-muted);
+    }
+
+    /* Right panel */
+    .right-panel {
+      width: 260px;
+      background: var(--panel);
+      border-left: 1px solid var(--panel-border);
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+      overflow: hidden;
+    }
+
+    .right-panel .panel-section {
+      padding: 0.85rem;
+      border-bottom: 1px solid var(--panel-border);
+      overflow-y: auto;
+    }
+
+    .right-panel h3 {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--text-muted);
+      margin-bottom: 0.5rem;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.4rem;
+      font-size: 0.8rem;
+    }
+
+    .stat {
+      background: #243044;
+      padding: 0.4rem 0.5rem;
+      border-radius: 5px;
+    }
+
+    .stat span {
+      color: var(--text-muted);
+      display: block;
+      font-size: 0.7rem;
+    }
+
+    .stat strong {
+      color: var(--accent);
+    }
+
+    .log {
+      font-family: 'Courier New', monospace;
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      max-height: 160px;
+      overflow-y: auto;
+      line-height: 1.45;
+    }
+
+    .log .entry {
+      margin-bottom: 0.2rem;
+    }
+
+    .log .entry.info { color: #60a5fa; }
+    .log .entry.ok { color: var(--success); }
+    .log .entry.warn { color: var(--warning); }
+
+    .help-text {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+
+    .help-text kbd {
+      background: #334155;
+      padding: 0.1rem 0.35rem;
+      border-radius: 3px;
+      font-size: 0.7rem;
+      border: 1px solid #475569;
+    }
+
+    /* Status bar */
+    .statusbar {
+      background: var(--panel);
+      border-top: 1px solid var(--panel-border);
+      padding: 0.4rem 1rem;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      display: flex;
+      justify-content: space-between;
+      flex-shrink: 0;
+    }
+
+    .sim-indicator {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    .sim-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--success);
+      animation: pulse 1.5s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.4; }
+    }
+
+    /* Modal / Truth table */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.7);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+    }
+
+    .modal-overlay.open {
+      display: flex;
+    }
+
+    .modal {
+      background: var(--panel);
+      border: 1px solid var(--panel-border);
+      border-radius: 10px;
+      width: 90%;
+      max-width: 520px;
+      max-height: 80vh;
+      overflow: auto;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+    }
+
+    .modal-header {
+      padding: 1rem 1.25rem;
+      border-bottom: 1px solid var(--panel-border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .modal-header h2 {
+      font-size: 1.05rem;
+    }
+
+    .modal-body {
+      padding: 1.25rem;
+    }
+
+    .truth-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.85rem;
+      font-family: monospace;
+    }
+
+    .truth-table th, .truth-table td {
+      border: 1px solid var(--panel-border);
+      padding: 0.4rem 0.7rem;
+      text-align: center;
+    }
+
+    .truth-table th {
+      background: #243044;
+      color: var(--text-muted);
+    }
+
+    .truth-table td.high {
+      color: var(--success);
+      font-weight: 700;
+    }
+
+    .truth-table td.low {
+      color: var(--text-muted);
+    }
+
+    /* Zoom controls */
+    .zoom-controls {
+      position: absolute;
+      bottom: 16px;
+      right: 16px;
+      display: flex;
+      gap: 0.35rem;
+      z-index: 50;
+    }
+
+    .zoom-controls button {
+      width: 36px;
+      height: 36px;
+      padding: 0;
+      justify-content: center;
+      background: var(--panel);
+      border: 1px solid var(--panel-border);
+    }
+
+    /* Empty state */
+    .empty-hint {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      text-align: center;
+      color: var(--text-muted);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .empty-hint p {
+      margin-top: 0.5rem;
+      font-size: 0.9rem;
+    }
+
+    .empty-hint.hidden {
+      display: none;
+    }
+
+    /* Responsive */
+    @media (max-width: 900px) {
+      .sidebar { width: 180px; }
+      .right-panel { width: 200px; }
+      .comp-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>⚡ <span>Simulador</span> de Portas Lógicas</h1>
+    <div class="header-actions">
+      <button class="primary" id="btn-sim" title="Alternar simulação">▶ Simulando</button>
+      <button id="btn-truth" title="Tabela verdade">📋 Tabela Verdade</button>
+      <button id="btn-export" title="Exportar circuito">💾 Exportar</button>
+      <button id="btn-import" title="Importar circuito">📂 Importar</button>
+      <button class="danger" id="btn-clear" title="Limpar tudo">🗑 Limpar</button>
+    </div>
+  </header>
+
+  <div class="main">
+    <!-- Sidebar esquerda -->
+    <aside class="sidebar">
+      <div class="sidebar-section">
+        <h3>Entradas / Saídas</h3>
+        <div class="comp-grid">
+          <div class="comp-item" draggable="true" data-type="switch">
+            <span class="icon">🔘</span>Chave
+          </div>
+          <div class="comp-item" draggable="true" data-type="led">
+            <span class="icon">💡</span>LED
+          </div>
+          <div class="comp-item" draggable="true" data-type="clock">
+            <span class="icon">⏱</span>Clock
+          </div>
+          <div class="comp-item" draggable="true" data-type="probe">
+            <span class="icon">📡</span>Sonda
+          </div>
+          <div class="comp-item wide" draggable="true" data-type="const1">
+            <span class="icon">1️⃣</span>Constante 1
+          </div>
+          <div class="comp-item wide" draggable="true" data-type="const0">
+            <span class="icon">0️⃣</span>Constante 0
+          </div>
+        </div>
+      </div>
+
+      <div class="sidebar-section">
+        <h3>Portas Básicas</h3>
+        <div class="comp-grid">
+          <div class="comp-item" draggable="true" data-type="not">
+            <span class="icon">¬</span>NOT
+          </div>
+          <div class="comp-item" draggable="true" data-type="and">
+            <span class="icon">∧</span>AND
+          </div>
+          <div class="comp-item" draggable="true" data-type="or">
+            <span class="icon">∨</span>OR
+          </div>
+          <div class="comp-item" draggable="true" data-type="nand">
+            <span class="icon">⊼</span>NAND
+          </div>
+          <div class="comp-item" draggable="true" data-type="nor">
+            <span class="icon">⊽</span>NOR
+          </div>
+          <div class="comp-item" draggable="true" data-type="xor">
+            <span class="icon">⊕</span>XOR
+          </div>
+          <div class="comp-item wide" draggable="true" data-type="xnor">
+            <span class="icon">⊙</span>XNOR
+          </div>
+          <div class="comp-item wide" draggable="true" data-type="buffer">
+            <span class="icon">▷</span>Buffer
+          </div>
+        </div>
+      </div>
+
+      <div class="sidebar-section">
+        <h3>Extras</h3>
+        <div class="comp-grid">
+          <div class="comp-item wide" draggable="true" data-type="and3">
+            <span class="icon">∧₃</span>AND 3 entradas
+          </div>
+          <div class="comp-item wide" draggable="true" data-type="or3">
+            <span class="icon">∨₃</span>OR 3 entradas
+          </div>
+          <div class="comp-item wide" draggable="true" data-type="mux2">
+            <span class="icon">MUX</span>Mux 2:1
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Workspace -->
+    <div class="workspace-wrap">
+      <div id="workspace">
+        <div id="canvas-area">
+          <svg id="wires-svg"></svg>
+          <div class="empty-hint" id="empty-hint">
+            <div style="font-size:2.5rem">🔌</div>
+            <p>Arraste componentes da barra lateral<br>para começar a montar seu circuito</p>
+          </div>
+        </div>
+      </div>
+      <div class="zoom-controls">
+        <button id="btn-zoom-out" title="Diminuir zoom">−</button>
+        <button id="btn-zoom-reset" title="Resetar zoom">100%</button>
+        <button id="btn-zoom-in" title="Aumentar zoom">+</button>
+      </div>
+    </div>
+
+    <!-- Painel direito -->
+    <aside class="right-panel">
+      <div class="panel-section">
+        <h3>Estatísticas</h3>
+        <div class="stats">
+          <div class="stat"><span>Componentes</span><strong id="stat-comps">0</strong></div>
+          <div class="stat"><span>Fios</span><strong id="stat-wires">0</strong></div>
+          <div class="stat"><span>Portas</span><strong id="stat-gates">0</strong></div>
+          <div class="stat"><span>Sinais Ativos</span><strong id="stat-active">0</strong></div>
+        </div>
+      </div>
+
+      <div class="panel-section">
+        <h3>Log</h3>
+        <div class="log" id="log"></div>
+      </div>
+
+      <div class="panel-section" style="flex:1">
+        <h3>Como usar</h3>
+        <div class="help-text">
+          <p>• <strong>Arraste</strong> componentes para o canvas</p>
+          <p>• <strong>Clique</strong> em uma porta e depois em outra para conectar</p>
+          <p>• <strong>Clique</strong> na chave para ligar/desligar</p>
+          <p>• <kbd>Delete</kbd> remove o selecionado</p>
+          <p>• <kbd>Esc</kbd> cancela conexão</p>
+          <p>• Arraste o cabeçalho para mover</p>
+          <p>• Clique no fio para selecionar/excluir</p>
+        </div>
+      </div>
+    </aside>
+  </div>
+
+  <div class="statusbar">
+    <div class="sim-indicator">
+      <div class="sim-dot" id="sim-dot"></div>
+      <span id="sim-status">Simulação ativa • Atualização contínua</span>
+    </div>
+    <div id="status-msg">Pronto</div>
+  </div>
+
+  <!-- Modal Tabela Verdade -->
+  <div class="modal-overlay" id="truth-modal">
+    <div class="modal">
+      <div class="modal-header">
+        <h2>Tabelas Verdade</h2>
+        <button id="btn-close-modal">✕</button>
+      </div>
+      <div class="modal-body" id="truth-content"></div>
+    </div>
+  </div>
+
+  <input type="file" id="import-file" accept=".json" style="display:none">
+
+  <script>
+    // ============================================================
+    // CONFIGURAÇÃO DOS COMPONENTES
+    // ============================================================
+    const COMP_DEFS = {
+      switch: {
+        name: 'Chave',
+        inputs: 0,
+        outputs: 1,
+        outLabels: ['Q'],
+        className: 'switch',
+        compute: null // controlado manualmente
+      },
+      led: {
+        name: 'LED',
+        inputs: 1,
+        outputs: 0,
+        inLabels: ['IN'],
+        className: 'led',
+        compute: null
+      },
+      clock: {
+        name: 'Clock',
+        inputs: 0,
+        outputs: 1,
+        outLabels: ['CLK'],
+        className: 'clock',
+        compute: null
+      },
+      probe: {
+        name: 'Sonda',
+        inputs: 1,
+        outputs: 0,
+        inLabels: ['IN'],
+        className: 'probe',
+        compute: null
+      },
+      const1: {
+        name: 'Const 1',
+        inputs: 0,
+        outputs: 1,
+        outLabels: ['1'],
+        className: '',
+        compute: () => [1]
+      },
+      const0: {
+        name: 'Const 0',
+        inputs: 0,
+        outputs: 1,
+        outLabels: ['0'],
+        className: '',
+        compute: () => [0]
+      },
+      not: {
+        name: 'NOT',
+        inputs: 1,
+        outputs: 1,
+        inLabels: ['A'],
+        outLabels: ['Y'],
+        symbol: '¬',
+        compute: (ins) => [ins[0] ? 0 : 1]
+      },
+      buffer: {
+        name: 'Buffer',
+        inputs: 1,
+        outputs: 1,
+        inLabels: ['A'],
+        outLabels: ['Y'],
+        symbol: '▷',
+        compute: (ins) => [ins[0] ? 1 : 0]
+      },
+      and: {
+        name: 'AND',
+        inputs: 2,
+        outputs: 1,
+        inLabels: ['A', 'B'],
+        outLabels: ['Y'],
+        symbol: '∧',
+        compute: (ins) => [ins[0] && ins[1] ? 1 : 0]
+      },
+      or: {
+        name: 'OR',
+        inputs: 2,
+        outputs: 1,
+        inLabels: ['A', 'B'],
+        outLabels: ['Y'],
+        symbol: '∨',
+        compute: (ins) => [ins[0] || ins[1] ? 1 : 0]
+      },
+      nand: {
+        name: 'NAND',
+        inputs: 2,
+        outputs: 1,
+        inLabels: ['A', 'B'],
+        outLabels: ['Y'],
+        symbol: '⊼',
+        compute: (ins) => [!(ins[0] && ins[1]) ? 1 : 0]
+      },
+      nor: {
+        name: 'NOR',
+        inputs: 2,
+        outputs: 1,
+        inLabels: ['A', 'B'],
+        outLabels: ['Y'],
+        symbol: '⊽',
+        compute: (ins) => [!(ins[0] || ins[1]) ? 1 : 0]
+      },
+      xor: {
+        name: 'XOR',
+        inputs: 2,
+        outputs: 1,
+        inLabels: ['A', 'B'],
+        outLabels: ['Y'],
+        symbol: '⊕',
+        compute: (ins) => [ins[0] !== ins[1] ? 1 : 0]
+      },
+      xnor: {
+        name: 'XNOR',
+        inputs: 2,
+        outputs: 1,
+        inLabels: ['A', 'B'],
+        outLabels: ['Y'],
+        symbol: '⊙',
+        compute: (ins) => [ins[0] === ins[1] ? 1 : 0]
+      },
+      and3: {
+        name: 'AND3',
+        inputs: 3,
+        outputs: 1,
+        inLabels: ['A', 'B', 'C'],
+        outLabels: ['Y'],
+        symbol: '∧₃',
+        compute: (ins) => [ins[0] && ins[1] && ins[2] ? 1 : 0]
+      },
+      or3: {
+        name: 'OR3',
+        inputs: 3,
+        outputs: 1,
+        inLabels: ['A', 'B', 'C'],
+        outLabels: ['Y'],
+        symbol: '∨₃',
+        compute: (ins) => [ins[0] || ins[1] || ins[2] ? 1 : 0]
+      },
+      mux2: {
+        name: 'MUX 2:1',
+        inputs: 3,
+        outputs: 1,
+        inLabels: ['I0', 'I1', 'S'],
+        outLabels: ['Y'],
+        symbol: 'MUX',
+        compute: (ins) => [ins[2] ? ins[1] : ins[0]]
+      }
+    };
+
+    // ============================================================
+    // ESTADO GLOBAL
+    // ============================================================
+    let components = [];
+    let wires = [];
+    let nextId = 1;
+    let selectedId = null;
+    let selectedWireId = null;
+    let connectingFrom = null; // { compId, portIndex, isOutput }
+    let tempWirePath = null;
+    let simRunning = true;
+    let zoom = 1;
+    let clockState = 0;
+    let clockTimer = null;
+    let dragState = null;
+
+    const canvasArea = document.getElementById('canvas-area');
+    const wiresSvg = document.getElementById('wires-svg');
+    const emptyHint = document.getElementById('empty-hint');
+    const logEl = document.getElementById('log');
+
+    // ============================================================
+    // UTILITÁRIOS
+    // ============================================================
+    function log(msg, type = 'info') {
+      const entry = document.createElement('div');
+      entry.className = `entry ${type}`;
+      entry.textContent = `[${new Date().toLocaleTimeString()}] ${msg}`;
+      logEl.prepend(entry);
+      if (logEl.children.length > 40) logEl.lastChild.remove();
+    }
+
+    function updateStats() {
+      document.getElementById('stat-comps').textContent = components.length;
+      document.getElementById('stat-wires').textContent = wires.length;
+      document.getElementById('stat-gates').textContent = components.filter(c =>
+        !['switch','led','clock','probe','const0','const1'].includes(c.type)
+      ).length;
+      const active = wires.filter(w => w.value === 1).length;
+      document.getElementById('stat-active').textContent = active;
+      emptyHint.classList.toggle('hidden', components.length > 0);
+    }
+
+    function setStatus(msg) {
+      document.getElementById('status-msg').textContent = msg;
+    }
+
+    // ============================================================
+    // CRIAÇÃO DE COMPONENTES
+    // ============================================================
+    function createComponent(type, x, y) {
+      const def = COMP_DEFS[type];
+      if (!def) return null;
+
+      const id = nextId++;
+      const comp = {
+        id,
+        type,
+        x,
+        y,
+        value: type === 'switch' || type === 'clock' ? 0 : null,
+        inputs: Array(def.inputs).fill(0),
+        outputs: Array(def.outputs).fill(0),
+        el: null
+      };
+
+      const el = document.createElement('div');
+      el.className = `component ${def.className || ''}`;
+      el.dataset.id = id;
+      el.style.left = x + 'px';
+      el.style.top = y + 'px';
+
+      // Header
+      const header = document.createElement('div');
+      header.className = 'header';
+      header.innerHTML = `
+        <span class="label">${def.name}</span>
+        <button class="delete-btn" title="Remover">×</button>
+      `;
+      header.querySelector('.delete-btn').addEventListener('click', (e) => {
+        e.stopPropagation();
+        removeComponent(id);
+      });
+
+      // Body
+      const body = document.createElement('div');
+      body.className = 'body';
+
+      // Special UIs
+      if (type === 'switch') {
+        const toggle = document.createElement('div');
+        toggle.className = 'toggle';
+        toggle.addEventListener('click', (e) => {
+          e.stopPropagation();
+          comp.value = comp.value ? 0 : 1;
+          toggle.classList.toggle('on', !!comp.value);
+          simulate();
+          log(`Chave #${id} → ${comp.value ? 'LIGADA' : 'DESLIGADA'}`, 'ok');
+        });
+        body.appendChild(toggle);
+      } else if (type === 'led') {
+        const bulb = document.createElement('div');
+        bulb.className = 'led-bulb';
+        body.appendChild(bulb);
+      } else if (type === 'clock') {
+        const disp = document.createElement('div');
+        disp.className = 'clock-display';
+        disp.textContent = '0 Hz';
+        body.appendChild(disp);
+      } else if (type === 'probe') {
+        const val = document.createElement('div');
+        val.className = 'probe-value low';
+        val.textContent = '–';
+        body.appendChild(val);
+      } else if (def.symbol) {
+        const sym = document.createElement('div');
+        sym.className = 'gate-symbol';
+        sym.textContent = def.symbol;
+        body.appendChild(sym);
+      }
+
+      // Ports
+      const portsRow = document.createElement('div');
+      portsRow.className = 'ports';
+
+      const leftPorts = document.createElement('div');
+      leftPorts.className = 'ports-left';
+      for (let i = 0; i < def.inputs; i++) {
+        const port = document.createElement('div');
+        port.className = 'port';
+        port.dataset.compId = id;
+        port.dataset.portIndex = i;
+        port.dataset.isOutput = '0';
+        port.title = (def.inLabels && def.inLabels[i]) || `IN${i}`;
+        const label = document.createElement('span');
+        label.className = 'port-label';
+        label.textContent = (def.inLabels && def.inLabels[i]) || '';
+        port.appendChild(label);
+        leftPorts.appendChild(port);
+      }
+
+      const rightPorts = document.createElement('div');
+      rightPorts.className = 'ports-right';
+      for (let i = 0; i < def.outputs; i++) {
+        const port = document.createElement('div');
+        port.className = 'port';
+        port.dataset.compId = id;
+        port.dataset.portIndex = i;
+        port.dataset.isOutput = '1';
+        port.title = (def.outLabels && def.outLabels[i]) || `OUT${i}`;
+        const label = document.createElement('span');
+        label.className = 'port-label';
+        label.textContent = (def.outLabels && def.outLabels[i]) || '';
+        port.appendChild(label);
+        rightPorts.appendChild(port);
+      }
+
+      portsRow.appendChild(leftPorts);
+      portsRow.appendChild(rightPorts);
+      body.appendChild(portsRow);
+
+      el.appendChild(header);
+      el.appendChild(body);
+      canvasArea.appendChild(el);
+
+      // Events
+      el.addEventListener('mousedown', (e) => {
+        if (e.target.classList.contains('port') || e.target.classList.contains('delete-btn') ||
+            e.target.classList.contains('toggle') || e.target.closest('.toggle')) return;
+        selectComponent(id);
+        if (e.target.closest('.header') || e.target === el || e.target.classList.contains('body') ||
+            e.target.classList.contains('gate-symbol') || e.target.classList.contains('led-bulb') ||
+            e.target.classList.contains('probe-value') || e.target.classList.contains('clock-display')) {
+          startDrag(e, id);
+        }
+      });
+
+      // Port click for connecting
+      el.querySelectorAll('.port').forEach(port => {
+        port.addEventListener('click', (e) => {
+          e.stopPropagation();
+          handlePortClick(port);
+        });
+        port.addEventListener('mousedown', (e) => e.stopPropagation());
+      });
+
+      comp.el = el;
+      components.push(comp);
+
+      // Constantes já têm valor
+      if (type === 'const1') {
+        comp.outputs[0] = 1;
+        comp.value = 1;
+      } else if (type === 'const0') {
+        comp.outputs[0] = 0;
+        comp.value = 0;
+      }
+
+      updateStats();
+      log(`Adicionado: ${def.name} (#${id})`);
+      simulate();
+      return comp;
+    }
+
+    function removeComponent(id) {
+      // Remove wires connected to this component
+      wires = wires.filter(w => {
+        if (w.from.compId === id || w.to.compId === id) {
+          if (w.path) w.path.remove();
+          return false;
+        }
+        return true;
+      });
+      const idx = components.findIndex(c => c.id === id);
+      if (idx >= 0) {
+        components[idx].el.remove();
+        components.splice(idx, 1);
+      }
+      if (selectedId === id) selectedId = null;
+      updateStats();
+      simulate();
+      log(`Removido componente #${id}`, 'warn');
+    }
+
+    function selectComponent(id) {
+      selectedWireId = null;
+      document.querySelectorAll('.component.selected').forEach(el => el.classList.remove('selected'));
+      document.querySelectorAll('#wires-svg path.selected').forEach(p => p.classList.remove('selected'));
+      selectedId = id;
+      const comp = components.find(c => c.id === id);
+      if (comp) {
+        comp.el.classList.add('selected');
+        setStatus(`Selecionado: ${COMP_DEFS[comp.type].name} #${id}`);
+      }
+    }
+
+    // ============================================================
+    // DRAG & DROP
+    // ============================================================
+    function startDrag(e, id) {
+      const comp = components.find(c => c.id === id);
+      if (!comp) return;
+      dragState = {
+        id,
+        startX: e.clientX,
+        startY: e.clientY,
+        origX: comp.x,
+        origY: comp.y
+      };
+      e.preventDefault();
+    }
+
+    document.addEventListener('mousemove', (e) => {
+      if (dragState) {
+        const dx = (e.clientX - dragState.startX) / zoom;
+        const dy = (e.clientY - dragState.startY) / zoom;
+        const comp = components.find(c => c.id === dragState.id);
+        if (comp) {
+          comp.x = Math.max(0, dragState.origX + dx);
+          comp.y = Math.max(0, dragState.origY + dy);
+          comp.el.style.left = comp.x + 'px';
+          comp.el.style.top = comp.y + 'px';
+          updateWiresForComp(comp.id);
+        }
+      }
+      if (connectingFrom && tempWirePath) {
+        const rect = canvasArea.getBoundingClientRect();
+        const x = (e.clientX - rect.left) / zoom;
+        const y = (e.clientY - rect.top) / zoom;
+        const fromPos = getPortPosition(connectingFrom.compId, connectingFrom.portIndex, connectingFrom.isOutput);
+        if (fromPos) {
+          const d = makeWirePath(fromPos.x, fromPos.y, x, y);
+          tempWirePath.setAttribute('d', d);
+        }
+      }
+    });
+
+    document.addEventListener('mouseup', () => {
+      dragState = null;
+    });
+
+    // Sidebar drag
+    document.querySelectorAll('.comp-item').forEach(item => {
+      item.addEventListener('dragstart', (e) => {
+        e.dataTransfer.setData('type', item.dataset.type);
+        e.dataTransfer.effectAllowed = 'copy';
+      });
+    });
+
+    canvasArea.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'copy';
+    });
+
+    canvasArea.addEventListener('drop', (e) => {
+      e.preventDefault();
+      const type = e.dataTransfer.getData('type');
+      if (!type) return;
+      const rect = canvasArea.getBoundingClientRect();
+      const x = (e.clientX - rect.left) / zoom - 45;
+      const y = (e.clientY - rect.top) / zoom - 20;
+      createComponent(type, Math.max(0, x), Math.max(0, y));
+    });
+
+    // ============================================================
+    // CONEXÕES (FIOS)
+    // ============================================================
+    function handlePortClick(portEl) {
+      const compId = parseInt(portEl.dataset.compId);
+      const portIndex = parseInt(portEl.dataset.portIndex);
+      const isOutput = portEl.dataset.isOutput === '1';
+
+      if (!connectingFrom) {
+        // Start connection (prefer from output)
+        connectingFrom = { compId, portIndex, isOutput };
+        portEl.classList.add('connecting');
+        // Create temp wire
+        tempWirePath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+        tempWirePath.classList.add('temp');
+        wiresSvg.appendChild(tempWirePath);
+        setStatus('Clique em outra porta para conectar (Esc para cancelar)');
+      } else {
+        // Finish connection
+        const from = connectingFrom;
+        const to = { compId, portIndex, isOutput };
+
+        // Clear visual
+        document.querySelectorAll('.port.connecting').forEach(p => p.classList.remove('connecting'));
+        if (tempWirePath) {
+          tempWirePath.remove();
+          tempWirePath = null;
+        }
+
+        // Validate: one must be output, one input
+        if (from.isOutput === to.isOutput) {
+          log('Conexão inválida: conecte uma saída a uma entrada', 'warn');
+          connectingFrom = null;
+          setStatus('Conexão inválida');
+          return;
+        }
+
+        // Normalize: from = output, to = input
+        let src, dst;
+        if (from.isOutput) {
+          src = from;
+          dst = to;
+        } else {
+          src = to;
+          dst = from;
+        }
+
+        // Check if input already has a connection
+        const existing = wires.find(w => w.to.compId === dst.compId && w.to.portIndex === dst.portIndex);
+        if (existing) {
+          // Replace
+          if (existing.path) existing.path.remove();
+          wires = wires.filter(w => w !== existing);
+        }
+
+        // Create wire
+        const wireId = nextId++;
+        const wire = {
+          id: wireId,
+          from: { compId: src.compId, portIndex: src.portIndex },
+          to: { compId: dst.compId, portIndex: dst.portIndex },
+          value: 0,
+          path: null
+        };
+
+        const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+        path.dataset.wireId = wireId;
+        path.addEventListener('click', (e) => {
+          e.stopPropagation();
+          selectWire(wireId);
+        });
+        wiresSvg.appendChild(path);
+        wire.path = path;
+        wires.push(wire);
+
+        connectingFrom = null;
+        updateWirePath(wire);
+        updateStats();
+        simulate();
+        log(`Fio conectado (#${wireId})`, 'ok');
+        setStatus('Conexão criada');
+      }
+    }
+
+    function getPortPosition(compId, portIndex, isOutput) {
+      const comp = components.find(c => c.id === compId);
+      if (!comp) return null;
+      const ports = isOutput
+        ? comp.el.querySelectorAll('.ports-right .port')
+        : comp.el.querySelectorAll('.ports-left .port');
+      const port = ports[portIndex];
+      if (!port) return null;
+      const rect = port.getBoundingClientRect();
+      const canvasRect = canvasArea.getBoundingClientRect();
+      return {
+        x: (rect.left + rect.width / 2 - canvasRect.left) / zoom,
+        y: (rect.top + rect.height / 2 - canvasRect.top) / zoom
+      };
+    }
+
+    function makeWirePath(x1, y1, x2, y2) {
+      const dx = Math.abs(x2 - x1);
+      const midX = x1 + Math.max(dx * 0.4, 30) * (x2 >= x1 ? 1 : -1);
+      // Bezier suave
+      return `M ${x1} ${y1} C ${midX} ${y1}, ${x2 - (x2 - x1) * 0.3} ${y2}, ${x2} ${y2}`;
+    }
+
+    function updateWirePath(wire) {
+      const fromPos = getPortPosition(wire.from.compId, wire.from.portIndex, true);
+      const toPos = getPortPosition(wire.to.compId, wire.to.portIndex, false);
+      if (!fromPos || !toPos || !wire.path) return;
+      wire.path.setAttribute('d', makeWirePath(fromPos.x, fromPos.y, toPos.x, toPos.y));
+      wire.path.classList.toggle('active', wire.value === 1);
+    }
+
+    function updateWiresForComp(compId) {
+      wires.forEach(w => {
+        if (w.from.compId === compId || w.to.compId === compId) {
+          updateWirePath(w);
+        }
+      });
+    }
+
+    function selectWire(id) {
+      selectedId = null;
+      document.querySelectorAll('.component.selected').forEach(el => el.classList.remove('selected'));
+      document.querySelectorAll('#wires-svg path.selected').forEach(p => p.classList.remove('selected'));
+      selectedWireId = id;
+      const wire = wires.find(w => w.id === id);
+      if (wire && wire.path) {
+        wire.path.classList.add('selected');
+        setStatus(`Fio #${id} selecionado (Delete para remover)`);
+      }
+    }
+
+    function removeWire(id) {
+      const idx = wires.findIndex(w => w.id === id);
+      if (idx >= 0) {
+        if (wires[idx].path) wires[idx].path.remove();
+        wires.splice(idx, 1);
+        selectedWireId = null;
+        updateStats();
+        simulate();
+        log(`Fio #${id} removido`, 'warn');
+      }
+    }
+
+    // ============================================================
+    // SIMULAÇÃO
+    // ============================================================
+    function simulate() {
+      if (!simRunning) return;
+
+      // Reset inputs
+      components.forEach(c => {
+        const def = COMP_DEFS[c.type];
+        c.inputs = Array(def.inputs).fill(0);
+      });
+
+      // Propagate wire values to inputs (multi-pass for combinational)
+      // Sources first
+      components.forEach(c => {
+        if (c.type === 'switch' || c.type === 'clock') {
+          c.outputs[0] = c.value ? 1 : 0;
+        } else if (c.type === 'const1') {
+          c.outputs[0] = 1;
+        } else if (c.type === 'const0') {
+          c.outputs[0] = 0;
+        }
+      });
+
+      // Iterative propagation (handles depth)
+      for (let pass = 0; pass < 12; pass++) {
+        // Update wires from source outputs
+        wires.forEach(w => {
+          const src = components.find(c => c.id === w.from.compId);
+          if (src) {
+            w.value = src.outputs[w.from.portIndex] || 0;
+          }
+        });
+
+        // Apply wires to destination inputs
+        wires.forEach(w => {
+          const dst = components.find(c => c.id === w.to.compId);
+          if (dst) {
+            dst.inputs[w.to.portIndex] = w.value;
+          }
+        });
+
+        // Compute gates
+        components.forEach(c => {
+          const def = COMP_DEFS[c.type];
+          if (def.compute) {
+            const result = def.compute(c.inputs);
+            c.outputs = result;
+          }
+        });
+      }
+
+      // Update visual state of ports and special components
+      components.forEach(c => {
+        const def = COMP_DEFS[c.type];
+
+        // Input ports
+        c.el.querySelectorAll('.ports-left .port').forEach((port, i) => {
+          port.classList.toggle('active', c.inputs[i] === 1);
+        });
+        // Output ports
+        c.el.querySelectorAll('.ports-right .port').forEach((port, i) => {
+          port.classList.toggle('active', c.outputs[i] === 1);
+        });
+
+        // LED
+        if (c.type === 'led') {
+          const bulb = c.el.querySelector('.led-bulb');
+          if (bulb) bulb.classList.toggle('on', c.inputs[0] === 1);
+        }
+        // Probe
+        if (c.type === 'probe') {
+          const val = c.el.querySelector('.probe-value');
+          if (val) {
+            val.textContent = c.inputs[0] === 1 ? '1' : '0';
+            val.classList.toggle('high', c.inputs[0] === 1);
+            val.classList.toggle('low', c.inputs[0] !== 1);
+          }
+        }
+        // Clock display
+        if (c.type === 'clock') {
+          const disp = c.el.querySelector('.clock-display');
+          if (disp) disp.textContent = c.value ? '1' : '0';
+        }
+      });
+
+      // Update wire visuals
+      wires.forEach(w => updateWirePath(w));
+      updateStats();
+    }
+
+    // Clock ticker
+    function startClock() {
+      if (clockTimer) clearInterval(clockTimer);
+      clockTimer = setInterval(() => {
+        if (!simRunning) return;
+        clockState = clockState ? 0 : 1;
+        components.filter(c => c.type === 'clock').forEach(c => {
+          c.value = clockState;
+        });
+        simulate();
+      }, 800);
+    }
+
+    // ============================================================
+    // ZOOM
+    // ============================================================
+    function setZoom(z) {
+      zoom = Math.min(2, Math.max(0.4, z));
+      canvasArea.style.transform = `scale(${zoom})`;
+      document.getElementById('btn-zoom-reset').textContent = Math.round(zoom * 100) + '%';
+      // Update all wires after zoom change (positions are in canvas coords)
+      wires.forEach(updateWirePath);
+    }
+
+    document.getElementById('btn-zoom-in').addEventListener('click', () => setZoom(zoom + 0.1));
+    document.getElementById('btn-zoom-out').addEventListener('click', () => setZoom(zoom - 0.1));
+    document.getElementById('btn-zoom-reset').addEventListener('click', () => setZoom(1));
+
+    // ============================================================
+    // CONTROLES
+    // ============================================================
+    document.getElementById('btn-sim').addEventListener('click', () => {
+      simRunning = !simRunning;
+      const btn = document.getElementById('btn-sim');
+      const dot = document.getElementById('sim-dot');
+      if (simRunning) {
+        btn.textContent = '▶ Simulando';
+        btn.classList.add('primary');
+        btn.classList.remove('danger');
+        document.getElementById('sim-status').textContent = 'Simulação ativa • Atualização contínua';
+        dot.style.background = 'var(--success)';
+        simulate();
+        log('Simulação retomada', 'ok');
+      } else {
+        btn.textContent = '⏸ Pausado';
+        btn.classList.remove('primary');
+        document.getElementById('sim-status').textContent = 'Simulação pausada';
+        dot.style.background = 'var(--warning)';
+        log('Simulação pausada', 'warn');
+      }
+    });
+
+    document.getElementById('btn-clear').addEventListener('click', () => {
+      if (!confirm('Limpar todo o circuito?')) return;
+      components.forEach(c => c.el.remove());
+      wires.forEach(w => w.path && w.path.remove());
+      components = [];
+      wires = [];
+      selectedId = null;
+      selectedWireId = null;
+      connectingFrom = null;
+      if (tempWirePath) { tempWirePath.remove(); tempWirePath = null; }
+      updateStats();
+      log('Circuito limpo', 'warn');
+      setStatus('Canvas limpo');
+    });
+
+    document.getElementById('btn-truth').addEventListener('click', showTruthTables);
+    document.getElementById('btn-close-modal').addEventListener('click', () => {
+      document.getElementById('truth-modal').classList.remove('open');
+    });
+
+    // Export / Import
+    document.getElementById('btn-export').addEventListener('click', () => {
+      const data = {
+        version: 1,
+        components: components.map(c => ({
+          id: c.id, type: c.type, x: c.x, y: c.y, value: c.value
+        })),
+        wires: wires.map(w => ({
+          id: w.id, from: w.from, to: w.to
+        })),
+        nextId
+      };
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'circuito-logico.json';
+      a.click();
+      log('Circuito exportado', 'ok');
+    });
+
+    document.getElementById('btn-import').addEventListener('click', () => {
+      document.getElementById('import-file').click();
+    });
+
+    document.getElementById('import-file').addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        try {
+          const data = JSON.parse(ev.target.result);
+          // Clear current
+          components.forEach(c => c.el.remove());
+          wires.forEach(w => w.path && w.path.remove());
+          components = [];
+          wires = [];
+
+          // Restore components
+          data.components.forEach(cd => {
+            const c = createComponent(cd.type, cd.x, cd.y);
+            if (c) {
+              // Fix id
+              const oldEl = c.el;
+              // We need to force the id
+              // Simpler: just set value
+              c.value = cd.value || 0;
+              if (c.type === 'switch') {
+                const toggle = c.el.querySelector('.toggle');
+                if (toggle) toggle.classList.toggle('on', !!c.value);
+              }
+            }
+          });
+
+          // Map old ids to new (since createComponent assigns new ids)
+          // Actually for simplicity, rebuild with original positions but we lost id mapping.
+          // Better approach: clear and recreate carefully.
+          // Re-do properly:
+
+          // Actually the above is broken for wires. Let's do a clean import.
+        } catch (err) {
+          log('Erro ao importar: ' + err.message, 'warn');
+        }
+      };
+      // Better import implementation
+      reader.onload = (ev) => {
+        try {
+          const data = JSON.parse(ev.target.result);
+          components.forEach(c => c.el.remove());
+          wires.forEach(w => w.path && w.path.remove());
+          components = [];
+          wires = [];
+          nextId = data.nextId || 1;
+
+          const idMap = {};
+          data.components.forEach(cd => {
+            const def = COMP_DEFS[cd.type];
+            if (!def) return;
+            const id = cd.id;
+            nextId = Math.max(nextId, id + 1);
+            const comp = {
+              id,
+              type: cd.type,
+              x: cd.x,
+              y: cd.y,
+              value: cd.value || 0,
+              inputs: Array(def.inputs).fill(0),
+              outputs: Array(def.outputs).fill(0),
+              el: null
+            };
+            // Reuse create logic by temporarily setting nextId, but easier to rebuild DOM
+            // We'll call an internal builder
+            buildComponentDOM(comp);
+            components.push(comp);
+            idMap[cd.id] = id;
+          });
+
+          data.wires.forEach(wd => {
+            const wire = {
+              id: wd.id,
+              from: wd.from,
+              to: wd.to,
+              value: 0,
+              path: null
+            };
+            nextId = Math.max(nextId, wd.id + 1);
+            const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+            path.dataset.wireId = wire.id;
+            path.addEventListener('click', (e) => {
+              e.stopPropagation();
+              selectWire(wire.id);
+            });
+            wiresSvg.appendChild(path);
+            wire.path = path;
+            wires.push(wire);
+          });
+
+          // Fix switch visuals
+          components.forEach(c => {
+            if (c.type === 'switch') {
+              const toggle = c.el.querySelector('.toggle');
+              if (toggle) toggle.classList.toggle('on', !!c.value);
+            }
+          });
+
+          updateStats();
+          simulate();
+          log('Circuito importado com sucesso', 'ok');
+        } catch (err) {
+          console.error(err);
+          log('Erro ao importar arquivo', 'warn');
+        }
+      };
+      reader.readAsText(file);
+      e.target.value = '';
+    });
+
+    // Helper to rebuild DOM for import (mirrors createComponent DOM part)
+    function buildComponentDOM(comp) {
+      const def = COMP_DEFS[comp.type];
+      const el = document.createElement('div');
+      el.className = `component ${def.className || ''}`;
+      el.dataset.id = comp.id;
+      el.style.left = comp.x + 'px';
+      el.style.top = comp.y + 'px';
+
+      const header = document.createElement('div');
+      header.className = 'header';
+      header.innerHTML = `
+        <span class="label">${def.name}</span>
+        <button class="delete-btn" title="Remover">×</button>
+      `;
+      header.querySelector('.delete-btn').addEventListener('click', (e) => {
+        e.stopPropagation();
+        removeComponent(comp.id);
+      });
+
+      const body = document.createElement('div');
+      body.className = 'body';
+
+      if (comp.type === 'switch') {
+        const toggle = document.createElement('div');
+        toggle.className = 'toggle' + (comp.value ? ' on' : '');
+        toggle.addEventListener('click', (e) => {
+          e.stopPropagation();
+          comp.value = comp.value ? 0 : 1;
+          toggle.classList.toggle('on', !!comp.value);
+          simulate();
+          log(`Chave #${comp.id} → ${comp.value ? 'LIGADA' : 'DESLIGADA'}`, 'ok');
+        });
+        body.appendChild(toggle);
+      } else if (comp.type === 'led') {
+        const bulb = document.createElement('div');
+        bulb.className = 'led-bulb';
+        body.appendChild(bulb);
+      } else if (comp.type === 'clock') {
+        const disp = document.createElement('div');
+        disp.className = 'clock-display';
+        disp.textContent = '0';
+        body.appendChild(disp);
+      } else if (comp.type === 'probe') {
+        const val = document.createElement('div');
+        val.className = 'probe-value low';
+        val.textContent = '–';
+        body.appendChild(val);
+      } else if (def.symbol) {
+        const sym = document.createElement('div');
+        sym.className = 'gate-symbol';
+        sym.textContent = def.symbol;
+        body.appendChild(sym);
+      }
+
+      const portsRow = document.createElement('div');
+      portsRow.className = 'ports';
+      const leftPorts = document.createElement('div');
+      leftPorts.className = 'ports-left';
+      for (let i = 0; i < def.inputs; i++) {
+        const port = document.createElement('div');
+        port.className = 'port';
+        port.dataset.compId = comp.id;
+        port.dataset.portIndex = i;
+        port.dataset.isOutput = '0';
+        port.title = (def.inLabels && def.inLabels[i]) || `IN${i}`;
+        const label = document.createElement('span');
+        label.className = 'port-label';
+        label.textContent = (def.inLabels && def.inLabels[i]) || '';
+        port.appendChild(label);
+        leftPorts.appendChild(port);
+      }
+      const rightPorts = document.createElement('div');
+      rightPorts.className = 'ports-right';
+      for (let i = 0; i < def.outputs; i++) {
+        const port = document.createElement('div');
+        port.className = 'port';
+        port.dataset.compId = comp.id;
+        port.dataset.portIndex = i;
+        port.dataset.isOutput = '1';
+        port.title = (def.outLabels && def.outLabels[i]) || `OUT${i}`;
+        const label = document.createElement('span');
+        label.className = 'port-label';
+        label.textContent = (def.outLabels && def.outLabels[i]) || '';
+        port.appendChild(label);
+        rightPorts.appendChild(port);
+      }
+      portsRow.appendChild(leftPorts);
+      portsRow.appendChild(rightPorts);
+      body.appendChild(portsRow);
+
+      el.appendChild(header);
+      el.appendChild(body);
+      canvasArea.appendChild(el);
+
+      el.addEventListener('mousedown', (e) => {
+        if (e.target.classList.contains('port') || e.target.classList.contains('delete-btn') ||
+            e.target.classList.contains('toggle') || e.target.closest('.toggle')) return;
+        selectComponent(comp.id);
+        if (e.target.closest('.header') || e.target === el || e.target.classList.contains('body') ||
+            e.target.classList.contains('gate-symbol') || e.target.classList.contains('led-bulb') ||
+            e.target.classList.contains('probe-value') || e.target.classList.contains('clock-display')) {
+          startDrag(e, comp.id);
+        }
+      });
+
+      el.querySelectorAll('.port').forEach(port => {
+        port.addEventListener('click', (e) => {
+          e.stopPropagation();
+          handlePortClick(port);
+        });
+        port.addEventListener('mousedown', (e) => e.stopPropagation());
+      });
+
+      comp.el = el;
+    }
+
+    // ============================================================
+    // TABELA VERDADE
+    // ============================================================
+    function showTruthTables() {
+      const content = document.getElementById('truth-content');
+      let html = '';
+
+      const gates = [
+        { name: 'NOT', inputs: ['A'], fn: (a) => a ? 0 : 1 },
+        { name: 'AND', inputs: ['A', 'B'], fn: (a, b) => a && b ? 1 : 0 },
+        { name: 'OR', inputs: ['A', 'B'], fn: (a, b) => a || b ? 1 : 0 },
+        { name: 'NAND', inputs: ['A', 'B'], fn: (a, b) => !(a && b) ? 1 : 0 },
+        { name: 'NOR', inputs: ['A', 'B'], fn: (a, b) => !(a || b) ? 1 : 0 },
+        { name: 'XOR', inputs: ['A', 'B'], fn: (a, b) => a !== b ? 1 : 0 },
+        { name: 'XNOR', inputs: ['A', 'B'], fn: (a, b) => a === b ? 1 : 0 },
+        { name: 'Buffer', inputs: ['A'], fn: (a) => a ? 1 : 0 },
+      ];
+
+      gates.forEach(g => {
+        html += `<h3 style="margin:1rem 0 0.5rem;color:var(--accent)">${g.name}</h3>`;
+        html += '<table class="truth-table"><thead><tr>';
+        g.inputs.forEach(inp => html += `<th>${inp}</th>`);
+        html += '<th>Y</th></tr></thead><tbody>';
+
+        const n = g.inputs.length;
+        const rows = 1 << n;
+        for (let i = 0; i < rows; i++) {
+          const vals = [];
+          for (let b = n - 1; b >= 0; b--) {
+            vals.push((i >> b) & 1);
+          }
+          const out = g.fn(...vals);
+          html += '<tr>';
+          vals.forEach(v => html += `<td class="${v ? 'high' : 'low'}">${v}</td>`);
+          html += `<td class="${out ? 'high' : 'low'}">${out}</td></tr>`;
+        }
+        html += '</tbody></table>';
+      });
+
+      // MUX
+      html += `<h3 style="margin:1rem 0 0.5rem;color:var(--accent)">MUX 2:1</h3>`;
+      html += '<table class="truth-table"><thead><tr><th>I0</th><th>I1</th><th>S</th><th>Y</th></tr></thead><tbody>';
+      for (let s = 0; s <= 1; s++) {
+        for (let i0 = 0; i0 <= 1; i0++) {
+          for (let i1 = 0; i1 <= 1; i1++) {
+            const y = s ? i1 : i0;
+            html += `<tr>
+              <td class="${i0?'high':'low'}">${i0}</td>
+              <td class="${i1?'high':'low'}">${i1}</td>
+              <td class="${s?'high':'low'}">${s}</td>
+              <td class="${y?'high':'low'}">${y}</td>
+            </tr>`;
+          }
+        }
+      }
+      html += '</tbody></table>';
+
+      content.innerHTML = html;
+      document.getElementById('truth-modal').classList.add('open');
+    }
+
+    // ============================================================
+    // TECLADO
+    // ============================================================
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        if (connectingFrom) {
+          connectingFrom = null;
+          document.querySelectorAll('.port.connecting').forEach(p => p.classList.remove('connecting'));
+          if (tempWirePath) { tempWirePath.remove(); tempWirePath = null; }
+          setStatus('Conexão cancelada');
+        }
+      }
+      if (e.key === 'Delete' || e.key === 'Backspace') {
+        if (selectedWireId) {
+          removeWire(selectedWireId);
+        } else if (selectedId) {
+          removeComponent(selectedId);
+        }
+      }
+    });
+
+    // Click empty space deselects
+    canvasArea.addEventListener('click', (e) => {
+      if (e.target === canvasArea || e.target === wiresSvg) {
+        selectedId = null;
+        selectedWireId = null;
+        document.querySelectorAll('.component.selected').forEach(el => el.classList.remove('selected'));
+        document.querySelectorAll('#wires-svg path.selected').forEach(p => p.classList.remove('selected'));
+        setStatus('Pronto');
+      }
+    });
+
+    // ============================================================
+    // INICIALIZAÇÃO
+    // ============================================================
+    startClock();
+    log('Simulador iniciado. Arraste componentes para o canvas.', 'ok');
+    setStatus('Pronto — arraste componentes da barra lateral');
+
+    // Demo inicial (pequeno circuito de exemplo)
+    setTimeout(() => {
+      const s1 = createComponent('switch', 80, 120);
+      const s2 = createComponent('switch', 80, 220);
+      const and = createComponent('and', 280, 160);
+      const led = createComponent('led', 480, 160);
+
+      // Connect
+      function forceConnect(fromId, fromPort, toId, toPort) {
+        const wireId = nextId++;
+        const wire = {
+          id: wireId,
+          from: { compId: fromId, portIndex: fromPort },
+          to: { compId: toId, portIndex: toPort },
+          value: 0,
+          path: null
+        };
+        const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+        path.dataset.wireId = wireId;
+        path.addEventListener('click', (e) => {
+          e.stopPropagation();
+          selectWire(wireId);
+        });
+        wiresSvg.appendChild(path);
+        wire.path = path;
+        wires.push(wire);
+        updateWirePath(wire);
+      }
+
+      forceConnect(s1.id, 0, and.id, 0);
+      forceConnect(s2.id, 0, and.id, 1);
+      forceConnect(and.id, 0, led.id, 0);
+      updateStats();
+      simulate();
+      log('Circuito de exemplo carregado (AND com 2 chaves → LED)', 'ok');
+    }, 300);
+  </script>
+</body>
+</html>
